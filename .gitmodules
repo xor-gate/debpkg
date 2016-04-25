@@ -1,0 +1,3 @@
+[submodule "vendor/github.com/blakesmith/ar"]
+	path = vendor/github.com/blakesmith/ar
+	url = https://github.com/blakesmith/ar
