@@ -18,8 +18,5 @@ before_install:
 install:
   - go get golang.org/x/tools/cmd/vet
 script:
-  - make tools
-  - make lint
   - make test
-  - make bench
   - $HOME/gopath/bin/goveralls -service=travis-ci
