@@ -3,7 +3,7 @@ export DESTDIR?=$(GOPATH)/bin
 export GOBIN?=$(DESTDIR)
 
 all: build
-ci: lint test
+ci: test
 
 build:
 	go build
