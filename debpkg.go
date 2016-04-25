@@ -7,14 +7,14 @@ import (
 	"fmt"
 )
 
-type debpkgData struct {
+type debPkgData struct {
 	md5sums string
 	buf *bytes.Buffer
 	tw *tar.Writer
 	gw *gzip.Writer
 }
 
-type debpkg struct {
+type DebPkg struct {
 	name            string
 	version         string
 	architecture    string
@@ -24,48 +24,63 @@ type debpkg struct {
 	homepage        string
 	descrShort      string
 	descr           string
-	data debpkgData
+	data            debPkgData
 }
 
-func New() *debpkg {
-	d := &debpkg{}
+// Create new debian package
+func New() *DebPkg {
+	d := &DebPkg{}
 	d.data.buf = new(bytes.Buffer)
 	d.data.gw  = gzip.NewWriter(d.data.buf)
 	d.data.tw  = tar.NewWriter(d.data.gw)
 	return d
 }
 
-func (deb *debpkg) SetName(name string) {
+// Write the debian package to the filename
+func (deb *DebPkg) Write(filename string) error {
+	fmt.Printf("%s", createControlFile(deb))
+	return nil
+}
+
+// Set package name
+func (deb *DebPkg) SetName(name string) {
 	deb.name = name
 }
 
-func (deb *debpkg) SetVersion(version string) {
+// Set package version
+func (deb *DebPkg) SetVersion(version string) {
 	deb.version = version
 }
 
-func (deb *debpkg) SetMaintainer(maintainer string) {
+// Set maintainer. E.g: "Foo Bar"
+func (deb *DebPkg) SetMaintainer(maintainer string) {
 	deb.maintainer = maintainer
 }
 
-func (deb *debpkg) SetMaintainerEmail(emailAddress string) {
+// Set maintainer email. E.g: "foo@bar.com"
+func (deb *DebPkg) SetMaintainerEmail(emailAddress string) {
 	// add check
 	deb.maintainerEmail = emailAddress
 }
 
-func (deb *debpkg) SetHomepageUrl(url string) {
+// Set homepage url. E.g: "https://github.com/foo/bar"
+func (deb *DebPkg) SetHomepageUrl(url string) {
 	// check url
 	deb.homepage = url
 }
 
-func (deb *debpkg) SetShortDescription(descr string) {
+// Set short description. E.g: "My awesome foo bar baz tool"
+func (deb *DebPkg) SetShortDescription(descr string) {
 	deb.descrShort = descr
 }
 
-func (deb *debpkg) SetDescription(descr string) {
+// Set long description. E.g:
+// "This tool will calculation the most efficient way to world domination"
+func (deb *DebPkg) SetDescription(descr string) {
 	deb.descr = descr
 }
 
-func createControlFile(deb *debpkg) string {
+func createControlFile(deb *DebPkg) string {
 	const controlFileTmpl = `
 Package: %s
 Version: %s
@@ -88,9 +103,4 @@ Description: %s
 		deb.homepage,
 		deb.descrShort,
 		deb.descr)
-}
-
-func (deb *debpkg) Write(filename string) error {
-	fmt.Printf("%s", createControlFile(deb))
-	return nil
 }
