@@ -1,8 +1,13 @@
 # debpkg
 
-Golang package for creating debian packages
+Golang package for creating (signed) debian packages
 
 [![License][License-Image]][License-Url] [![Godoc][Godoc-Image]][Godoc-Url] [![ReportCard][ReportCard-Image]][ReportCard-Url] [![Build][Build-Status-Image]][Build-Status-Url]
+
+**Features** WIP
+
+* Create simple debian packages from files and folders
+* GPG sign package (without dpkg-sig!)
 
 # License
 

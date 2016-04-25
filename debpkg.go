@@ -8,6 +8,9 @@ import (
 	"fmt"
 )
 
+const debPkgDigestVersion = 4
+const debPkgDigestRole    = "builder"
+
 type debPkgData struct {
 	md5sums string
 	buf *bytes.Buffer
@@ -15,7 +18,31 @@ type debPkgData struct {
 	gw *gzip.Writer
 }
 
-const debPkgDigestVersion = 4
+type debPkgControlInfo struct {
+	name            string
+	version         string
+	architecture    string
+	installedSize   int64
+	maintainer      string
+	maintainerEmail string
+	homepage        string
+	suggests        string
+        conflicts       string
+        replaces        string
+        provides        string
+        section         string
+        priority        string
+	descrShort      string
+	descr           string
+}
+
+type debPkgControl struct {
+	buf *bytes.Buffer
+	tw *tar.Writer
+	gw *gzip.Writer
+	info debPkgControlInfo
+	extra []string // Extra files added to the control.tar.gz. Typical usage is for conffiles, postinst, postrm, prerm.
+}
 
 // Digest file for GPG signing
 type debPkgDigest struct {
@@ -31,17 +58,9 @@ type debPkgDigest struct {
 }
 
 type DebPkg struct {
-	name            string
-	version         string
-	architecture    string
-	installedSize   int64
-	maintainer      string
-	maintainerEmail string
-	homepage        string
-	descrShort      string
-	descr           string
-	data            debPkgData
-	digest          debPkgDigest
+	control  debPkgControl
+	data     debPkgData
+	digest   debPkgDigest
 }
 
 // Create new debian package
@@ -59,81 +78,126 @@ func New() *DebPkg {
 func (deb *DebPkg) Sign() {
 	deb.digest.version = debPkgDigestVersion
 	deb.digest.date    = fmt.Sprintf(time.Now().Format(time.ANSIC))
+	deb.digest.role    = debPkgDigestRole
 } 
 
 // Write the debian package to the filename
 func (deb *DebPkg) Write(filename string) error {
-	fmt.Printf("%s", createControlFile(deb))
-	fmt.Printf("%s", createDigestFile(deb))
+	fmt.Printf("control:\n\n%s\n", createControlFile(deb))
+	fmt.Printf("digest:\n\n%s\n", createDigestFile(deb))
 	return nil
 }
 
 // Set package name
 func (deb *DebPkg) SetName(name string) {
-	deb.name = name
+	deb.control.info.name = name
 }
 
 // Set package version
 func (deb *DebPkg) SetVersion(version string) {
-	deb.version = version
+	deb.control.info.version = version
+}
+
+// Set architecture
+func (deb *DebPkg) SetArchitecture(arch string) {
+	deb.control.info.architecture = arch
 }
 
 // Set maintainer. E.g: "Foo Bar"
 func (deb *DebPkg) SetMaintainer(maintainer string) {
-	deb.maintainer = maintainer
+	deb.control.info.maintainer = maintainer
 }
 
 // Set maintainer email. E.g: "foo@bar.com"
-func (deb *DebPkg) SetMaintainerEmail(emailAddress string) {
+func (deb *DebPkg) SetMaintainerEmail(email string) {
 	// add check
-	deb.maintainerEmail = emailAddress
+	deb.control.info.maintainerEmail = email
+}
+
+// Set suggests. E.g: aptitude
+func (deb *DebPkg) SetSuggests(suggests string) {
+	deb.control.info.suggests = suggests
+}
+
+// Set conflicts. E.g: nano
+func (deb *DebPkg) SetConflicts(conflicts string) {
+	deb.control.info.conflicts = conflicts
+}
+
+// Set provides. E.g: editor
+func (deb *DebPkg) SetProvides(provides string) {
+	deb.control.info.provides = provides
+}
+
+// Set priority. E.g: important
+func (deb *DebPkg) SetPriority(prio string) {
+	deb.control.info.priority = prio
+}
+
+// Set section. E.g: editors
+func (deb *DebPkg) SetSection(section string) {
+	deb.control.info.section = section
+}
+
+// Set replaces. E.g: pico
+func (deb *DebPkg) SetReplaces(replaces string) {
+	deb.control.info.replaces = replaces
 }
 
 // Set homepage url. E.g: "https://github.com/foo/bar"
 func (deb *DebPkg) SetHomepageUrl(url string) {
 	// check url
-	deb.homepage = url
+	deb.control.info.homepage = url
 }
 
 // Set short description. E.g: "My awesome foo bar baz tool"
 func (deb *DebPkg) SetShortDescription(descr string) {
-	deb.descrShort = descr
+	deb.control.info.descrShort = descr
 }
 
 // Set long description. E.g:
 // "This tool will calculation the most efficient way to world domination"
 func (deb *DebPkg) SetDescription(descr string) {
-	deb.descr = descr
+	deb.control.info.descr = descr
 }
 
+// Allow advanced user to add custom script to the control.tar.gz Typical usage is for
+//  conffiles, postinst, postrm, prerm.
+func (deb *DebPkg) AddControlExtra(filename string) {
+	deb.control.extra = append(deb.control.extra, filename)
+}
+
+
+// Create control file for control.tar.gz
 func createControlFile(deb *DebPkg) string {
-	const controlFileTmpl = `
-Package: %s
+	const controlFileTmpl = `Package: %s
 Version: %s
 Architecture: %s
 Maintainer: %s <%s>
 Installed-Size: %d
-Section: devel
-Priority: extra
+Section: %s
+Priority: %s
 Homepage: %s
 Description: %s
  %s
 `
 	return fmt.Sprintf(controlFileTmpl,
-		deb.name,
-		deb.version,
-		deb.architecture,
-		deb.maintainer,
-		deb.maintainerEmail,
-		deb.installedSize,
-		deb.homepage,
-		deb.descrShort,
-		deb.descr)
+		deb.control.info.name,
+		deb.control.info.version,
+		deb.control.info.architecture,
+		deb.control.info.maintainer,
+		deb.control.info.maintainerEmail,
+		deb.control.info.installedSize,
+		deb.control.info.section,
+		deb.control.info.priority,
+		deb.control.info.homepage,
+		deb.control.info.descrShort,
+		deb.control.info.descr)
 }
 
+// Create unsigned digest file at toplevel of deb package
 func createDigestFile(deb *DebPkg) string {
-const digestFileTmpl = `
-Version: %d
+	const digestFileTmpl = `Version: %d
 Date: %s
 Signer: %s
 Role: %s 
