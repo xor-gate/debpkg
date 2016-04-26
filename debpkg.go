@@ -30,7 +30,6 @@ type debPkgControlInfo struct {
 	name            string
 	version         string
 	architecture    string
-	installedSize   int64
 	maintainer      string
 	maintainerEmail string
 	homepage        string
@@ -99,8 +98,6 @@ func (deb *DebPkg) Write(filename string) error {
 	fmt.Printf("control md5sums:\n\n%s\n", deb.data.md5sums)
 	fmt.Printf("digest:\n\n%s\n", createDigestFile(deb))
 
-	createControlTarGz(deb)
-
 	fd, err := os.Create(filename)
 	if err != nil {
 		return nil
@@ -110,6 +107,7 @@ func (deb *DebPkg) Write(filename string) error {
 	deb.data.tw.Close()
 	deb.data.gw.Close()
 
+	createControlTarGz(deb)
 	deb.createDebAr(fd)
 
 	return nil
@@ -291,7 +289,7 @@ Description: %s
 		deb.control.info.architecture,
 		deb.control.info.maintainer,
 		deb.control.info.maintainerEmail,
-		deb.control.info.installedSize,
+		deb.data.size,
 		deb.control.info.section,
 		deb.control.info.priority,
 		deb.control.info.homepage,
