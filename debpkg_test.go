@@ -17,6 +17,7 @@ func TestWrite(t *testing.T) {
 	deb.SetDescription("very very very very long description")
 
 	deb.AddFile("debpkg.go")
+	deb.AddDirectory("tests")
 
 	deb.Sign()
 	deb.Write("control.tar.gz")

@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"io"
+	"path/filepath"
 )
 
 const debPkgDigestVersion = 4
@@ -97,13 +98,24 @@ func (deb *DebPkg) Write(filename string) error {
 
 	createControlTarGz(deb)
 
-	fd, err := os.Create(filename)
+	fd, err := os.Create("control.tar.gz")
 	if err != nil {
 		return nil
 	}
 	defer fd.Close()
 
 	io.Copy(fd, deb.control.buf)
+
+	deb.data.tw.Close()
+	deb.data.gw.Close()
+
+	fd, err = os.Create("data.tar.gz")
+	if err != nil {
+		return nil
+	}
+	defer fd.Close()
+
+	io.Copy(fd, deb.data.buf)
 
 	return nil
 }
@@ -216,8 +228,19 @@ func (deb *DebPkg) AddFile(filename string) error {
 	return nil
 }
 
-func (deb *DebPkg) AddFileFromData(filename string, data []byte) {
+func (deb *DebPkg) AddDirectory(dir string) error {
+	files := []string{}
+	err := filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
+		files = append(files, path)
+		return nil
+	})
 
+	for _, file := range files {
+		fmt.Println(file)
+		deb.AddFile(file)
+	}
+
+	return err
 }
 
 func computeMd5(filePath string) (data []byte, size int64, err error) {
@@ -240,9 +263,6 @@ func computeMd5(filePath string) (data []byte, size int64, err error) {
 
   return hash.Sum(result), fi.Size(), nil
 }
-
-
-
 
 // Create control file for control.tar.gz
 func createControlFile(deb *DebPkg) string {
