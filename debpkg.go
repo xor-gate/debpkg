@@ -4,14 +4,17 @@ import (
 	"archive/tar"
 	"bytes"
 	"time"
+	"go/build"
 	"crypto/md5"
 	"compress/gzip"
 	"fmt"
 	"os"
 	"io"
 	"path/filepath"
+	"github.com/blakesmith/ar"
 )
 
+const debPkgDebianBinaryVersion = "2.0\n"
 const debPkgDigestVersion = 4
 const debPkgDigestRole    = "builder"
 
@@ -98,24 +101,16 @@ func (deb *DebPkg) Write(filename string) error {
 
 	createControlTarGz(deb)
 
-	fd, err := os.Create("control.tar.gz")
+	fd, err := os.Create(filename)
 	if err != nil {
 		return nil
 	}
 	defer fd.Close()
-
-	io.Copy(fd, deb.control.buf)
 
 	deb.data.tw.Close()
 	deb.data.gw.Close()
 
-	fd, err = os.Create("data.tar.gz")
-	if err != nil {
-		return nil
-	}
-	defer fd.Close()
-
-	io.Copy(fd, deb.data.buf)
+	deb.createDebAr(fd)
 
 	return nil
 }
@@ -243,6 +238,15 @@ func (deb *DebPkg) AddDirectory(dir string) error {
 	return err
 }
 
+// Get debianized current architecture
+func GetCurrentArchitecture() string {
+	arch := build.Default.GOARCH
+	if arch == "386" {
+		return "i386"
+	}
+	return arch
+}
+
 func computeMd5(filePath string) (data []byte, size int64, err error) {
   var result []byte
   file, err := os.Open(filePath)
@@ -277,6 +281,10 @@ Homepage: %s
 Description: %s
  %s
 `
+	if (deb.control.info.architecture == "") {
+		deb.SetArchitecture(GetCurrentArchitecture())
+	}
+
 	return fmt.Sprintf(controlFileTmpl,
 		deb.control.info.name,
 		deb.control.info.version,
@@ -342,6 +350,38 @@ func createControlTarGz(deb *DebPkg) error {
 	}
 	if err := deb.control.gw.Close(); err != nil {
 		return fmt.Errorf("closing control.tar.gz: %v", err)
+	}
+	return nil
+}
+
+func addArFile(now time.Time, w *ar.Writer, name string, body []byte) error {
+	hdr := ar.Header{
+		Name:    name,
+		Size:    int64(len(body)),
+		Mode:    0644,
+		ModTime: now,
+	}
+	if err := w.WriteHeader(&hdr); err != nil {
+		return fmt.Errorf("cannot write file header: %v", err)
+	}
+	_, err := w.Write(body)
+	return err
+}
+
+func (deb *DebPkg) createDebAr(dst io.Writer) error {
+	now := time.Now()
+	w := ar.NewWriter(dst)
+	if err := w.WriteGlobalHeader(); err != nil {
+		return fmt.Errorf("cannot write ar header to deb file: %v", err)
+	}
+	if err := addArFile(now, w, "debian-binary", []byte(debPkgDebianBinaryVersion)); err != nil {
+		return fmt.Errorf("cannot pack debian-binary: %v", err)
+	}
+	if err := addArFile(now, w, "control.tar.gz", deb.control.buf.Bytes()); err != nil {
+		return fmt.Errorf("cannot add control.tar.gz to deb: %v", err)
+	}
+	if err := addArFile(now, w, "data.tar.gz", deb.data.buf.Bytes()); err != nil {
+		return fmt.Errorf("cannot add data.tar.gz to deb: %v", err)
 	}
 	return nil
 }

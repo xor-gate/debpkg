@@ -20,5 +20,5 @@ func TestWrite(t *testing.T) {
 	deb.AddDirectory("tests")
 
 	deb.Sign()
-	deb.Write("control.tar.gz")
+	deb.Write("test.deb")
 }
