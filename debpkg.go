@@ -113,27 +113,38 @@ func (deb *DebPkg) Write(filename string) error {
 	return nil
 }
 
-// Set package name
+// Set package name (mandatory)
+// See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Package
 func (deb *DebPkg) SetName(name string) {
 	deb.control.info.name = name
 }
 
-// Set package version
+// Set package version (mandatory)
+// See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
 func (deb *DebPkg) SetVersion(version string) {
 	deb.control.info.version = version
 }
 
-// Set architecture
+// Set architecture. E.g "i386, amd64, arm". See `dpkg-architecture -L` for all supported.
+// Architecture: any
+//    The generated binary package is an architecture dependent one usually in a compiled language.
+// Architecture: all
+//    The generated binary package is an architecture independent one usually consisting of text,
+//    images, or scripts in an interpreted language.
+// See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Architecture
+// And: http://man7.org/linux/man-pages/man1/dpkg-architecture.1.html
 func (deb *DebPkg) SetArchitecture(arch string) {
 	deb.control.info.architecture = arch
 }
 
-// Set maintainer. E.g: "Foo Bar"
+// Set maintainer (mandatory). E.g: "Foo Bar"
+// See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Maintainer
 func (deb *DebPkg) SetMaintainer(maintainer string) {
 	deb.control.info.maintainer = maintainer
 }
 
 // Set maintainer email. E.g: "foo@bar.com"
+// See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Maintainer
 func (deb *DebPkg) SetMaintainerEmail(email string) {
 	// add check
 	deb.control.info.maintainerEmail = email
@@ -154,12 +165,14 @@ func (deb *DebPkg) SetProvides(provides string) {
 	deb.control.info.provides = provides
 }
 
-// Set priority. E.g: important
+// Set priority (recommended). E.g: important
+// See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Priority
 func (deb *DebPkg) SetPriority(prio string) {
 	deb.control.info.priority = prio
 }
 
-// Set section. E.g: editors
+// Set section (recommended). E.g: editors
+// See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Section
 func (deb *DebPkg) SetSection(section string) {
 	deb.control.info.section = section
 }
@@ -236,8 +249,8 @@ func (deb *DebPkg) AddDirectory(dir string) error {
 	return err
 }
 
-// Get debianized current architecture
-func GetCurrentArchitecture() string {
+// Get current architecture of build
+func GetArchitecture() string {
 	arch := build.Default.GOARCH
 	if arch == "386" {
 		return "i386"
@@ -280,7 +293,7 @@ Description: %s
  %s
 `
 	if (deb.control.info.architecture == "") {
-		deb.SetArchitecture(GetCurrentArchitecture())
+		deb.SetArchitecture(GetArchitecture())
 	}
 
 	return fmt.Sprintf(controlFileTmpl,
