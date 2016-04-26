@@ -4,14 +4,18 @@ import (
 	"archive/tar"
 	"bytes"
 	"time"
+	"crypto/md5"
 	"compress/gzip"
 	"fmt"
+	"os"
+	"io"
 )
 
 const debPkgDigestVersion = 4
 const debPkgDigestRole    = "builder"
 
 type debPkgData struct {
+	size int64
 	md5sums string
 	buf *bytes.Buffer
 	tw *tar.Writer
@@ -27,11 +31,11 @@ type debPkgControlInfo struct {
 	maintainerEmail string
 	homepage        string
 	suggests        string
-        conflicts       string
-        replaces        string
-        provides        string
-        section         string
-        priority        string
+	conflicts       string
+	replaces        string
+	provides        string
+	section         string
+	priority        string
 	descrShort      string
 	descr           string
 }
@@ -51,10 +55,10 @@ type debPkgDigest struct {
 	date    string // Mon Jan 2 15:04:05 2006 (time.ANSIC)
 	role    string // builder
 	files   string // Multiple <md5sum> <sha1sum> <size> <filename>
-                       // E.g: 
-                       // 	3cf918272ffa5de195752d73f3da3e5e 7959c969e092f2a5a8604e2287807ac5b1b384ad 4 debian-binary
-	               //       79bb73dbb522dc1a2dd1b9c2ec89fc79 26d29d15aad5c0e051d07571e28da2bc0009707e 366 control.tar.gz
-	               //       e1a6e48c95a760170029ef7872cec994 e02ed99e5c4fd847bde12b4c2c30dd814b26ec27 136 data.tar.gz
+                       // E.g:
+                       //       3cf918272ffa5de195752d73f3da3e5e 7959c969e092f2a5a8604e2287807ac5b1b384ad 4 debian-binary
+                       //       79bb73dbb522dc1a2dd1b9c2ec89fc79 26d29d15aad5c0e051d07571e28da2bc0009707e 366 control.tar.gz
+                       //       e1a6e48c95a760170029ef7872cec994 e02ed99e5c4fd847bde12b4c2c30dd814b26ec27 136 data.tar.gz
 }
 
 type DebPkg struct {
@@ -67,7 +71,11 @@ type DebPkg struct {
 func New() *DebPkg {
 	d := &DebPkg{}
 
-	d.data.buf = new(bytes.Buffer)
+	d.control.buf = &bytes.Buffer{}
+	d.control.gw  = gzip.NewWriter(d.control.buf)
+	d.control.tw  = tar.NewWriter(d.control.gw)
+
+	d.data.buf = &bytes.Buffer{}
 	d.data.gw  = gzip.NewWriter(d.data.buf)
 	d.data.tw  = tar.NewWriter(d.data.gw)
 
@@ -79,12 +87,24 @@ func (deb *DebPkg) Sign() {
 	deb.digest.version = debPkgDigestVersion
 	deb.digest.date    = fmt.Sprintf(time.Now().Format(time.ANSIC))
 	deb.digest.role    = debPkgDigestRole
-} 
+}
 
 // Write the debian package to the filename
 func (deb *DebPkg) Write(filename string) error {
 	fmt.Printf("control:\n\n%s\n", createControlFile(deb))
+	fmt.Printf("control md5sums:\n\n%s\n", deb.data.md5sums)
 	fmt.Printf("digest:\n\n%s\n", createDigestFile(deb))
+
+	createControlTarGz(deb)
+
+	fd, err := os.Create(filename)
+	if err != nil {
+		return nil
+	}
+	defer fd.Close()
+
+	io.Copy(fd, deb.control.buf)
+
 	return nil
 }
 
@@ -167,6 +187,62 @@ func (deb *DebPkg) AddControlExtra(filename string) {
 	deb.control.extra = append(deb.control.extra, filename)
 }
 
+func (deb *DebPkg) AddFile(filename string) error {
+	file, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	if stat, err := file.Stat(); err == nil {
+		// now lets create the header as needed for this file within the tarball
+		header := new(tar.Header)
+		header.Name = filename
+		header.Size = stat.Size()
+		header.Mode = int64(stat.Mode())
+		header.ModTime = stat.ModTime()
+		// write the header to the tarball archive
+		if err := deb.data.tw.WriteHeader(header); err != nil {
+			return err
+		}
+		// copy the file data to the tarball 
+		if _, err := io.Copy(deb.data.tw, file); err != nil {
+			return err
+		}
+
+		md5, size, _ := computeMd5(filename)
+		deb.data.size += size
+		deb.data.md5sums += fmt.Sprintf("%x  %s\n", md5, filename)
+	}
+	return nil
+}
+
+func (deb *DebPkg) AddFileFromData(filename string, data []byte) {
+
+}
+
+func computeMd5(filePath string) (data []byte, size int64, err error) {
+  var result []byte
+  file, err := os.Open(filePath)
+  if err != nil {
+    return result, 0, err
+  }
+  defer file.Close()
+
+  hash := md5.New()
+  if _, err := io.Copy(hash, file); err != nil {
+    return result, 0, err
+  }
+
+  fi, err := file.Stat()
+  if err != nil {
+    return result, 0, err
+  }
+
+  return hash.Sum(result), fi.Size(), nil
+}
+
+
+
 
 // Create control file for control.tar.gz
 func createControlFile(deb *DebPkg) string {
@@ -207,4 +283,45 @@ Role: %s
 		deb.digest.date,
 		deb.digest.signer,
 		deb.digest.role)
+}
+
+func createControlTarGz(deb *DebPkg) error {
+	body := []byte(createControlFile(deb))
+	hdr := tar.Header{
+		Name:     "control",
+		Size:     int64(len(body)),
+		Mode:     0644,
+		ModTime:  time.Now(),
+		Typeflag: tar.TypeReg,
+	}
+	fmt.Println(hdr)
+	fmt.Printf("tw: %p", deb.control.tw)
+	if err := deb.control.tw.WriteHeader(&hdr); err != nil {
+		return fmt.Errorf("cannot write header of control file to control.tar.gz: %v", err)
+	}
+	if _, err := deb.control.tw.Write(body); err != nil {
+		return fmt.Errorf("cannot write control file to control.tar.gz: %v", err)
+	}
+
+	hdr = tar.Header{
+		Name:     "md5sums",
+		Size:     int64(len(deb.data.md5sums)),
+		Mode:     0644,
+		ModTime:  time.Now(),
+		Typeflag: tar.TypeReg,
+	}
+	if err := deb.control.tw.WriteHeader(&hdr); err != nil {
+		return fmt.Errorf("cannot write header of md5sums file to control.tar.gz: %v", err)
+	}
+	if _, err := deb.control.tw.Write([]byte(deb.data.md5sums)); err != nil {
+		return fmt.Errorf("cannot write md5sums file to control.tar.gz: %v", err)
+	}
+
+	if err := deb.control.tw.Close(); err != nil {
+		return fmt.Errorf("closing control.tar.gz: %v", err)
+	}
+	if err := deb.control.gw.Close(); err != nil {
+		return fmt.Errorf("closing control.tar.gz: %v", err)
+	}
+	return nil
 }
