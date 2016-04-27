@@ -1,0 +1,8 @@
+# Example debpkg.yml specfile
+description:
+   short: DebPkg creates debian packages from files and folders
+   long: >
+       Bla bla
+       Bla Bla
+       .
+       Dusse

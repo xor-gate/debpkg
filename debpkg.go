@@ -12,11 +12,19 @@ import (
 	"io"
 	"path/filepath"
 	"github.com/blakesmith/ar"
+	"github.com/go-yaml/yaml"
 )
 
 const debPkgDebianBinaryVersion = "2.0\n"
 const debPkgDigestVersion = 4
 const debPkgDigestRole    = "builder"
+
+type debPkgSpecFileCfg struct {
+	Description struct {
+		Short string `yaml:"short"`
+		Long  string `yaml:"long"`
+	}
+}
 
 type debPkgData struct {
 	size int64
@@ -90,6 +98,28 @@ func (deb *DebPkg) Sign() {
 	deb.digest.version = debPkgDigestVersion
 	deb.digest.date    = fmt.Sprintf(time.Now().Format(time.ANSIC))
 	deb.digest.role    = debPkgDigestRole
+}
+
+// Load configuration from depkg.yml specfile
+func (deb *DebPkg) Config(filename string) error {
+	cfg := debPkgSpecFileCfg{}
+	data := new(bytes.Buffer)
+
+	fd, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer fd.Close()
+
+	io.Copy(data, fd)
+
+	err = yaml.Unmarshal(data.Bytes(), &cfg)
+        if err != nil {
+		return err
+        }
+
+        fmt.Printf("config:\n\n%+v\n", cfg)
+	return nil
 }
 
 // Write the debian package to the filename

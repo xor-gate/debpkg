@@ -1,9 +1,17 @@
 package debpkg_test
 
 import (
+	"fmt"
 	"testing"
 	"github.com/xor-gate/debpkg"
 )
+
+func TestConfig(t *testing.T) {
+	deb := debpkg.New()
+
+	err := deb.Config("debpkg.yml")
+	fmt.Println(err)
+}
 
 func TestWrite(t *testing.T) {
 	deb := debpkg.New()
