@@ -1,7 +1,7 @@
 # debpkg
 
-debpkg is a native [Go](https://golang.org) implementation with zero dependencies 
- to create [Debian](https://www.debian.org) packages.
+debpkg is a native [Go](https://golang.org) implementation with zero dependencies to Debian deb-package perl
+ tooling and libraries to create [Debian](https://www.debian.org) packages.
 
 [![License][License-Image]][License-Url]
 ![Stability][Stability-Status-Image]
@@ -84,6 +84,7 @@ I would like to mention some other noticable projects:
 * [Debian New Maintainers' Guide](https://www.debian.org/doc/manuals/maint-guide/)
 * [Debian Policy Manual](https://www.debian.org/doc/debian-policy/)
 * [Setting up signed APT repository with Reprepro](https://wiki.debian.org/SettingUpSignedAptRepositoryWithReprepro)
+* [Create authenticated repository](https://help.ubuntu.com/community/CreateAuthenticatedRepository)
 
 # License
 

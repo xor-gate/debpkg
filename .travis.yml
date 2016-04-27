@@ -14,11 +14,8 @@ before_install:
   - if ! go get github.com/golang/tools/cmd/cover; then go get golang.org/x/tools/cmd/cover; fi
 script:
   - make test
-  - dpkg --contents debpkg-test.deb
-  - dpkg --info debpkg-test.deb
+  - make test-dpkg
   - sudo dpkg --install debpkg-test.deb
   - sudo dpkg --remove debpkg-test
-  - dpkg --contents debpkg-test-signed.deb
-  - dpkg --info debpkg-test-signed.deb
   - sudo dpkg --install debpkg-test-signed.deb
   - $HOME/gopath/bin/goveralls -service=travis-ci

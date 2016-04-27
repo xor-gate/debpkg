@@ -16,8 +16,8 @@ import (
 	"github.com/go-yaml/yaml"
 	"go/build"
 	"golang.org/x/crypto/openpgp"
-	//"golang.org/x/crypto/openpgp/clearsign"
-	//"golang.org/x/crypto/openpgp/packet"
+	"golang.org/x/crypto/openpgp/clearsign"
+	"golang.org/x/crypto/openpgp/packet"
 	"hash"
 	"io"
 	"os"
@@ -177,15 +177,20 @@ func (deb *DebPkg) Config(filename string) error {
 
 // Write the debian package to the filename
 func (deb *DebPkg) Write(filename string) error {
+	err := createControlTarGz(deb)
+	if err != nil {
+		return fmt.Errorf("error while creating control.tar.gz: %s", err)
+	}
+
 	return deb.createDebAr(filename)
 }
 
 // WriteSigned package with GPG entity
 func (deb *DebPkg) WriteSigned(filename string, entity *openpgp.Entity, keyid string) error {
-	//var buf bytes.Buffer
-	//var cfg packet.Config
+	var buf bytes.Buffer
+	var cfg packet.Config
 	var signer string
-	//cfg.DefaultHash = debPkgDigestDefaultHash
+	cfg.DefaultHash = debPkgDigestDefaultHash
 
 	for id := range entity.Identities {
 		// TODO real search for keyid, need to investigate maybe a subkey?
@@ -195,18 +200,18 @@ func (deb *DebPkg) WriteSigned(filename string, entity *openpgp.Entity, keyid st
 	deb.digest.date = fmt.Sprintf(time.Now().Format(time.ANSIC))
 	deb.digest.signer = signer
 
-/*
 	clearsign, err := clearsign.Encode(&buf, entity.PrivateKey, &cfg)
 	if err != nil {
 		return fmt.Errorf("error while signing: %s", err)
 	}
-*/
 
-	// FIXME when this is enabled the data.tar.gz goes corrupt for a unknown reason
-	// test with: dpkg -c debpkg-test-signed.deb
-	//deb.digest.plaintext = createDigestFileString(deb)
+	err = createControlTarGz(deb)
+	if err != nil {
+		return fmt.Errorf("error while creating control.tar.gz: %s", err)
+	}
 
-/*
+	deb.digest.plaintext = createDigestFileString(deb)
+
 	if _, err = clearsign.Write([]byte(deb.digest.plaintext)); err != nil {
 		return fmt.Errorf("error from Write: %s", err)
 	}
@@ -215,7 +220,6 @@ func (deb *DebPkg) WriteSigned(filename string, entity *openpgp.Entity, keyid st
 	}
 
 	deb.digest.clearsign = buf.String()
-*/
 
 	return deb.createDebAr(filename)
 }
@@ -488,27 +492,27 @@ Date: %s
 Role: %s
 Files: 
 %s`
+	deb.digest.version = debPkgDigestVersion
+	deb.digest.role = debPkgDigestRole
+
 	// debian-binary
 	deb.digest.files += fmt.Sprintf("\t%x %x %d %s\n",
 		digestCalcDataHash(bytes.NewBuffer([]byte(deb.debianBinary)), md5.New()),
 		digestCalcDataHash(bytes.NewBuffer([]byte(deb.debianBinary)), sha1.New()),
 		len(deb.debianBinary),
 		"debian-binary")
+
 	// control.tar.gz
 	deb.digest.files += fmt.Sprintf("\t%x %x %d %s\n",
-		digestCalcDataHash(deb.control.buf, md5.New()),
-		digestCalcDataHash(deb.control.buf, sha1.New()),
-		deb.control.buf.Len(),
-		"control.tar.bz2")
+		0, 0,
+		len(deb.control.buf.Bytes()),
+		"control.tar.gz")
+
 	// data.tar.gz
 	deb.digest.files += fmt.Sprintf("\t%x %x %d %s\n",
-		digestCalcDataHash(deb.data.buf, md5.New()),
-		digestCalcDataHash(deb.data.buf, sha1.New()),
-		deb.data.buf.Len(),
-		"data.tar.bz2")
-
-	deb.digest.version = debPkgDigestVersion
-	deb.digest.role = debPkgDigestRole
+		0, 0,
+		len(deb.data.buf.Bytes()),
+		"data.tar.gz")
 
 	return fmt.Sprintf(digestFileTmpl,
 		deb.digest.version,
@@ -574,17 +578,12 @@ func addArFile(now time.Time, w *ar.Writer, name string, body []byte) error {
 }
 
 func (deb *DebPkg) createDebAr(filename string) error {
-	err := createControlTarGz(deb)
-	if err != nil {
-		return fmt.Errorf("error while creating control.tar.gz: %s", err)
-	}
-
 	// Create file
 	fd, err := os.Create(filename)
 	if err != nil {
 		return fmt.Errorf("unable to create: %s", filename)
 	}
-	// TODO when something goes wrong in writing, we should remove the stale package
+	// TODO when something goes wrong in writing, we should remove the stale package file...
 	defer fd.Close()
 
 	deb.data.tw.Close()
@@ -605,10 +604,9 @@ func (deb *DebPkg) createDebAr(filename string) error {
 		return fmt.Errorf("cannot add data.tar.gz to deb: %v", err)
 	}
 	if deb.digest.clearsign != "" {
-		if err := addArFile(now, w, "digests.asc", []byte(deb.digest.clearsign)); err != nil {
-			return fmt.Errorf("cannot add digests.asc to deb: %v", err)
+		if err := addArFile(now, w, "digests", []byte(deb.digest.clearsign)); err != nil {
+			return fmt.Errorf("cannot add digests to deb: %v", err)
 		}
 	}
-
 	return nil
 }
