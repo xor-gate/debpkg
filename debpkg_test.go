@@ -133,7 +133,7 @@ Files:
 	}
 }
 
-func TestSign(t *testing.T) {
+func TestWriteSigned(t *testing.T) {
 	deb := New()
 
 	// Create random new GPG identity for signage
@@ -144,8 +144,8 @@ func TestSign(t *testing.T) {
 		return
 	}
 
-	// Sign
-	deb.Sign(e, "00000000")
+	// WriteSigned package
+	deb.WriteSigned("debpkg-signed.deb", e, "00000000")
 }
 
 func TestWrite(t *testing.T) {

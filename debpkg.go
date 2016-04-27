@@ -109,11 +109,13 @@ type debPkgControl struct {
 
 // Digest file for GPG signing
 type debPkgDigest struct {
-	version int    // Always version 4 (for dpkg-sig 0.13.1+nmu2)
-	signer  string // Name <email>
-	date    string // Mon Jan 2 15:04:05 2006 (time.ANSIC)
-	role    string // builder
-	files   string // Multiple "\t<md5sum> <sha1sum> <size> <filename>"
+	plaintext string // Plaintext package digest (empty when unsigned)
+	clearsign string // GPG clearsigned package digest (empty when unsigned)
+	version   int    // Always version 4 (for dpkg-sig 0.13.1+nmu2)
+	signer    string // Name <email>
+	date      string // Mon Jan 2 15:04:05 2006 (time.ANSIC)
+	role      string // builder
+	files     string // Multiple "\t<md5sum> <sha1sum> <size> <filename>"
 	// E.g:
 	//       3cf918272ffa5de195752d73f3da3e5e 7959c969e092f2a5a8604e2287807ac5b1b384ad 4 debian-binary
 	//       79bb73dbb522dc1a2dd1b9c2ec89fc79 26d29d15aad5c0e051d07571e28da2bc0009707e 366 control.tar.gz
@@ -145,51 +147,6 @@ func New() *DebPkg {
 	d.data.tw = tar.NewWriter(d.data.gw)
 
 	return d
-}
-
-// Sign the package with GPG entity
-func (deb *DebPkg) Sign(entity *openpgp.Entity, keyid string) {
-	var buf bytes.Buffer
-	var cfg packet.Config
-	var signer string
-	cfg.DefaultHash = debPkgDigestDefaultHash
-
-	for id := range entity.Identities {
-		// TODO real search for keyid, need to investigate maybe a subkey?
-		fmt.Printf("%v\n", id)
-		signer = id
-	}
-
-	deb.digest.date = fmt.Sprintf(time.Now().Format(time.ANSIC))
-	deb.digest.signer = signer
-
-	plaintext, err := clearsign.Encode(&buf, entity.PrivateKey, &cfg)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	msg := createDigestFileString(deb)
-
-	if _, err = plaintext.Write([]byte(msg)); err != nil {
-		fmt.Printf("error from Write: %s", err)
-		return
-	}
-	if err = plaintext.Close(); err != nil {
-		fmt.Printf("error from Close: %s", err)
-		return
-	}
-
-	fmt.Printf("---\nName: %+v\n", entity.Identities)
-	keyidStr := strings.ToUpper(strconv.FormatUint(entity.PrimaryKey.KeyId, 16))
-	fp := strings.ToUpper(hex.EncodeToString(entity.PrimaryKey.Fingerprint[:]))
-	fmt.Printf("Fingerprint: %s\n", fp)
-	fmt.Printf("Long KeyId: %s\n", keyidStr)
-	keyidShort := keyidStr[len(keyidStr)-8:]
-	fmt.Printf("Short KeyId: %s\n", keyidShort)
-	fmt.Printf("---")
-
-	fmt.Printf("%s", buf.String())
 }
 
 // Config loads settings from a depkg.yml specfile
@@ -229,6 +186,65 @@ func (deb *DebPkg) Write(filename string) error {
 	deb.createDebAr(fd)
 
 	return nil
+}
+
+// WriteSigned package with GPG entity
+func (deb *DebPkg) WriteSigned(filename string, entity *openpgp.Entity, keyid string) {
+	var buf bytes.Buffer
+	var cfg packet.Config
+	var signer string
+	cfg.DefaultHash = debPkgDigestDefaultHash
+
+	for id := range entity.Identities {
+		// TODO real search for keyid, need to investigate maybe a subkey?
+		fmt.Printf("%v\n", id)
+		signer = id
+	}
+
+	deb.digest.date = fmt.Sprintf(time.Now().Format(time.ANSIC))
+	deb.digest.signer = signer
+
+	clearsign, err := clearsign.Encode(&buf, entity.PrivateKey, &cfg)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	deb.digest.plaintext = createDigestFileString(deb)
+
+	if _, err = clearsign.Write([]byte(deb.digest.plaintext)); err != nil {
+		fmt.Printf("error from Write: %s", err)
+		return
+	}
+	if err = clearsign.Close(); err != nil {
+		fmt.Printf("error from Close: %s", err)
+		return
+	}
+
+	deb.digest.clearsign = buf.String()
+
+	fd, err := os.Create(filename)
+	if err != nil {
+		return
+	}
+	defer fd.Close()
+
+	deb.data.tw.Close()
+	deb.data.gw.Close()
+
+	createControlTarGz(deb)
+	deb.createDebAr(fd)
+
+	fmt.Printf("---\nName: %+v\n", entity.Identities)
+	keyidStr := strings.ToUpper(strconv.FormatUint(entity.PrimaryKey.KeyId, 16))
+	fp := strings.ToUpper(hex.EncodeToString(entity.PrimaryKey.Fingerprint[:]))
+	fmt.Printf("Fingerprint: %s\n", fp)
+	fmt.Printf("Long KeyId: %s\n", keyidStr)
+	keyidShort := keyidStr[len(keyidStr)-8:]
+	fmt.Printf("Short KeyId: %s\n", keyidShort)
+	fmt.Printf("---")
+
+	fmt.Printf("%s", buf.String())
 }
 
 // SetName sets the name of the binary package (mandatory)
@@ -565,6 +581,11 @@ func (deb *DebPkg) createDebAr(dst io.Writer) error {
 	}
 	if err := addArFile(now, w, "data.tar.gz", deb.data.buf.Bytes()); err != nil {
 		return fmt.Errorf("cannot add data.tar.gz to deb: %v", err)
+	}
+	if deb.digest.clearsign != "" {
+		if err := addArFile(now, w, "digests.asc", []byte(deb.digest.clearsign)); err != nil {
+			return fmt.Errorf("cannot add digests.asc to deb: %v", err)
+		}
 	}
 	return nil
 }
