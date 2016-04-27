@@ -15,7 +15,7 @@ func TestConfig(t *testing.T) {
 // Test correct output of a empty control file when no DepPkg Set* functions are called
 // Only the mandatory fields are exported then, this behaviour is checked
 func TestControlFileEmpty(t *testing.T) {
-controlExpect := `Package: 
+	controlExpect := `Package: 
 Version: 0.0.0
 Architecture: amd64
 Maintainer:  <>
@@ -41,7 +41,7 @@ Description:
 // Test correct output of the control file when SetVersion* functions are called
 // Only the mandatory fields are exported then, this behaviour is checked
 func TestControlFileSetVersionMajorMinorPatch(t *testing.T) {
-controlExpect := `Package: 
+	controlExpect := `Package: 
 Version: 1.2.3
 Architecture: amd64
 Maintainer:  <>
@@ -71,7 +71,7 @@ Description:
 // Test correct output of control file when the mandatory DepPkg Set* functions are called
 // This checks if the long description is formatted according to the debian policy
 func TestControlFileLongDescriptionFormatting(t *testing.T) {
-controlExpect := `Package: debpkg
+	controlExpect := `Package: debpkg
 Version: 0.0.0
 Architecture: amd64
 Maintainer: Jerry Jacobs <foo@bar.com>
@@ -90,8 +90,8 @@ Description: Golang package for creating (gpg signed) debian packages
  * GPG verify package
 `
 
-// User supplied very long description without leading spaces and no ending newline
-controlDescr := `**Features**
+	// User supplied very long description without leading spaces and no ending newline
+	controlDescr := `**Features**
 
 * Create simple debian packages from files and folders
 * Add custom control files (preinst, postinst, prerm, postrm etcetera)

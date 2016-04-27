@@ -1,3 +1,7 @@
+// Copyright 2016 Jerry Jacobs. All rights reserved.
+// Use of this source code is governed by the MIT
+// license that can be found in the LICENSE file.
+
 package debpkg
 
 import (
@@ -16,16 +20,16 @@ import (
 	"time"
 )
 
-type VcsType string
+type VcsType string // Package support version control system (Vcs) types
 
 const (
-	VcsTypeArch       VcsType = "Arch"
-	VcsTypeBazaar     VcsType = "Bzr"
-	VcsTypeDarcs      VcsType = "Darcs"
-	VcsTypeGit        VcsType = "Git"
-	VcsTypeMercurial  VcsType = "Hg"
-	VcsTypeMonotone   VcsType = "Mtn"
-	VcsTypeSubversion VcsType = "Svn"
+	VcsTypeArch       VcsType = "Arch"  // Arch
+	VcsTypeBazaar     VcsType = "Bzr"   // Bazaar
+	VcsTypeDarcs      VcsType = "Darcs" // Darcs
+	VcsTypeGit        VcsType = "Git"   // Git
+	VcsTypeMercurial  VcsType = "Hg"    // Mercurial
+	VcsTypeMonotone   VcsType = "Mtn"   // Monotone
+	VcsTypeSubversion VcsType = "Svn"   // Subversion
 )
 
 const debPkgDebianBinaryVersion = "2.0\n"
@@ -95,6 +99,7 @@ type debPkgDigest struct {
 	//       e1a6e48c95a760170029ef7872cec994 e02ed99e5c4fd847bde12b4c2c30dd814b26ec27 136 data.tar.gz
 }
 
+// De
 type DebPkg struct {
 	control debPkgControl
 	data    debPkgData
