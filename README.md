@@ -20,11 +20,23 @@ debpkg is a native [Go](https://golang.org) implementation with zero dependencie
 - [ ] GPG sign package
 - [ ] GPG verify package
 
-# Installing
+## Why this package was created
+
+This package was created due to the lack to debianize from other platforms (windows/mac/*bsd). Because
+ the whole debian package management system is glued together with Perl scripts and uses a bunch of Perl
+ modules.
+
+And converting a directory and files into a debian package is a pain without knowing the `deb`-file internals.
+
+This package is heavily inspired by [godeb](https://github.com/niemeyer/godeb) and
+ [CPackDeb](https://cmake.org/cmake/help/v3.5/module/CPackDeb.html). It is very royal [licensed](LICENSE) to
+ be used wherever your hearts have their desires to debianize stuffs.
+
+## Installation
 
 `go get -u github.com/xor-gate/debpkg`
 
-# Status
+## Status
 
 The package is currently in experimental state. The API is unstable and it has not throughout
  been tested and many things are unfinished or not implemented at all. **USE AT YOUR OWN RISK!**
