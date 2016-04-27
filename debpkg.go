@@ -276,7 +276,7 @@ func (deb *DebPkg) SetSection(section string) {
 }
 
 // SetReplaces sets the names of packages which will be replaced. E.g: "pico"
-// See: 
+// See:
 func (deb *DebPkg) SetReplaces(replaces string) {
 	deb.control.info.replaces = replaces
 }
