@@ -17,5 +17,4 @@ script:
   - dpkg --contents debpkg-test.deb
   - dpkg --info debpkg-test.deb
   - sudo dpkg --install debpkg-test.deb
-  - dpkg --verify debpkg-test
   - $HOME/gopath/bin/goveralls -service=travis-ci
