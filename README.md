@@ -1,6 +1,7 @@
 # debpkg
 
-Golang package for creating (signed) debian packages
+debpkg is a native [Go](https://golang.org) implementation with zero dependencies 
+ to create [Debian](https://www.debian.org) packages.
 
 [![License][License-Image]][License-Url]
 ![Stability][Stability-Status-Image]
@@ -18,6 +19,15 @@ Golang package for creating (signed) debian packages
 - [ ] Create package from debpkg.yml specfile (like [packager.io](https://packager.io) without cruft)
 - [ ] GPG sign package
 - [ ] GPG verify package
+
+# Installing
+
+`go get -u github.com/xor-gate/debpkg`
+
+# Status
+
+The package is currently in experimental state. The API is unstable and it has not throughout
+ been tested and many things are unfinished or not implemented at all. **USE AT YOUR OWN RISK!**
 
 # debpkg.yml specfile
 
