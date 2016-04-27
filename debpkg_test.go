@@ -115,6 +115,24 @@ Description: Golang package for creating (gpg signed) debian packages
 	}
 }
 
+// Test creation of empty digest
+func TestDigestCreateEmpty(t *testing.T) {
+	digestExpect := `Version: 4
+Signer: 
+Date: 
+Role: builder
+Files: 
+
+`
+	deb := New()
+	digest := createDigestFileString(deb)
+
+	if digest != digestExpect {
+		t.Error("Unexpected digest file")
+		fmt.Printf("--- expected (len %d):\n'%s'\n--- got (len %d):\n'%s'---\n", len(digestExpect), digestExpect, len(digest), digest)
+	}
+}
+
 func TestSign(t *testing.T) {
 	deb := New()
 

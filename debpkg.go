@@ -110,7 +110,7 @@ type debPkgDigest struct {
 	signer  string // Name <email>
 	date    string // Mon Jan 2 15:04:05 2006 (time.ANSIC)
 	role    string // builder
-	files   string // Multiple <md5sum> <sha1sum> <size> <filename>
+	files   string // Multiple "\t<md5sum> <sha1sum> <size> <filename>"
 	// E.g:
 	//       3cf918272ffa5de195752d73f3da3e5e 7959c969e092f2a5a8604e2287807ac5b1b384ad 4 debian-binary
 	//       79bb73dbb522dc1a2dd1b9c2ec89fc79 26d29d15aad5c0e051d07571e28da2bc0009707e 366 control.tar.gz
@@ -147,9 +147,7 @@ func New() *DebPkg {
 // Sign the package with GPG entity
 func (deb *DebPkg) Sign(entity *openpgp.Entity, keyid string) {
 	var buf bytes.Buffer
-	deb.digest.version = debPkgDigestVersion
 	deb.digest.date = fmt.Sprintf(time.Now().Format(time.ANSIC))
-	deb.digest.role = debPkgDigestRole
 	deb.digest.signer = "TODO"
 
 	plaintext, err := clearsign.Encode(&buf, entity.PrivateKey, nil)
@@ -468,17 +466,24 @@ func createControlFileString(deb *DebPkg) string {
 }
 
 // Create unsigned digest file at toplevel of deb package
+// NOTE: the deb.digest.version and deb.digest.role are set in this function!
 func createDigestFileString(deb *DebPkg) string {
 	const digestFileTmpl = `Version: %d
-Date: %s
 Signer: %s
-Role: %s 
+Date: %s
+Role: %s
+Files: 
+%s
 `
+	deb.digest.version = debPkgDigestVersion
+	deb.digest.role = debPkgDigestRole
+
 	return fmt.Sprintf(digestFileTmpl,
 		deb.digest.version,
-		deb.digest.date,
 		deb.digest.signer,
-		deb.digest.role)
+		deb.digest.date,
+		deb.digest.role,
+		deb.digest.files)
 }
 
 func createControlTarGz(deb *DebPkg) error {
