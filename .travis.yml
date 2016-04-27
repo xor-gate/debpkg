@@ -17,7 +17,7 @@ script:
   - dpkg --contents debpkg-test.deb
   - dpkg --info debpkg-test.deb
   - sudo dpkg --install debpkg-test.deb
-  - sudo dpkg --remove depkg-test
+  - sudo dpkg --remove debpkg-test
   - dpkg --contents debpkg-test-signed.deb
   - dpkg --info debpkg-test-signed.deb
   - sudo dpkg --install debpkg-test-signed.deb
