@@ -10,6 +10,7 @@ import (
 	"compress/gzip"
 	"crypto"
 	"crypto/md5"
+	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
 	"github.com/blakesmith/ar"
@@ -18,6 +19,7 @@ import (
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/clearsign"
 	"golang.org/x/crypto/openpgp/packet"
+	"hash"
 	"io"
 	"os"
 	"path/filepath"
@@ -52,7 +54,7 @@ const (
 	VcsTypeSubversion VcsType = "Svn"   // Subversion
 )
 
-const debPkgDebianBinaryVersion = "2.0"
+const debPkgDebianBinary = "2.0\n"
 const debPkgDigestDefaultHash = crypto.SHA1
 const debPkgDigestVersion = 4
 const debPkgDigestRole = "builder"
@@ -124,9 +126,10 @@ type debPkgDigest struct {
 
 // DebPkg holds data for a single debian package
 type DebPkg struct {
-	control debPkgControl
-	data    debPkgData
-	digest  debPkgDigest
+	debianBinary string
+	control      debPkgControl
+	data         debPkgData
+	digest       debPkgDigest
 }
 
 // New creates new debian package with the following defaults:
@@ -136,6 +139,7 @@ type DebPkg struct {
 func New() *DebPkg {
 	d := &DebPkg{}
 
+	d.debianBinary = debPkgDebianBinary
 	d.control.info.priority = PriorityUnset
 
 	d.control.buf = &bytes.Buffer{}
@@ -491,6 +495,14 @@ func createControlFileString(deb *DebPkg) string {
 	return o
 }
 
+func digestCalcDataHash(data *bytes.Buffer, hash hash.Hash) string {
+	var result []byte
+	if _, err := io.Copy(hash, data); err != nil {
+		return ""
+	}
+	return string(hash.Sum(result))
+}
+
 // Create unsigned digest file at toplevel of deb package
 // NOTE: the deb.digest.version and deb.digest.role are set in this function!
 func createDigestFileString(deb *DebPkg) string {
@@ -499,8 +511,26 @@ Signer: %s
 Date: %s
 Role: %s
 Files: 
-%s
-`
+%s`
+	// debian-binary
+	deb.digest.files += fmt.Sprintf("\t%x %x %d %s\n",
+		digestCalcDataHash(bytes.NewBuffer([]byte(deb.debianBinary)), md5.New()),
+		digestCalcDataHash(bytes.NewBuffer([]byte(deb.debianBinary)), sha1.New()),
+		len(deb.debianBinary),
+		"debian-binary")
+	// control.tar.gz
+	deb.digest.files += fmt.Sprintf("\t%x %x %d %s\n",
+		digestCalcDataHash(deb.control.buf, md5.New()),
+		digestCalcDataHash(deb.control.buf, sha1.New()),
+		deb.control.buf.Len(),
+		"control.tar.bz2")
+	// data.tar.gz
+	deb.digest.files += fmt.Sprintf("\t%x %x %d %s\n",
+		digestCalcDataHash(deb.data.buf, md5.New()),
+		digestCalcDataHash(deb.data.buf, sha1.New()),
+		deb.control.buf.Len(),
+		"data.tar.bz2")
+
 	deb.digest.version = debPkgDigestVersion
 	deb.digest.role = debPkgDigestRole
 
@@ -573,7 +603,7 @@ func (deb *DebPkg) createDebAr(dst io.Writer) error {
 	if err := w.WriteGlobalHeader(); err != nil {
 		return fmt.Errorf("cannot write ar header to deb file: %v", err)
 	}
-	if err := addArFile(now, w, "debian-binary", []byte(debPkgDebianBinaryVersion+"\n")); err != nil {
+	if err := addArFile(now, w, "debian-binary", []byte(deb.debianBinary)); err != nil {
 		return fmt.Errorf("cannot pack debian-binary: %v", err)
 	}
 	if err := addArFile(now, w, "control.tar.gz", deb.control.buf.Bytes()); err != nil {

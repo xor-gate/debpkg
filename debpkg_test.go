@@ -122,7 +122,9 @@ Signer:
 Date: 
 Role: builder
 Files: 
-
+	3cf918272ffa5de195752d73f3da3e5e 7959c969e092f2a5a8604e2287807ac5b1b384ad 4 debian-binary
+	d41d8cd98f00b204e9800998ecf8427e da39a3ee5e6b4b0d3255bfef95601890afd80709 0 control.tar.bz2
+	d41d8cd98f00b204e9800998ecf8427e da39a3ee5e6b4b0d3255bfef95601890afd80709 0 data.tar.bz2
 `
 	deb := New()
 	digest := createDigestFileString(deb)
@@ -133,7 +135,7 @@ Files:
 	}
 }
 
-func TestWriteSigned(t *testing.T) {
+func TestWriteSignedEmpty(t *testing.T) {
 	deb := New()
 
 	// Create random new GPG identity for signage
@@ -145,7 +147,7 @@ func TestWriteSigned(t *testing.T) {
 	}
 
 	// WriteSigned package
-	deb.WriteSigned("debpkg-signed.deb", e, "00000000")
+	deb.WriteSigned("debpkg-signed-empty.deb", e, "00000000")
 }
 
 func TestWrite(t *testing.T) {
