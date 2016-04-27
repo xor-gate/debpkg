@@ -47,9 +47,16 @@ type debPkgData struct {
 	gw      *gzip.Writer
 }
 
+type debPkgVersion struct {
+	full  string // Full version string. E.g "0.1.2"
+	major uint   // Major version number
+	minor uint   // Minor version number
+	patch uint   // Patch version number
+}
+
 type debPkgControlInfo struct {
 	name            string
-	version         string
+	version         debPkgVersion
 	architecture    string
 	maintainer      string
 	maintainerEmail string
@@ -161,10 +168,29 @@ func (deb *DebPkg) SetName(name string) {
 	deb.control.info.name = name
 }
 
-// Set package version (mandatory)
+// Set package version string (mandatory)
+// NOTE: When the full string is set the SetVersion* function calls are ignored
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
 func (deb *DebPkg) SetVersion(version string) {
-	deb.control.info.version = version
+	deb.control.info.version.full = version
+}
+
+// Set package version major number
+// See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
+func (deb *DebPkg) SetVersionMajor(major uint) {
+	deb.control.info.version.major = major
+}
+
+// Set package version minor number
+// See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
+func (deb *DebPkg) SetVersionMinor(minor uint) {
+	deb.control.info.version.minor = minor
+}
+
+// Set package version patch number
+// See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
+func (deb *DebPkg) SetVersionPatch(patch uint) {
+	deb.control.info.version.patch = patch
 }
 
 // Set architecture. E.g "i386, amd64, arm". See `dpkg-architecture -L` for all supported.
@@ -350,8 +376,12 @@ func createControlFileString(deb *DebPkg) string {
 		deb.SetArchitecture(GetArchitecture())
 	}
 
+	if deb.control.info.version.full == "" {
+		deb.control.info.version.full = fmt.Sprintf("%d.%d.%d", deb.control.info.version.major, deb.control.info.version.minor, deb.control.info.version.patch)
+	}
+
 	o += fmt.Sprintf("Package: %s\n", deb.control.info.name)
-	o += fmt.Sprintf("Version: %s\n", deb.control.info.version)
+	o += fmt.Sprintf("Version: %s\n", deb.control.info.version.full)
 	o += fmt.Sprintf("Architecture: %s\n", deb.control.info.architecture)
 	o += fmt.Sprintf("Maintainer: %s <%s>\n", deb.control.info.maintainer, deb.control.info.maintainerEmail)
 	o += fmt.Sprintf("Installed-Size: %d\n", deb.data.size)

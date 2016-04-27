@@ -16,7 +16,7 @@ func TestConfig(t *testing.T) {
 // Only the mandatory fields are exported then, this behaviour is checked
 func TestControlFileEmpty(t *testing.T) {
 controlExpect := `Package: 
-Version: 
+Version: 0.0.0
 Architecture: amd64
 Maintainer:  <>
 Installed-Size: 0
@@ -33,7 +33,38 @@ Description:
 	control := createControlFileString(deb)
 
 	if control != controlExpect {
-		t.Error("Unexpected empty control file")
+		t.Error("Unexpected control file")
+		fmt.Printf("--- expected (len %d):\n'%s'\n--- got (len %d):\n'%s'---\n", len(controlExpect), controlExpect, len(control), control)
+	}
+}
+
+// Test correct output of the control file when SetVersion* functions are called
+// Only the mandatory fields are exported then, this behaviour is checked
+func TestControlFileSetVersionMajorMinorPatch(t *testing.T) {
+controlExpect := `Package: 
+Version: 1.2.3
+Architecture: amd64
+Maintainer:  <>
+Installed-Size: 0
+Section: 
+Priority: 
+Homepage: 
+Description: 
+`
+	// Empty
+	deb := New()
+
+	deb.SetVersionMajor(1)
+	deb.SetVersionMinor(2)
+	deb.SetVersionPatch(3)
+
+	// architecture is auto-set when empty, this makes sure it is always set to amd64
+	deb.SetArchitecture("amd64")
+	control := createControlFileString(deb)
+
+	if control != controlExpect {
+		t.Error("Unexpected control file")
+		fmt.Printf("--- expected (len %d):\n'%s'\n--- got (len %d):\n'%s'---\n", len(controlExpect), controlExpect, len(control), control)
 	}
 }
 
