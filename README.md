@@ -76,6 +76,15 @@ I would like to mention some other noticable projects:
 * Verbose extract data.tar.gz: `dpkg --vextract <debfile> data`
 * Extract control.tar.gz: `dpkg --control <debfile> control`
 
+# Further documentation
+
+* [dpkg manpage](https://manpages.debian.org/cgi-bin/man.cgi?query=dpkg)
+* [dpkg-deb manpage](https://manpages.debian.org/cgi-bin/man.cgi?query=dpkg)
+* [dpkg-sig manpage](https://manpages.debian.org/cgi-bin/man.cgi?query=dpkg-sig)
+* [Debian New Maintainers' Guide](https://www.debian.org/doc/manuals/maint-guide/)
+* [Debian Policy Manual](https://www.debian.org/doc/debian-policy/)
+* [Setting up signed APT repository with Reprepro](https://wiki.debian.org/SettingUpSignedAptRepositoryWithReprepro)
+
 # License
 
 [MIT](LICENSE)
