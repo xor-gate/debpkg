@@ -360,31 +360,39 @@ func (deb *DebPkg) AddControlExtra(filename string) {
 
 // AddFile adds a file by filename to the package
 func (deb *DebPkg) AddFile(filename string) error {
-	file, err := os.Open(filename)
+	fd, err := os.Open(filename)
 	if err != nil {
 		return err
 	}
-	defer file.Close()
-	if stat, err := file.Stat(); err == nil {
-		// now lets create the header as needed for this file within the tarball
-		header := new(tar.Header)
-		header.Name = filename
-		header.Size = stat.Size()
-		header.Mode = int64(stat.Mode())
-		header.ModTime = stat.ModTime()
-		// write the header to the tarball archive
-		if err := deb.data.tw.WriteHeader(header); err != nil {
-			return err
-		}
-		// copy the file data to the tarball
-		if _, err := io.Copy(deb.data.tw, file); err != nil {
-			return err
-		}
+	defer fd.Close()
 
-		md5, size, _ := computeMd5(filename)
-		deb.data.size += size
-		deb.data.md5sums += fmt.Sprintf("%x  %s\n", md5, filename)
+	stat, err := fd.Stat()
+	if err != nil {
+		return err
 	}
+
+	// now lets create the header as needed for this file within the tarball
+	header := new(tar.Header)
+	header.Name = filename
+	header.Size = stat.Size()
+	header.Mode = int64(stat.Mode())
+	header.ModTime = stat.ModTime()
+
+	// write the header to the tarball archive
+	if err := deb.data.tw.WriteHeader(header); err != nil {
+		return err
+	}
+
+	// copy the file data to the tarball
+	if _, err := io.Copy(deb.data.tw, fd); err != nil {
+		return err
+	}
+
+	// append md5sum for control.tar.gz file
+	md5, _ := computeMd5(fd)
+	deb.data.size += stat.Size()
+	deb.data.md5sums += fmt.Sprintf("%x  %s\n", md5, filename)
+
 	return nil
 }
 
@@ -412,25 +420,14 @@ func GetArchitecture() string {
 	return arch
 }
 
-func computeMd5(filePath string) (data []byte, size int64, err error) {
+func computeMd5(fd *os.File) (data []byte, err error) {
 	var result []byte
-	file, err := os.Open(filePath)
-	if err != nil {
-		return result, 0, err
-	}
-	defer file.Close()
-
 	hash := md5.New()
-	if _, err := io.Copy(hash, file); err != nil {
-		return result, 0, err
+	if _, err := io.Copy(hash, fd); err != nil {
+		return result, err
 	}
 
-	fi, err := file.Stat()
-	if err != nil {
-		return result, 0, err
-	}
-
-	return hash.Sum(result), fi.Size(), nil
+	return hash.Sum(result), nil
 }
 
 // Create control file for control.tar.gz
