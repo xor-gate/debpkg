@@ -15,6 +15,18 @@ import (
 	"github.com/go-yaml/yaml"
 )
 
+type VcsType string
+
+const (
+	VcsTypeArch        VcsType = "Arch"
+	VcsTypeBazaar      VcsType = "Bzr"
+	VcsTypeDarcs       VcsType = "Darcs"
+	VcsTypeGit         VcsType = "Git"
+	VcsTypeMercurial   VcsType = "Hg"
+	VcsTypeMonotone    VcsType = "Mtn"
+	VcsTypeSubversion  VcsType = "Svn"
+)
+
 const debPkgDebianBinaryVersion = "2.0\n"
 const debPkgDigestVersion = 4
 const debPkgDigestRole    = "builder"
@@ -47,8 +59,11 @@ type debPkgControlInfo struct {
 	provides        string
 	section         string
 	priority        string
-	descrShort      string
-	descr           string
+	descrShort      string  // Short package description
+	descr           string  // Long package description
+	vcsType         VcsType // E.g: "Svn", "Git" etcetera
+	vcsURL          string  // E.g: git@github.com:xor-gate/debpkg.git
+	vcsBrowser      string  // E.g: https://github.com/xor-gate/debpkg
 }
 
 type debPkgControl struct {
@@ -223,6 +238,24 @@ func (deb *DebPkg) SetShortDescription(descr string) {
 // "This tool will calculation the most efficient way to world domination"
 func (deb *DebPkg) SetDescription(descr string) {
 	deb.control.info.descr = descr
+}
+
+// Set version control system (Vcs) type.
+// See: https://www.debian.org/doc/manuals/developers-reference/best-pkging-practices.html#s6.2.5.2
+func (deb *DebPkg) SetVcsType(vcs VcsType) {
+	deb.control.info.vcsType = vcs
+}
+
+// Set version control system (Vcs) URL
+// See: https://www.debian.org/doc/manuals/developers-reference/best-pkging-practices.html#s6.2.5.2
+func (deb *DebPkg) SetVcsURL(url string) {
+	deb.control.info.vcsURL = url
+}
+
+// Set version control system (Vcs) browsable source-tree URL
+// See: https://www.debian.org/doc/manuals/developers-reference/best-pkging-practices.html#s6.2.5.2
+func (deb *DebPkg) SetVcsBrowser(url string) {
+	deb.control.info.vcsBrowser = url
 }
 
 // Allow advanced user to add custom script to the control.tar.gz Typical usage is for

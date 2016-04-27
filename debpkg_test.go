@@ -24,6 +24,11 @@ func TestWrite(t *testing.T) {
 	deb.SetShortDescription("some awesome foobar pkg")
 	deb.SetDescription("very very very very long description")
 
+	// Set version control system info for control file
+	deb.SetVcsType(debpkg.VcsTypeGit)
+	deb.SetVcsURL("https://github.com/xor-gate/secdl")
+	deb.SetVcsBrowser("https://github.com/xor-gate/secdl")
+
 	deb.AddFile("debpkg.go")
 	deb.AddDirectory("tests")
 
