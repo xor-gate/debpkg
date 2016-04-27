@@ -61,6 +61,14 @@ description:
       And multiple paragraphs.
 ```
 
+# Mentions
+
+I would like to mention some other noticable projects:
+
+* https://github.com/niemeyer/godeb
+* https://github.com/smira/aptly
+* https://github.com/esell/deb-simple
+
 # License
 
 [MIT](LICENSE)
