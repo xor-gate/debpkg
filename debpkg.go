@@ -52,7 +52,8 @@ const (
 	VcsTypeSubversion VcsType = "Svn"   // Subversion
 )
 
-const debPkgDebianBinaryVersion = "2.0\n"
+const debPkgDebianBinaryVersion = "2.0"
+const debPkgDigestDefaultHash = crypto.SHA1
 const debPkgDigestVersion = 4
 const debPkgDigestRole = "builder"
 
@@ -150,10 +151,17 @@ func New() *DebPkg {
 func (deb *DebPkg) Sign(entity *openpgp.Entity, keyid string) {
 	var buf bytes.Buffer
 	var cfg packet.Config
-	cfg.DefaultHash = crypto.SHA1
+	var signer string
+	cfg.DefaultHash = debPkgDigestDefaultHash
+
+	for id := range entity.Identities {
+		// TODO real search for keyid, need to investigate maybe a subkey?
+		fmt.Printf("%v\n", id)
+		signer = id
+	}
 
 	deb.digest.date = fmt.Sprintf(time.Now().Format(time.ANSIC))
-	deb.digest.signer = "TODO"
+	deb.digest.signer = signer
 
 	plaintext, err := clearsign.Encode(&buf, entity.PrivateKey, &cfg)
 	if err != nil {
@@ -549,7 +557,7 @@ func (deb *DebPkg) createDebAr(dst io.Writer) error {
 	if err := w.WriteGlobalHeader(); err != nil {
 		return fmt.Errorf("cannot write ar header to deb file: %v", err)
 	}
-	if err := addArFile(now, w, "debian-binary", []byte(debPkgDebianBinaryVersion)); err != nil {
+	if err := addArFile(now, w, "debian-binary", []byte(debPkgDebianBinaryVersion+"\n")); err != nil {
 		return fmt.Errorf("cannot pack debian-binary: %v", err)
 	}
 	if err := addArFile(now, w, "control.tar.gz", deb.control.buf.Bytes()); err != nil {
