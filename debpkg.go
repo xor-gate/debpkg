@@ -3,33 +3,33 @@ package debpkg
 import (
 	"archive/tar"
 	"bytes"
-	"time"
-	"go/build"
-	"crypto/md5"
 	"compress/gzip"
+	"crypto/md5"
 	"fmt"
-	"os"
-	"io"
-	"path/filepath"
 	"github.com/blakesmith/ar"
 	"github.com/go-yaml/yaml"
+	"go/build"
+	"io"
+	"os"
+	"path/filepath"
+	"time"
 )
 
 type VcsType string
 
 const (
-	VcsTypeArch        VcsType = "Arch"
-	VcsTypeBazaar      VcsType = "Bzr"
-	VcsTypeDarcs       VcsType = "Darcs"
-	VcsTypeGit         VcsType = "Git"
-	VcsTypeMercurial   VcsType = "Hg"
-	VcsTypeMonotone    VcsType = "Mtn"
-	VcsTypeSubversion  VcsType = "Svn"
+	VcsTypeArch       VcsType = "Arch"
+	VcsTypeBazaar     VcsType = "Bzr"
+	VcsTypeDarcs      VcsType = "Darcs"
+	VcsTypeGit        VcsType = "Git"
+	VcsTypeMercurial  VcsType = "Hg"
+	VcsTypeMonotone   VcsType = "Mtn"
+	VcsTypeSubversion VcsType = "Svn"
 )
 
 const debPkgDebianBinaryVersion = "2.0\n"
 const debPkgDigestVersion = 4
-const debPkgDigestRole    = "builder"
+const debPkgDigestRole = "builder"
 
 type debPkgSpecFileCfg struct {
 	Description struct {
@@ -39,11 +39,11 @@ type debPkgSpecFileCfg struct {
 }
 
 type debPkgData struct {
-	size int64
+	size    int64
 	md5sums string
-	buf *bytes.Buffer
-	tw *tar.Writer
-	gw *gzip.Writer
+	buf     *bytes.Buffer
+	tw      *tar.Writer
+	gw      *gzip.Writer
 }
 
 type debPkgControlInfo struct {
@@ -67,10 +67,10 @@ type debPkgControlInfo struct {
 }
 
 type debPkgControl struct {
-	buf *bytes.Buffer
-	tw *tar.Writer
-	gw *gzip.Writer
-	info debPkgControlInfo
+	buf   *bytes.Buffer
+	tw    *tar.Writer
+	gw    *gzip.Writer
+	info  debPkgControlInfo
 	extra []string // Extra files added to the control.tar.gz. Typical usage is for conffiles, postinst, postrm, prerm.
 }
 
@@ -81,16 +81,16 @@ type debPkgDigest struct {
 	date    string // Mon Jan 2 15:04:05 2006 (time.ANSIC)
 	role    string // builder
 	files   string // Multiple <md5sum> <sha1sum> <size> <filename>
-                       // E.g:
-                       //       3cf918272ffa5de195752d73f3da3e5e 7959c969e092f2a5a8604e2287807ac5b1b384ad 4 debian-binary
-                       //       79bb73dbb522dc1a2dd1b9c2ec89fc79 26d29d15aad5c0e051d07571e28da2bc0009707e 366 control.tar.gz
-                       //       e1a6e48c95a760170029ef7872cec994 e02ed99e5c4fd847bde12b4c2c30dd814b26ec27 136 data.tar.gz
+	// E.g:
+	//       3cf918272ffa5de195752d73f3da3e5e 7959c969e092f2a5a8604e2287807ac5b1b384ad 4 debian-binary
+	//       79bb73dbb522dc1a2dd1b9c2ec89fc79 26d29d15aad5c0e051d07571e28da2bc0009707e 366 control.tar.gz
+	//       e1a6e48c95a760170029ef7872cec994 e02ed99e5c4fd847bde12b4c2c30dd814b26ec27 136 data.tar.gz
 }
 
 type DebPkg struct {
-	control  debPkgControl
-	data     debPkgData
-	digest   debPkgDigest
+	control debPkgControl
+	data    debPkgData
+	digest  debPkgDigest
 }
 
 // Create new debian package
@@ -98,12 +98,12 @@ func New() *DebPkg {
 	d := &DebPkg{}
 
 	d.control.buf = &bytes.Buffer{}
-	d.control.gw  = gzip.NewWriter(d.control.buf)
-	d.control.tw  = tar.NewWriter(d.control.gw)
+	d.control.gw = gzip.NewWriter(d.control.buf)
+	d.control.tw = tar.NewWriter(d.control.gw)
 
 	d.data.buf = &bytes.Buffer{}
-	d.data.gw  = gzip.NewWriter(d.data.buf)
-	d.data.tw  = tar.NewWriter(d.data.gw)
+	d.data.gw = gzip.NewWriter(d.data.buf)
+	d.data.tw = tar.NewWriter(d.data.gw)
 
 	return d
 }
@@ -111,8 +111,8 @@ func New() *DebPkg {
 // GPG sign the package
 func (deb *DebPkg) Sign() {
 	deb.digest.version = debPkgDigestVersion
-	deb.digest.date    = fmt.Sprintf(time.Now().Format(time.ANSIC))
-	deb.digest.role    = debPkgDigestRole
+	deb.digest.date = fmt.Sprintf(time.Now().Format(time.ANSIC))
+	deb.digest.role = debPkgDigestRole
 }
 
 // Load configuration from depkg.yml specfile
@@ -129,11 +129,11 @@ func (deb *DebPkg) Config(filename string) error {
 	io.Copy(data, fd)
 
 	err = yaml.Unmarshal(data.Bytes(), &cfg)
-        if err != nil {
+	if err != nil {
 		return err
-        }
+	}
 
-        fmt.Printf("config:\n\n%+v\n", cfg)
+	fmt.Printf("config:\n\n%+v\n", cfg)
 	return nil
 }
 
@@ -281,7 +281,7 @@ func (deb *DebPkg) AddFile(filename string) error {
 		if err := deb.data.tw.WriteHeader(header); err != nil {
 			return err
 		}
-		// copy the file data to the tarball 
+		// copy the file data to the tarball
 		if _, err := io.Copy(deb.data.tw, file); err != nil {
 			return err
 		}
@@ -317,24 +317,24 @@ func GetArchitecture() string {
 }
 
 func computeMd5(filePath string) (data []byte, size int64, err error) {
-  var result []byte
-  file, err := os.Open(filePath)
-  if err != nil {
-    return result, 0, err
-  }
-  defer file.Close()
+	var result []byte
+	file, err := os.Open(filePath)
+	if err != nil {
+		return result, 0, err
+	}
+	defer file.Close()
 
-  hash := md5.New()
-  if _, err := io.Copy(hash, file); err != nil {
-    return result, 0, err
-  }
+	hash := md5.New()
+	if _, err := io.Copy(hash, file); err != nil {
+		return result, 0, err
+	}
 
-  fi, err := file.Stat()
-  if err != nil {
-    return result, 0, err
-  }
+	fi, err := file.Stat()
+	if err != nil {
+		return result, 0, err
+	}
 
-  return hash.Sum(result), fi.Size(), nil
+	return hash.Sum(result), fi.Size(), nil
 }
 
 // Create control file for control.tar.gz
@@ -350,7 +350,7 @@ Homepage: %s
 Description: %s
  %s
 `
-	if (deb.control.info.architecture == "") {
+	if deb.control.info.architecture == "" {
 		deb.SetArchitecture(GetArchitecture())
 	}
 
