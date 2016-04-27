@@ -2,7 +2,7 @@
 
 Golang package for creating (signed) debian packages
 
-[![License][License-Image]][License-Url] ![Stability][Stability-Status-Image] [![Godoc][Godoc-Image]][Godoc-Url] [![ReportCard][ReportCard-Image]][ReportCard-Url] [![Build][Build-Status-Image]][Build-Status-Url]
+[![License][License-Image]][License-Url] ![Stability][Stability-Status-Image] [![Godoc][Godoc-Image]][Godoc-Url] [![ReportCard][ReportCard-Image]][ReportCard-Url] [![Build][Build-Status-Image]][Build-Status-Url] [![Coverage][Coverage-Image]][Coverage-Url]
 
 **Features**
 
@@ -35,7 +35,7 @@ description:
 
 # License
 
-MIT
+[MIT](LICENSE)
 
 [License-Url]: http://opensource.org/licenses/MIT
 [License-Image]: https://img.shields.io/npm/l/express.svg
@@ -46,3 +46,5 @@ MIT
 [Godoc-Image]: https://godoc.org/github.com/xor-gate/debpkg?status.svg
 [ReportCard-Url]: http://goreportcard.com/report/xor-gate/debpkg
 [ReportCard-Image]: http://goreportcard.com/badge/xor-gate/debpkg
+[Coverage-Url]: https://coveralls.io/r/xor-gate/debpkg?branch=master
+[Coverage-image]: https://img.shields.io/coveralls/xor-gate/debpkg.svg
