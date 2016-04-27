@@ -24,7 +24,7 @@ debpkg is a native [Go](https://golang.org) implementation with zero dependencie
 
 This package was created due to the lack to debianize from other platforms (windows/mac/*bsd). Because
  the whole debian package management system is glued together with Perl scripts and uses a bunch of Perl
- modules.
+ modules. And I saw in the Golang world people crafting debian packages in a [very ugly way](https://github.com/syncthing/syncthing/blob/b8c5cf11428e42873c54847eb1968ac5ac04f7d3/build.go#L388-L444).
 
 And converting a directory and files into a debian package is a pain without knowing the `deb`-file internals.
 
