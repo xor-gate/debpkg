@@ -8,6 +8,7 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
+	"crypto"
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
@@ -16,6 +17,7 @@ import (
 	"go/build"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/clearsign"
+	"golang.org/x/crypto/openpgp/packet"
 	"io"
 	"os"
 	"path/filepath"
@@ -147,10 +149,13 @@ func New() *DebPkg {
 // Sign the package with GPG entity
 func (deb *DebPkg) Sign(entity *openpgp.Entity, keyid string) {
 	var buf bytes.Buffer
+	var cfg packet.Config
+	cfg.DefaultHash = crypto.SHA1
+
 	deb.digest.date = fmt.Sprintf(time.Now().Format(time.ANSIC))
 	deb.digest.signer = "TODO"
 
-	plaintext, err := clearsign.Encode(&buf, entity.PrivateKey, nil)
+	plaintext, err := clearsign.Encode(&buf, entity.PrivateKey, &cfg)
 	if err != nil {
 		fmt.Println(err)
 		return
