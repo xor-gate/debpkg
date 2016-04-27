@@ -161,7 +161,7 @@ func TestWriteSignedEmpty(t *testing.T) {
 func TestWrite(t *testing.T) {
 	deb := New()
 
-	deb.SetName("test")
+	deb.SetName("debpkg-test")
 	deb.SetVersion("0.0.1")
 	deb.SetMaintainer("Foo Bar")
 	deb.SetMaintainerEmail("foo@bar.com")
@@ -177,7 +177,7 @@ func TestWrite(t *testing.T) {
 	deb.AddFile("debpkg.go")
 	// FIXME deb.AddDirectory("tests")
 
-	deb.Write("debpkg.deb")
+	deb.Write("debpkg-test.deb")
 }
 
 func TestWriteSigned(t *testing.T) {
@@ -197,7 +197,6 @@ func TestWriteSigned(t *testing.T) {
 	deb.SetVcsBrowser("https://github.com/xor-gate/secdl")
 
 	deb.AddFile("debpkg.go")
-	// FIXME deb.AddDirectory("tests")
 
 	// Create random new GPG identity for signage
 	var e *openpgp.Entity

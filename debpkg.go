@@ -238,20 +238,10 @@ func (deb *DebPkg) WriteSigned(filename string, entity *openpgp.Entity, keyid st
 	deb.data.gw.Close()
 
 	createControlTarGz(deb)
+
+	fmt.Printf("signed data.tar.gz: %d\n", deb.data.buf.Len())
+
 	deb.createDebAr(fd)
-
-	/*
-		fmt.Printf("---\nName: %+v\n", entity.Identities)
-		keyidStr := strings.ToUpper(strconv.FormatUint(entity.PrimaryKey.KeyId, 16))
-		fp := strings.ToUpper(hex.EncodeToString(entity.PrimaryKey.Fingerprint[:]))
-		fmt.Printf("Fingerprint: %s\n", fp)
-		fmt.Printf("Long KeyId: %s\n", keyidStr)
-		keyidShort := keyidStr[len(keyidStr)-8:]
-		fmt.Printf("Short KeyId: %s\n", keyidShort)
-		fmt.Printf("---")
-
-		fmt.Printf("%s", buf.String())
-	*/
 }
 
 // SetName sets the name of the binary package (mandatory)
@@ -429,6 +419,8 @@ func (deb *DebPkg) AddFile(filename string) error {
 	deb.data.size += stat.Size()
 	deb.data.md5sums += fmt.Sprintf("%x  %s\n", md5, filename)
 
+	fmt.Printf("AddFile: %s\n", filename)
+
 	return nil
 }
 
@@ -456,13 +448,13 @@ func GetArchitecture() string {
 	return arch
 }
 
+// computeMd5 from the os filedescriptor
 func computeMd5(fd *os.File) (data []byte, err error) {
 	var result []byte
 	hash := md5.New()
 	if _, err := io.Copy(hash, fd); err != nil {
 		return result, err
 	}
-
 	return hash.Sum(result), nil
 }
 
@@ -470,27 +462,34 @@ func computeMd5(fd *os.File) (data []byte, err error) {
 func createControlFileString(deb *DebPkg) string {
 	var o string
 
-	// TODO we should check if all recommended fields exist with a verify function
-
+	// Autoset architecture
 	if deb.control.info.architecture == "" {
 		deb.SetArchitecture(GetArchitecture())
 	}
 
+	// Autogenerate version string (e.g "1.2.3") when unset
 	if deb.control.info.version.full == "" {
-		deb.control.info.version.full = fmt.Sprintf("%d.%d.%d", deb.control.info.version.major, deb.control.info.version.minor, deb.control.info.version.patch)
+		deb.control.info.version.full = fmt.Sprintf("%d.%d.%d",
+			deb.control.info.version.major,
+			deb.control.info.version.minor,
+			deb.control.info.version.patch)
 	}
 
 	o += fmt.Sprintf("Package: %s\n", deb.control.info.name)
 	o += fmt.Sprintf("Version: %s\n", deb.control.info.version.full)
 	o += fmt.Sprintf("Architecture: %s\n", deb.control.info.architecture)
-	o += fmt.Sprintf("Maintainer: %s <%s>\n", deb.control.info.maintainer, deb.control.info.maintainerEmail)
+	o += fmt.Sprintf("Maintainer: %s <%s>\n",
+		deb.control.info.maintainer,
+		deb.control.info.maintainerEmail)
 	o += fmt.Sprintf("Installed-Size: %d\n", deb.data.size)
+
 	if deb.control.info.section != "" {
 		o += fmt.Sprintf("Section: %s\n", deb.control.info.section)
 	}
 	if deb.control.info.priority != PriorityUnset {
 		o += fmt.Sprintf("Priority: %s\n", deb.control.info.priority)
 	}
+
 	o += fmt.Sprintf("Homepage: %s\n", deb.control.info.homepage)
 	o += fmt.Sprintf("Description: %s\n", deb.control.info.descrShort)
 	o += fmt.Sprintf("%s", deb.control.info.descr)
