@@ -13,8 +13,10 @@ func TestConfig(t *testing.T) {
 }
 
 // Test correct output of a empty control file when no DepPkg Set* functions are called
+// Only the mandatory fields are exported then, this behaviour is checked
 func TestControlFileEmpty(t *testing.T) {
 controlExpect := `Package: 
+Version: 
 Architecture: amd64
 Maintainer:  <>
 Installed-Size: 0
@@ -35,6 +37,58 @@ Description:
 	}
 }
 
+// Test correct output of control file when the mandatory DepPkg Set* functions are called
+// This checks if the long description is formatted according to the debian policy
+func TestControlFileLongDescriptionFormatting(t *testing.T) {
+controlExpect := `Package: debpkg
+Version: 0.0.0
+Architecture: amd64
+Maintainer: Jerry Jacobs <foo@bar.com>
+Installed-Size: 0
+Section: 
+Priority: 
+Homepage: https://github.com/xor-gate/debpkg
+Description: Golang package for creating (gpg signed) debian packages
+ **Features**
+ 
+ * Create simple debian packages from files and folders
+ * Add custom control files (preinst, postinst, prerm, postrm etcetera)
+ * dpkg like tool with a subset of commands (--contents, --control, --extract, --info)
+ * Create package from debpkg.yml specfile (like packager.io without cruft)
+ * GPG sign package
+ * GPG verify package
+`
+
+// User supplied very long description without leading spaces and no ending newline
+controlDescr := `**Features**
+
+* Create simple debian packages from files and folders
+* Add custom control files (preinst, postinst, prerm, postrm etcetera)
+* dpkg like tool with a subset of commands (--contents, --control, --extract, --info)
+* Create package from debpkg.yml specfile (like packager.io without cruft)
+* GPG sign package
+* GPG verify package`
+
+	// Empty
+	deb := New()
+
+	deb.SetName("debpkg")
+	deb.SetVersion("0.0.0")
+	deb.SetMaintainer("Jerry Jacobs")
+	deb.SetMaintainerEmail("foo@bar.com")
+	deb.SetHomepage("https://github.com/xor-gate/debpkg")
+	deb.SetShortDescription("Golang package for creating (gpg signed) debian packages")
+	deb.SetDescription(controlDescr)
+	// architecture is auto-set when empty, this makes sure it is always set to amd64
+	deb.SetArchitecture("amd64")
+	control := createControlFileString(deb)
+
+	if control != controlExpect {
+		t.Error("Unexpected control file")
+		fmt.Printf("--- expected (len %d):\n'%s'\n--- got (len %d):\n'%s'---\n", len(controlExpect), controlExpect, len(control), control)
+	}
+}
+
 func TestWrite(t *testing.T) {
 	deb := New()
 
@@ -42,7 +96,7 @@ func TestWrite(t *testing.T) {
 	deb.SetVersion("0.0.1")
 	deb.SetMaintainer("Foo Bar")
 	deb.SetMaintainerEmail("foo@bar.com")
-	deb.SetHomepageUrl("https://foobar.com")
+	deb.SetHomepage("https://foobar.com")
 	deb.SetShortDescription("some awesome foobar pkg")
 	deb.SetDescription("very very very very long description")
 
@@ -51,9 +105,9 @@ func TestWrite(t *testing.T) {
 	deb.SetVcsURL("https://github.com/xor-gate/secdl")
 	deb.SetVcsBrowser("https://github.com/xor-gate/secdl")
 
-	deb.AddFile("go")
-	deb.AddDirectory("tests")
+	deb.AddFile("debpkg.go")
+	// FIXME deb.AddDirectory("tests")
 
 	deb.Sign()
-	deb.Write("deb")
+	deb.Write("debpkg.deb")
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/go-yaml/yaml"
 	"go/build"
 	"io"
+	"strings"
 	"os"
 	"path/filepath"
 	"time"
@@ -224,7 +225,7 @@ func (deb *DebPkg) SetReplaces(replaces string) {
 }
 
 // Set homepage url. E.g: "https://github.com/foo/bar"
-func (deb *DebPkg) SetHomepageUrl(url string) {
+func (deb *DebPkg) SetHomepage(url string) {
 	// check url
 	deb.control.info.homepage = url
 }
@@ -236,8 +237,10 @@ func (deb *DebPkg) SetShortDescription(descr string) {
 
 // Set long description. E.g:
 // "This tool will calculation the most efficient way to world domination"
+// NOTE: The debian control file has a special formatting of the long description
+//        this function replaces newlines with a newline and a space.
 func (deb *DebPkg) SetDescription(descr string) {
-	deb.control.info.descr = descr
+	deb.control.info.descr = " " + strings.Replace(descr, "\n", "\n ", -1) + "\n"
 }
 
 // Set version control system (Vcs) type.
@@ -348,6 +351,7 @@ func createControlFileString(deb *DebPkg) string {
 	}
 
 	o += fmt.Sprintf("Package: %s\n", deb.control.info.name)
+	o += fmt.Sprintf("Version: %s\n", deb.control.info.version)
 	o += fmt.Sprintf("Architecture: %s\n", deb.control.info.architecture)
 	o += fmt.Sprintf("Maintainer: %s <%s>\n", deb.control.info.maintainer, deb.control.info.maintainerEmail)
 	o += fmt.Sprintf("Installed-Size: %d\n", deb.data.size)
