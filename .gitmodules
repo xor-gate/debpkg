@@ -4,3 +4,6 @@
 [submodule "vendor/github.com/go-yaml/yaml"]
 	path = vendor/github.com/go-yaml/yaml
 	url = https://github.com/go-yaml/yaml
+[submodule "vendor/golang.org/x/crypto"]
+	path = vendor/golang.org/x/crypto
+	url = https://github.com/golang/crypto

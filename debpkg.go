@@ -9,6 +9,10 @@ import (
 	"bytes"
 	"compress/gzip"
 	"crypto/md5"
+	"strconv"
+	"encoding/hex"
+	"golang.org/x/crypto/openpgp"
+	"golang.org/x/crypto/openpgp/clearsign"
 	"fmt"
 	"github.com/blakesmith/ar"
 	"github.com/go-yaml/yaml"
@@ -140,11 +144,41 @@ func New() *DebPkg {
 	return d
 }
 
-// Sign the package with GPG
-func (deb *DebPkg) Sign() {
+// Sign the package with GPG entity
+func (deb *DebPkg) Sign(entity *openpgp.Entity, keyid string) {
+	var buf bytes.Buffer
 	deb.digest.version = debPkgDigestVersion
-	deb.digest.date = fmt.Sprintf(time.Now().Format(time.ANSIC))
-	deb.digest.role = debPkgDigestRole
+	deb.digest.date    = fmt.Sprintf(time.Now().Format(time.ANSIC))
+	deb.digest.role    = debPkgDigestRole
+	deb.digest.signer  = "TODO"
+
+	plaintext, err := clearsign.Encode(&buf, entity.PrivateKey, nil)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	msg := createDigestFileString(deb)
+
+	if _, err = plaintext.Write([]byte(msg)); err != nil {
+		fmt.Printf("error from Write: %s", err)
+		return
+	}
+	if err = plaintext.Close(); err != nil {
+		fmt.Printf("error from Close: %s", err)
+		return
+	}
+
+	fmt.Printf("---\nName: %+v\n", entity.Identities)
+	keyidStr := strings.ToUpper(strconv.FormatUint(entity.PrimaryKey.KeyId, 16))
+	fp := strings.ToUpper(hex.EncodeToString(entity.PrimaryKey.Fingerprint[:]))
+	fmt.Printf("Fingerprint: %s\n", fp)
+	fmt.Printf("Long KeyId: %s\n", keyidStr)
+	keyidShort := keyidStr[len(keyidStr)-8:]
+	fmt.Printf("Short KeyId: %s\n", keyidShort)
+	fmt.Printf("---")
+
+	fmt.Printf("%s", buf.String())
 }
 
 // Config loads settings from a depkg.yml specfile
@@ -434,7 +468,7 @@ func createControlFileString(deb *DebPkg) string {
 }
 
 // Create unsigned digest file at toplevel of deb package
-func createDigestFile(deb *DebPkg) string {
+func createDigestFileString(deb *DebPkg) string {
 	const digestFileTmpl = `Version: %d
 Date: %s
 Signer: %s

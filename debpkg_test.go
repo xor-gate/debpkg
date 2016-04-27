@@ -3,6 +3,7 @@ package debpkg
 import (
 	"fmt"
 	"testing"
+	"golang.org/x/crypto/openpgp"
 )
 
 func TestConfig(t *testing.T) {
@@ -114,6 +115,21 @@ Description: Golang package for creating (gpg signed) debian packages
 	}
 }
 
+func TestSign(t *testing.T) {
+	deb := New()
+
+	// Create random new GPG identity for signage
+	var e *openpgp.Entity
+	e, err := openpgp.NewEntity("Foo Bar", "", "foo@bar.com", nil)
+	if err != nil {
+		t.Error("Unexpected New GPG Entity")
+		return
+	}
+
+	// Sign
+	deb.Sign(e, "00000000")
+}
+
 func TestWrite(t *testing.T) {
 	deb := New()
 
@@ -133,6 +149,5 @@ func TestWrite(t *testing.T) {
 	deb.AddFile("debpkg.go")
 	// FIXME deb.AddDirectory("tests")
 
-	deb.Sign()
 	deb.Write("debpkg.deb")
 }
