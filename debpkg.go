@@ -124,10 +124,6 @@ func (deb *DebPkg) Config(filename string) error {
 
 // Write the debian package to the filename
 func (deb *DebPkg) Write(filename string) error {
-	fmt.Printf("control:\n\n%s\n", createControlFile(deb))
-	fmt.Printf("control md5sums:\n\n%s\n", deb.data.md5sums)
-	fmt.Printf("digest:\n\n%s\n", createDigestFile(deb))
-
 	fd, err := os.Create(filename)
 	if err != nil {
 		return nil
@@ -272,7 +268,6 @@ func (deb *DebPkg) AddDirectory(dir string) error {
 	})
 
 	for _, file := range files {
-		fmt.Println(file)
 		deb.AddFile(file)
 	}
 
@@ -363,11 +358,11 @@ func createControlTarGz(deb *DebPkg) error {
 		ModTime:  time.Now(),
 		Typeflag: tar.TypeReg,
 	}
-	fmt.Println(hdr)
-	fmt.Printf("tw: %p", deb.control.tw)
+
 	if err := deb.control.tw.WriteHeader(&hdr); err != nil {
 		return fmt.Errorf("cannot write header of control file to control.tar.gz: %v", err)
 	}
+
 	if _, err := deb.control.tw.Write(body); err != nil {
 		return fmt.Errorf("cannot write control file to control.tar.gz: %v", err)
 	}
