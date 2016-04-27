@@ -1,4 +1,4 @@
-sudo: false
+sudo: true
 notifications:
   email:
     on_success: change
@@ -14,5 +14,8 @@ before_install:
   - if ! go get github.com/golang/tools/cmd/cover; then go get golang.org/x/tools/cmd/cover; fi
 script:
   - make test
-  - sudo dpkg -i debpkg-test.deb
+  - dpkg --contents debpkg-test.deb
+  - dpkg --info debpkg-test.deb
+  - sudo dpkg --install debpkg-test.deb
+  - dpkg --verify debpkg-test
   - $HOME/gopath/bin/goveralls -service=travis-ci
