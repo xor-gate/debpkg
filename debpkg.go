@@ -338,34 +338,28 @@ func computeMd5(filePath string) (data []byte, size int64, err error) {
 }
 
 // Create control file for control.tar.gz
-func createControlFile(deb *DebPkg) string {
-	const controlFileTmpl = `Package: %s
-Version: %s
-Architecture: %s
-Maintainer: %s <%s>
-Installed-Size: %d
-Section: %s
-Priority: %s
-Homepage: %s
-Description: %s
- %s
-`
+func createControlFileString(deb *DebPkg) string {
+	var o string
+
+	// TODO we should check if all recommended fields exist with a verify function
+
 	if deb.control.info.architecture == "" {
 		deb.SetArchitecture(GetArchitecture())
 	}
 
-	return fmt.Sprintf(controlFileTmpl,
-		deb.control.info.name,
-		deb.control.info.version,
-		deb.control.info.architecture,
-		deb.control.info.maintainer,
-		deb.control.info.maintainerEmail,
-		deb.data.size,
-		deb.control.info.section,
-		deb.control.info.priority,
-		deb.control.info.homepage,
-		deb.control.info.descrShort,
-		deb.control.info.descr)
+	o += fmt.Sprintf("Package: %s\n", deb.control.info.name)
+	o += fmt.Sprintf("Architecture: %s\n", deb.control.info.architecture)
+	o += fmt.Sprintf("Maintainer: %s <%s>\n", deb.control.info.maintainer, deb.control.info.maintainerEmail)
+	o += fmt.Sprintf("Installed-Size: %d\n", deb.data.size)
+	// TODO Section suggested?, check with docs
+	o += fmt.Sprintf("Section: %s\n", deb.control.info.section)
+	// TODO Priority suggested? check with docs
+	o += fmt.Sprintf("Priority: %s\n", deb.control.info.priority)
+	o += fmt.Sprintf("Homepage: %s\n", deb.control.info.homepage)
+	o += fmt.Sprintf("Description: %s\n", deb.control.info.descrShort)
+	o += fmt.Sprintf("%s", deb.control.info.descr)
+
+	return o
 }
 
 // Create unsigned digest file at toplevel of deb package
@@ -383,7 +377,7 @@ Role: %s
 }
 
 func createControlTarGz(deb *DebPkg) error {
-	body := []byte(createControlFile(deb))
+	body := []byte(createControlFileString(deb))
 	hdr := tar.Header{
 		Name:     "control",
 		Size:     int64(len(body)),
