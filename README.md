@@ -15,7 +15,7 @@ debpkg is a native [Go](https://golang.org) implementation with zero dependencie
 
 - [ ] Create simple debian packages from files and folders
 - [ ] Add custom control files (preinst, postinst, prerm, postrm etcetera)
-- [ ] [dpkg](http://manpages.ubuntu.com/manpages/precise/man1/dpkg.1.html) like tool with a subset of commands (--contents, --control, --extract, --info)
+- [ ] [dpkg](http://manpages.ubuntu.com/manpages/precise/man1/dpkg.1.html) like tool with a subset of commands (--info, --extract, --vextract, --control)
 - [ ] Create package from debpkg.yml specfile (like [packager.io](https://packager.io) without cruft)
 - [ ] GPG sign package
 - [ ] GPG verify package
@@ -68,6 +68,13 @@ I would like to mention some other noticable projects:
 * https://github.com/niemeyer/godeb
 * https://github.com/smira/aptly
 * https://github.com/esell/deb-simple
+
+# Debugging
+
+* Print package info: `dpkg --info <debfile>`
+* Extract data.tar.gz: `dpkg --extract <debfile> data`
+* Verbose extract data.tar.gz: `dpkg --vextract <debfile> data`
+* Extract control.tar.gz: `dpkg --control <debfile> control`
 
 # License
 
