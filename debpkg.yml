@@ -1,6 +1,6 @@
 # Example debpkg.yml specfile
 description:
-   short: DebPkg creates debian packages from files and folders
+   short: This is a short description
    long: >
        Bla bla
        Bla Bla

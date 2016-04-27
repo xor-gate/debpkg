@@ -11,7 +11,7 @@ import (
 	"crypto"
 	"crypto/md5"
 	"crypto/sha1"
-	"encoding/hex"
+	//	"encoding/hex"
 	"fmt"
 	"github.com/blakesmith/ar"
 	"github.com/go-yaml/yaml"
@@ -23,7 +23,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strconv"
+	//	"strconv"
 	"strings"
 	"time"
 )
@@ -171,7 +171,9 @@ func (deb *DebPkg) Config(filename string) error {
 		return err
 	}
 
-	fmt.Printf("config:\n\n%+v\n", cfg)
+	deb.control.info.descrShort = cfg.Description.Short
+	deb.control.info.descr = cfg.Description.Long
+
 	return nil
 }
 
@@ -201,7 +203,6 @@ func (deb *DebPkg) WriteSigned(filename string, entity *openpgp.Entity, keyid st
 
 	for id := range entity.Identities {
 		// TODO real search for keyid, need to investigate maybe a subkey?
-		fmt.Printf("%v\n", id)
 		signer = id
 	}
 
@@ -239,16 +240,18 @@ func (deb *DebPkg) WriteSigned(filename string, entity *openpgp.Entity, keyid st
 	createControlTarGz(deb)
 	deb.createDebAr(fd)
 
-	fmt.Printf("---\nName: %+v\n", entity.Identities)
-	keyidStr := strings.ToUpper(strconv.FormatUint(entity.PrimaryKey.KeyId, 16))
-	fp := strings.ToUpper(hex.EncodeToString(entity.PrimaryKey.Fingerprint[:]))
-	fmt.Printf("Fingerprint: %s\n", fp)
-	fmt.Printf("Long KeyId: %s\n", keyidStr)
-	keyidShort := keyidStr[len(keyidStr)-8:]
-	fmt.Printf("Short KeyId: %s\n", keyidShort)
-	fmt.Printf("---")
+	/*
+		fmt.Printf("---\nName: %+v\n", entity.Identities)
+		keyidStr := strings.ToUpper(strconv.FormatUint(entity.PrimaryKey.KeyId, 16))
+		fp := strings.ToUpper(hex.EncodeToString(entity.PrimaryKey.Fingerprint[:]))
+		fmt.Printf("Fingerprint: %s\n", fp)
+		fmt.Printf("Long KeyId: %s\n", keyidStr)
+		keyidShort := keyidStr[len(keyidStr)-8:]
+		fmt.Printf("Short KeyId: %s\n", keyidShort)
+		fmt.Printf("---")
 
-	fmt.Printf("%s", buf.String())
+		fmt.Printf("%s", buf.String())
+	*/
 }
 
 // SetName sets the name of the binary package (mandatory)

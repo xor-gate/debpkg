@@ -9,8 +9,16 @@ import (
 func TestConfig(t *testing.T) {
 	deb := New()
 
-	err := deb.Config("yml")
-	fmt.Println(err)
+	err := deb.Config("debpkg.yml")
+	if err != nil {
+		t.Error("Unable to open debpkg.yml in CWD")
+		return
+	}
+
+	if deb.control.info.descrShort != "This is a short description" {
+		t.Error("Unexpected short description")
+		return
+	}
 }
 
 // Test correct output of a empty control file when no DepPkg Set* functions are called
@@ -170,4 +178,35 @@ func TestWrite(t *testing.T) {
 	// FIXME deb.AddDirectory("tests")
 
 	deb.Write("debpkg.deb")
+}
+
+func TestWriteSigned(t *testing.T) {
+	deb := New()
+
+	deb.SetName("debpkg-test-signed")
+	deb.SetVersion("0.0.1")
+	deb.SetMaintainer("Foo Bar")
+	deb.SetMaintainerEmail("foo@bar.com")
+	deb.SetHomepage("https://foobar.com")
+	deb.SetShortDescription("some awesome foobar pkg")
+	deb.SetDescription("very very very very long description")
+
+	// Set version control system info for control file
+	deb.SetVcsType(VcsTypeGit)
+	deb.SetVcsURL("https://github.com/xor-gate/secdl")
+	deb.SetVcsBrowser("https://github.com/xor-gate/secdl")
+
+	deb.AddFile("debpkg.go")
+	// FIXME deb.AddDirectory("tests")
+
+	// Create random new GPG identity for signage
+	var e *openpgp.Entity
+	e, err := openpgp.NewEntity("Foo Bar", "", "foo@bar.com", nil)
+	if err != nil {
+		t.Error("Unexpected New GPG Entity")
+		return
+	}
+
+	// WriteSigned package
+	deb.WriteSigned("debpkg-test-signed.deb", e, "00000000")
 }
