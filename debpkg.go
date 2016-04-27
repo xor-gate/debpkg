@@ -10,9 +10,9 @@ import (
 	"github.com/go-yaml/yaml"
 	"go/build"
 	"io"
-	"strings"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
