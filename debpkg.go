@@ -9,17 +9,17 @@ import (
 	"bytes"
 	"compress/gzip"
 	"crypto/md5"
-	"strconv"
 	"encoding/hex"
-	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/clearsign"
 	"fmt"
 	"github.com/blakesmith/ar"
 	"github.com/go-yaml/yaml"
 	"go/build"
+	"golang.org/x/crypto/openpgp"
+	"golang.org/x/crypto/openpgp/clearsign"
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -148,9 +148,9 @@ func New() *DebPkg {
 func (deb *DebPkg) Sign(entity *openpgp.Entity, keyid string) {
 	var buf bytes.Buffer
 	deb.digest.version = debPkgDigestVersion
-	deb.digest.date    = fmt.Sprintf(time.Now().Format(time.ANSIC))
-	deb.digest.role    = debPkgDigestRole
-	deb.digest.signer  = "TODO"
+	deb.digest.date = fmt.Sprintf(time.Now().Format(time.ANSIC))
+	deb.digest.role = debPkgDigestRole
+	deb.digest.signer = "TODO"
 
 	plaintext, err := clearsign.Encode(&buf, entity.PrivateKey, nil)
 	if err != nil {
