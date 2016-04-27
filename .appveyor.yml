@@ -1,0 +1,11 @@
+version: '{build}'
+clone_folder: C:\gopath\src\github.com\xor-gate\debpkg
+environment:
+  GOPATH: C:\gopath
+build_script:
+- cmd: go version
+- cmd: go env
+- cmd: go get -v github.com/xor-gate/debpkg/...
+- cmd: go build github.com/xor-gate/debpkg
+test_script:
+- cmd: go test -v -race github.com/xor-gate/debpkg
