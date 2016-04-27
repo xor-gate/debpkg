@@ -20,8 +20,22 @@ import (
 	"time"
 )
 
-type VcsType string // Package support version control system (Vcs) types
+// Priority for Debian package
+type Priority string
 
+// Package Priority
+const (
+	PriorityUnset     Priority = ""          // Priority field is skipped
+	PriorityRequired  Priority = "required"  // Packages which are necessary for the proper functioning of the system
+	PriorityImportant Priority = "important" // Important programs, including those which one would expect to find on any Unix-like system
+	PriorityStandard  Priority = "standard"  // These packages provide a reasonably small but not too limited character-mode system
+	PriorityOptional  Priority = "optional"  // This is all the software that you might reasonably want to install if you didn't know what it was and don't have specialized requirements
+)
+
+// VcsType for Debian package supported version control system (Vcs) types
+type VcsType string
+
+// Package VcsType
 const (
 	VcsTypeArch       VcsType = "Arch"  // Arch
 	VcsTypeBazaar     VcsType = "Bzr"   // Bazaar
@@ -70,7 +84,7 @@ type debPkgControlInfo struct {
 	replaces        string
 	provides        string
 	section         string
-	priority        string
+	priority        Priority
 	descrShort      string  // Short package description
 	descr           string  // Long package description
 	vcsType         VcsType // E.g: "Svn", "Git" etcetera
@@ -99,16 +113,21 @@ type debPkgDigest struct {
 	//       e1a6e48c95a760170029ef7872cec994 e02ed99e5c4fd847bde12b4c2c30dd814b26ec27 136 data.tar.gz
 }
 
-// De
+// DebPkg holds data for a single debian package
 type DebPkg struct {
 	control debPkgControl
 	data    debPkgData
 	digest  debPkgDigest
 }
 
-// Create new debian package
+// New creates new debian package with the following defaults:
+//
+//   Version: 0.0.0
+//   Priority: optional
 func New() *DebPkg {
 	d := &DebPkg{}
+
+	d.control.info.priority = PriorityUnset
 
 	d.control.buf = &bytes.Buffer{}
 	d.control.gw = gzip.NewWriter(d.control.buf)
@@ -121,14 +140,14 @@ func New() *DebPkg {
 	return d
 }
 
-// GPG sign the package
+// Sign the package with GPG
 func (deb *DebPkg) Sign() {
 	deb.digest.version = debPkgDigestVersion
 	deb.digest.date = fmt.Sprintf(time.Now().Format(time.ANSIC))
 	deb.digest.role = debPkgDigestRole
 }
 
-// Load configuration from depkg.yml specfile
+// Config loads settings from a depkg.yml specfile
 func (deb *DebPkg) Config(filename string) error {
 	cfg := debPkgSpecFileCfg{}
 	data := new(bytes.Buffer)
@@ -167,38 +186,39 @@ func (deb *DebPkg) Write(filename string) error {
 	return nil
 }
 
-// Set package name (mandatory)
+// SetName sets the name of the binary package (mandatory)
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Package
 func (deb *DebPkg) SetName(name string) {
 	deb.control.info.name = name
 }
 
-// Set package version string (mandatory)
+// SetVersion sets the full version string (mandatory)
 // NOTE: When the full string is set the SetVersion* function calls are ignored
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
 func (deb *DebPkg) SetVersion(version string) {
 	deb.control.info.version.full = version
 }
 
-// Set package version major number
+// SetVersionMajor sets the version major number
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
 func (deb *DebPkg) SetVersionMajor(major uint) {
 	deb.control.info.version.major = major
 }
 
-// Set package version minor number
+// SetVersionMinor sets the version minor number
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
 func (deb *DebPkg) SetVersionMinor(minor uint) {
 	deb.control.info.version.minor = minor
 }
 
-// Set package version patch number
+// SetVersionPatch sets the version patch level
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
 func (deb *DebPkg) SetVersionPatch(patch uint) {
 	deb.control.info.version.patch = patch
 }
 
-// Set architecture. E.g "i386, amd64, arm". See `dpkg-architecture -L` for all supported.
+// SetArchitecture sets the architecture of the package where it can be installed.
+//  E.g "i386, amd64, arm". See `dpkg-architecture -L` for all supported.
 // Architecture: any
 //    The generated binary package is an architecture dependent one usually in a compiled language.
 // Architecture: all
@@ -210,63 +230,69 @@ func (deb *DebPkg) SetArchitecture(arch string) {
 	deb.control.info.architecture = arch
 }
 
-// Set maintainer (mandatory). E.g: "Foo Bar"
+// SetMaintainer (mandatory), sets the package maintainers name and surname. E.g: "Foo Bar"
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Maintainer
 func (deb *DebPkg) SetMaintainer(maintainer string) {
 	deb.control.info.maintainer = maintainer
 }
 
-// Set maintainer email. E.g: "foo@bar.com"
+// SetMaintainerEmail sets the package maintainers email address. E.g: "foo@bar.com"
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Maintainer
 func (deb *DebPkg) SetMaintainerEmail(email string) {
-	// add check
+	// TODO check email
 	deb.control.info.maintainerEmail = email
 }
 
-// Set suggests. E.g: aptitude
+// SetSuggests sets the package suggestions. E.g: "aptitude"
+// See: https://www.debian.org/doc/debian-policy/ch-relationships.html#s-binarydeps
 func (deb *DebPkg) SetSuggests(suggests string) {
 	deb.control.info.suggests = suggests
 }
 
-// Set conflicts. E.g: nano
+// SetConflicts sets one or more conflicting packages. E.g: "nano"
+// See: https://www.debian.org/doc/debian-policy/ch-relationships.html#s-conflicts
 func (deb *DebPkg) SetConflicts(conflicts string) {
 	deb.control.info.conflicts = conflicts
 }
 
-// Set provides. E.g: editor
+// SetProvides sets the type which the package provides. E.g: "editor"
+// See: https://www.debian.org/doc/debian-policy/ch-relationships.html#s-virtual
 func (deb *DebPkg) SetProvides(provides string) {
 	deb.control.info.provides = provides
 }
 
-// Set priority (recommended). E.g: important
+// SetPriority (recommended). Default set to debpkg.PriorityUnset
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Priority
-func (deb *DebPkg) SetPriority(prio string) {
-	deb.control.info.priority = prio
+// And: https://www.debian.org/doc/debian-policy/ch-archive.html#s-priorities
+func (deb *DebPkg) SetPriority(priority Priority) {
+	deb.control.info.priority = priority
 }
 
-// Set section (recommended). E.g: editors
+// SetSection (recommended). E.g: editors
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Section
+// And: https://www.debian.org/doc/debian-policy/ch-archive.html#s-subsections
 func (deb *DebPkg) SetSection(section string) {
 	deb.control.info.section = section
 }
 
-// Set replaces. E.g: pico
+// SetReplaces sets the names of packages which will be replaced. E.g: "pico"
+// See: 
 func (deb *DebPkg) SetReplaces(replaces string) {
 	deb.control.info.replaces = replaces
 }
 
-// Set homepage url. E.g: "https://github.com/foo/bar"
+// SetHomepage sets the homepage URL of the package. E.g: "https://github.com/foo/bar"
 func (deb *DebPkg) SetHomepage(url string) {
-	// check url
+	// TODO check url
 	deb.control.info.homepage = url
 }
 
-// Set short description. E.g: "My awesome foo bar baz tool"
+// SetShortDescription sets the single line synopsis. E.g: "My awesome foo bar baz tool"
 func (deb *DebPkg) SetShortDescription(descr string) {
 	deb.control.info.descrShort = descr
 }
 
-// Set long description. E.g:
+// SetDescription sets the extended description over several lines. E.g:
 // "This tool will calculation the most efficient way to world domination"
 // NOTE: The debian control file has a special formatting of the long description
 //        this function replaces newlines with a newline and a space.
@@ -274,30 +300,33 @@ func (deb *DebPkg) SetDescription(descr string) {
 	deb.control.info.descr = " " + strings.Replace(descr, "\n", "\n ", -1) + "\n"
 }
 
-// Set version control system (Vcs) type.
+// SetVcsType sets the version control system (Vcs) type for the source package.
 // See: https://www.debian.org/doc/manuals/developers-reference/best-pkging-practices.html#s6.2.5.2
 func (deb *DebPkg) SetVcsType(vcs VcsType) {
 	deb.control.info.vcsType = vcs
 }
 
-// Set version control system (Vcs) URL
+// SetVcsURL sets the version control system (Vcs) URL for the source package.
 // See: https://www.debian.org/doc/manuals/developers-reference/best-pkging-practices.html#s6.2.5.2
 func (deb *DebPkg) SetVcsURL(url string) {
 	deb.control.info.vcsURL = url
 }
 
-// Set version control system (Vcs) browsable source-tree URL
+// SetVcsBrowser sets the version control system (Vcs) browsable source-tree URL for the source package.
 // See: https://www.debian.org/doc/manuals/developers-reference/best-pkging-practices.html#s6.2.5.2
 func (deb *DebPkg) SetVcsBrowser(url string) {
 	deb.control.info.vcsBrowser = url
 }
 
-// Allow advanced user to add custom script to the control.tar.gz Typical usage is for
-//  conffiles, postinst, postrm, prerm.
+// AddControlExtra allows the advanced user to add custom script to the control.tar.gz Typical usage is
+//  for conffiles, postinst, postrm, prerm.
+// See: https://www.debian.org/doc/debian-policy/ch-maintainerscripts.html
+// And: https://www.debian.org/doc/manuals/maint-guide/dother.en.html#maintscripts
 func (deb *DebPkg) AddControlExtra(filename string) {
 	deb.control.extra = append(deb.control.extra, filename)
 }
 
+// AddFile adds a file by filename to the package
 func (deb *DebPkg) AddFile(filename string) error {
 	file, err := os.Open(filename)
 	if err != nil {
@@ -327,6 +356,7 @@ func (deb *DebPkg) AddFile(filename string) error {
 	return nil
 }
 
+// AddDirectory adds a directory to the package
 func (deb *DebPkg) AddDirectory(dir string) error {
 	files := []string{}
 	err := filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
@@ -341,7 +371,7 @@ func (deb *DebPkg) AddDirectory(dir string) error {
 	return err
 }
 
-// Get current architecture of build
+// GetArchitecture gets the current local CPU architecture in debian-form
 func GetArchitecture() string {
 	arch := build.Default.GOARCH
 	if arch == "386" {
@@ -390,10 +420,12 @@ func createControlFileString(deb *DebPkg) string {
 	o += fmt.Sprintf("Architecture: %s\n", deb.control.info.architecture)
 	o += fmt.Sprintf("Maintainer: %s <%s>\n", deb.control.info.maintainer, deb.control.info.maintainerEmail)
 	o += fmt.Sprintf("Installed-Size: %d\n", deb.data.size)
-	// TODO Section suggested?, check with docs
-	o += fmt.Sprintf("Section: %s\n", deb.control.info.section)
-	// TODO Priority suggested? check with docs
-	o += fmt.Sprintf("Priority: %s\n", deb.control.info.priority)
+	if deb.control.info.section != "" {
+		o += fmt.Sprintf("Section: %s\n", deb.control.info.section)
+	}
+	if deb.control.info.priority != PriorityUnset {
+		o += fmt.Sprintf("Priority: %s\n", deb.control.info.priority)
+	}
 	o += fmt.Sprintf("Homepage: %s\n", deb.control.info.homepage)
 	o += fmt.Sprintf("Description: %s\n", deb.control.info.descrShort)
 	o += fmt.Sprintf("%s", deb.control.info.descr)

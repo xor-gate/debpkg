@@ -20,8 +20,6 @@ Version: 0.0.0
 Architecture: amd64
 Maintainer:  <>
 Installed-Size: 0
-Section: 
-Priority: 
 Homepage: 
 Description: 
 `
@@ -46,8 +44,6 @@ Version: 1.2.3
 Architecture: amd64
 Maintainer:  <>
 Installed-Size: 0
-Section: 
-Priority: 
 Homepage: 
 Description: 
 `
@@ -76,8 +72,6 @@ Version: 0.0.0
 Architecture: amd64
 Maintainer: Jerry Jacobs <foo@bar.com>
 Installed-Size: 0
-Section: 
-Priority: 
 Homepage: https://github.com/xor-gate/debpkg
 Description: Golang package for creating (gpg signed) debian packages
  **Features**
