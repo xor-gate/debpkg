@@ -16,8 +16,8 @@ import (
 	"github.com/go-yaml/yaml"
 	"go/build"
 	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/clearsign"
-	"golang.org/x/crypto/openpgp/packet"
+	//"golang.org/x/crypto/openpgp/clearsign"
+	//"golang.org/x/crypto/openpgp/packet"
 	"hash"
 	"io"
 	"os"
@@ -182,10 +182,10 @@ func (deb *DebPkg) Write(filename string) error {
 
 // WriteSigned package with GPG entity
 func (deb *DebPkg) WriteSigned(filename string, entity *openpgp.Entity, keyid string) error {
-	var buf bytes.Buffer
-	var cfg packet.Config
+	//var buf bytes.Buffer
+	//var cfg packet.Config
 	var signer string
-	cfg.DefaultHash = debPkgDigestDefaultHash
+	//cfg.DefaultHash = debPkgDigestDefaultHash
 
 	for id := range entity.Identities {
 		// TODO real search for keyid, need to investigate maybe a subkey?
@@ -195,13 +195,18 @@ func (deb *DebPkg) WriteSigned(filename string, entity *openpgp.Entity, keyid st
 	deb.digest.date = fmt.Sprintf(time.Now().Format(time.ANSIC))
 	deb.digest.signer = signer
 
+/*
 	clearsign, err := clearsign.Encode(&buf, entity.PrivateKey, &cfg)
 	if err != nil {
 		return fmt.Errorf("error while signing: %s", err)
 	}
+*/
 
-	deb.digest.plaintext = createDigestFileString(deb)
+	// FIXME when this is enabled the data.tar.gz goes corrupt for a unknown reason
+	// test with: dpkg -c debpkg-test-signed.deb
+	//deb.digest.plaintext = createDigestFileString(deb)
 
+/*
 	if _, err = clearsign.Write([]byte(deb.digest.plaintext)); err != nil {
 		return fmt.Errorf("error from Write: %s", err)
 	}
@@ -210,6 +215,7 @@ func (deb *DebPkg) WriteSigned(filename string, entity *openpgp.Entity, keyid st
 	}
 
 	deb.digest.clearsign = buf.String()
+*/
 
 	return deb.createDebAr(filename)
 }
@@ -498,7 +504,7 @@ Files:
 	deb.digest.files += fmt.Sprintf("\t%x %x %d %s\n",
 		digestCalcDataHash(deb.data.buf, md5.New()),
 		digestCalcDataHash(deb.data.buf, sha1.New()),
-		deb.control.buf.Len(),
+		deb.data.buf.Len(),
 		"data.tar.bz2")
 
 	deb.digest.version = debPkgDigestVersion
@@ -568,18 +574,24 @@ func addArFile(now time.Time, w *ar.Writer, name string, body []byte) error {
 }
 
 func (deb *DebPkg) createDebAr(filename string) error {
+	err := createControlTarGz(deb)
+	if err != nil {
+		return fmt.Errorf("error while creating control.tar.gz: %s", err)
+	}
+
+	// Create file
 	fd, err := os.Create(filename)
 	if err != nil {
 		return fmt.Errorf("unable to create: %s", filename)
 	}
+	// TODO when something goes wrong in writing, we should remove the stale package
 	defer fd.Close()
 
-	createControlTarGz(deb)
 	deb.data.tw.Close()
 	deb.data.gw.Close()
-
 	now := time.Now()
 	w := ar.NewWriter(fd)
+
 	if err := w.WriteGlobalHeader(); err != nil {
 		return fmt.Errorf("cannot write ar header to deb file: %v", err)
 	}
@@ -597,5 +609,6 @@ func (deb *DebPkg) createDebAr(filename string) error {
 			return fmt.Errorf("cannot add digests.asc to deb: %v", err)
 		}
 	}
+
 	return nil
 }

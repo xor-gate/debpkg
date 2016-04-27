@@ -155,7 +155,10 @@ func TestWriteSignedEmpty(t *testing.T) {
 	}
 
 	// WriteSigned package
-	deb.WriteSigned("debpkg-signed-empty.deb", e, "00000000")
+	err = deb.WriteSigned("debpkg-test-signed-empty.deb", e, "00000000")
+	if err != nil {
+		t.Errorf("Error in writing signed package: %v", err)
+	}
 }
 
 func TestWrite(t *testing.T) {
@@ -177,7 +180,10 @@ func TestWrite(t *testing.T) {
 	deb.AddFile("debpkg.go")
 	// FIXME deb.AddDirectory("tests")
 
-	deb.Write("debpkg-test.deb")
+	err := deb.Write("debpkg-test.deb")
+	if err != nil {
+		t.Errorf("Error in writing unsigned package: %v", err)
+	}
 }
 
 func TestWriteSigned(t *testing.T) {
@@ -206,6 +212,9 @@ func TestWriteSigned(t *testing.T) {
 		return
 	}
 
-	// WriteSigned package
-	deb.WriteSigned("debpkg-test-signed.deb", e, "00000000")
+	// WriteSigned the package
+	err = deb.WriteSigned("debpkg-test-signed.deb", e, "00000000")
+	if err != nil {
+		t.Errorf("Error in writing unsigned package: %v", err)
+	}
 }
