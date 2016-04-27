@@ -11,7 +11,6 @@ import (
 	"crypto"
 	"crypto/md5"
 	"crypto/sha1"
-	//	"encoding/hex"
 	"fmt"
 	"github.com/blakesmith/ar"
 	"github.com/go-yaml/yaml"
@@ -23,7 +22,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	//	"strconv"
 	"strings"
 	"time"
 )
@@ -418,8 +416,6 @@ func (deb *DebPkg) AddFile(filename string) error {
 	md5, _ := computeMd5(fd)
 	deb.data.size += stat.Size()
 	deb.data.md5sums += fmt.Sprintf("%x  %s\n", md5, filename)
-
-	fmt.Printf("AddFile: %s\n", filename)
 
 	return nil
 }

@@ -1,10 +1,10 @@
+sudo: false
 notifications:
   email:
     on_success: change
     on_failure: always
 go_import_path: github.com/xor-gate/debpkg
 language: go
-sudo: false
 go:
   - 1.6
   - tip
@@ -14,4 +14,5 @@ before_install:
   - if ! go get github.com/golang/tools/cmd/cover; then go get golang.org/x/tools/cmd/cover; fi
 script:
   - make test
+  - sudo dpkg -i debpkg-test.deb
   - $HOME/gopath/bin/goveralls -service=travis-ci
