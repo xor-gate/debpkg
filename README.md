@@ -2,7 +2,13 @@
 
 Golang package for creating (signed) debian packages
 
-[![License][License-Image]][License-Url] ![Stability][Stability-Status-Image] [![Godoc][Godoc-Image]][Godoc-Url] [![ReportCard][ReportCard-Image]][ReportCard-Url] [![Build][Build-Status-Image]][Build-Status-Url] [![Coverage][Coverage-Image]][Coverage-Url]
+[![License][License-Image]][License-Url]
+![Stability][Stability-Status-Image]
+[![Godoc][Godoc-Image]][Godoc-Url]
+[![ReportCard][ReportCard-Image]][ReportCard-Url]
+[![Build][Build-Status-Image]][Build-Status-Url]
+[![BuildAppVeyor][BuildAV-Status-Image]][BuildAV-Status-Url]
+[![Coverage][Coverage-Image]][Coverage-Url]
 
 **Features**
 
@@ -42,6 +48,8 @@ description:
 [Stability-Status-Image]: http://badges.github.io/stability-badges/dist/experimental.svg
 [Build-Status-Url]: http://travis-ci.org/xor-gate/debpkg
 [Build-Status-Image]: https://travis-ci.org/xor-gate/debpkg.svg?branch=master
+[BuildAV-Status-Url]: https://ci.appveyor.com/project/xor-gate/debpkg
+[BuildAV-Status-Image]: https://ci.appveyor.com/api/projects/status/iuw1j84l33ynxs32?svg=true
 [Godoc-Url]: https://godoc.org/github.com/xor-gate/debpkg
 [Godoc-Image]: https://godoc.org/github.com/xor-gate/debpkg?status.svg
 [ReportCard-Url]: http://goreportcard.com/report/xor-gate/debpkg
