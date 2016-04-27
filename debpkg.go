@@ -177,23 +177,11 @@ func (deb *DebPkg) Config(filename string) error {
 
 // Write the debian package to the filename
 func (deb *DebPkg) Write(filename string) error {
-	fd, err := os.Create(filename)
-	if err != nil {
-		return nil
-	}
-	defer fd.Close()
-
-	deb.data.tw.Close()
-	deb.data.gw.Close()
-
-	createControlTarGz(deb)
-	deb.createDebAr(fd)
-
-	return nil
+	return deb.createDebAr(filename)
 }
 
 // WriteSigned package with GPG entity
-func (deb *DebPkg) WriteSigned(filename string, entity *openpgp.Entity, keyid string) {
+func (deb *DebPkg) WriteSigned(filename string, entity *openpgp.Entity, keyid string) error {
 	var buf bytes.Buffer
 	var cfg packet.Config
 	var signer string
@@ -209,37 +197,21 @@ func (deb *DebPkg) WriteSigned(filename string, entity *openpgp.Entity, keyid st
 
 	clearsign, err := clearsign.Encode(&buf, entity.PrivateKey, &cfg)
 	if err != nil {
-		fmt.Println(err)
-		return
+		return fmt.Errorf("error while signing: %s", err)
 	}
 
 	deb.digest.plaintext = createDigestFileString(deb)
 
 	if _, err = clearsign.Write([]byte(deb.digest.plaintext)); err != nil {
-		fmt.Printf("error from Write: %s", err)
-		return
+		return fmt.Errorf("error from Write: %s", err)
 	}
 	if err = clearsign.Close(); err != nil {
-		fmt.Printf("error from Close: %s", err)
-		return
+		return fmt.Errorf("error from Close: %s", err)
 	}
 
 	deb.digest.clearsign = buf.String()
 
-	fd, err := os.Create(filename)
-	if err != nil {
-		return
-	}
-	defer fd.Close()
-
-	deb.data.tw.Close()
-	deb.data.gw.Close()
-
-	createControlTarGz(deb)
-
-	fmt.Printf("signed data.tar.gz: %d\n", deb.data.buf.Len())
-
-	deb.createDebAr(fd)
+	return deb.createDebAr(filename)
 }
 
 // SetName sets the name of the binary package (mandatory)
@@ -595,9 +567,19 @@ func addArFile(now time.Time, w *ar.Writer, name string, body []byte) error {
 	return err
 }
 
-func (deb *DebPkg) createDebAr(dst io.Writer) error {
+func (deb *DebPkg) createDebAr(filename string) error {
+	fd, err := os.Create(filename)
+	if err != nil {
+		return fmt.Errorf("unable to create: %s", filename)
+	}
+	defer fd.Close()
+
+	createControlTarGz(deb)
+	deb.data.tw.Close()
+	deb.data.gw.Close()
+
 	now := time.Now()
-	w := ar.NewWriter(dst)
+	w := ar.NewWriter(fd)
 	if err := w.WriteGlobalHeader(); err != nil {
 		return fmt.Errorf("cannot write ar header to deb file: %v", err)
 	}
