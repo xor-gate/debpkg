@@ -5,7 +5,9 @@
 #
 # Example debpkg.yml v1 specfile
 ##
-version: 0.0.0
+version: 7.6.5
+maintainer: Foo Bar
+maintainer_email: foo@bar.com
 homepage: https://github.com/xor-gate/debpkg
 description:
    short: This is a short description

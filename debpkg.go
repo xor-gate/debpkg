@@ -58,9 +58,11 @@ const debPkgDigestVersion = 4
 const debPkgDigestRole = "builder"
 
 type debPkgSpecFileCfg struct {
-	Version     string `yaml:"version"`
-	Homepage    string `yaml:"homepage"`
-	Description struct {
+	Version         string `yaml:"version"`
+	Maintainer      string `yaml:"maintainer"`
+	MaintainerEmail string `yaml:"maintainer_email"`
+	Homepage        string `yaml:"homepage"`
+	Description     struct {
 		Short string `yaml:"short"`
 		Long  string `yaml:"long"`
 	}
@@ -172,6 +174,10 @@ func (deb *DebPkg) Config(filename string) error {
 		return err
 	}
 
+	deb.control.info.version.full = cfg.Version
+	deb.control.info.maintainer = cfg.Maintainer
+	deb.control.info.maintainerEmail = cfg.MaintainerEmail
+	deb.control.info.homepage = cfg.Homepage
 	deb.control.info.descrShort = cfg.Description.Short
 	deb.control.info.descr = cfg.Description.Long
 
