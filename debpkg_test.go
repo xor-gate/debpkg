@@ -73,6 +73,35 @@ Description:
 	}
 }
 
+// Test correct output of a control file when SetVcs* functions are called
+// Only the mandatory fields are exported then, this behaviour is checked
+func TestControlFileVcsAndVcsBrowserFields(t *testing.T) {
+	controlExpect := `Package: 
+Version: 0.0.0
+Architecture: amd64
+Maintainer:  <>
+Installed-Size: 0
+Homepage: 
+Vcs-Git: git@github.com/xor-gate/debpkg
+Vcs-Browser: https://github.com/xor-gate/debpkg
+Description: 
+`
+	// Empty
+	deb := New()
+
+	// architecture is auto-set when empty, this makes sure it is always set to amd64
+	deb.SetArchitecture("amd64")
+	deb.SetVcsType(VcsTypeGit)
+	deb.SetVcsURL("git@github.com/xor-gate/debpkg")
+	deb.SetVcsBrowser("https://github.com/xor-gate/debpkg")
+	control := createControlFileString(deb)
+
+	if control != controlExpect {
+		t.Error("Unexpected control file")
+		fmt.Printf("--- expected (len %d):\n'%s'\n--- got (len %d):\n'%s'---\n", len(controlExpect), controlExpect, len(control), control)
+	}
+}
+
 // Test correct output of the control file when SetVersion* functions are called
 // Only the mandatory fields are exported then, this behaviour is checked
 func TestControlFileSetVersionMajorMinorPatch(t *testing.T) {

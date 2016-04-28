@@ -43,6 +43,7 @@ type VcsType string
 
 // Package VcsType
 const (
+	VcsTypeUnset      VcsType = ""      // VcsType field is skipped
 	VcsTypeArch       VcsType = "Arch"  // Arch
 	VcsTypeBazaar     VcsType = "Bzr"   // Bazaar
 	VcsTypeDarcs      VcsType = "Darcs" // Darcs
@@ -138,11 +139,11 @@ type DebPkg struct {
 // New creates new debian package with the following defaults:
 //
 //   Version: 0.0.0
-//   Priority: optional
 func New() *DebPkg {
 	d := &DebPkg{}
 
 	d.debianBinary = debPkgDebianBinary
+	d.control.info.vcsType = VcsTypeUnset
 	d.control.info.priority = PriorityUnset
 
 	d.control.buf = &bytes.Buffer{}
@@ -486,6 +487,14 @@ func createControlFileString(deb *DebPkg) string {
 	}
 
 	o += fmt.Sprintf("Homepage: %s\n", deb.control.info.homepage)
+
+	if deb.control.info.vcsType != VcsTypeUnset && deb.control.info.vcsURL != "" {
+		o += fmt.Sprintf("Vcs-%s: %s\n", deb.control.info.vcsType, deb.control.info.vcsURL)
+	}
+	if deb.control.info.vcsBrowser != "" {
+		o += fmt.Sprintf("Vcs-Browser: %s\n", deb.control.info.vcsBrowser)
+	}
+
 	o += fmt.Sprintf("Description: %s\n", deb.control.info.descrShort)
 	o += fmt.Sprintf("%s", deb.control.info.descr)
 
