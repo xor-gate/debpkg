@@ -156,6 +156,20 @@ Files:
 	}
 }
 
+func TestAddDirectory(t *testing.T) {
+	deb := New()
+	err := deb.AddDirectory(".")
+	if err != nil {
+		t.Errorf("Error adding directory '.': %v", err)
+		return
+	}
+	err = deb.Write("debpkg-test-add-directory.deb")
+	if err != nil {
+		t.Errorf("Error writing debfile: %v", err)
+		return
+	}
+}
+
 func TestWriteSignedEmpty(t *testing.T) {
 	deb := New()
 

@@ -58,10 +58,13 @@ const debPkgDigestVersion = 4
 const debPkgDigestRole = "builder"
 
 type debPkgSpecFileCfg struct {
+	Version     string `yaml:"version"`
+	Homepage    string `yaml:"homepage"`
 	Description struct {
 		Short string `yaml:"short"`
 		Long  string `yaml:"long"`
 	}
+	Files []string `yaml:",flow"`
 }
 
 type debPkgData struct {
@@ -376,6 +379,9 @@ func (deb *DebPkg) AddFile(filename string) error {
 	if err != nil {
 		return err
 	}
+	if stat.Mode().IsDir() {
+		return nil
+	}
 
 	// now lets create the header as needed for this file within the tarball
 	header := new(tar.Header)
@@ -406,12 +412,17 @@ func (deb *DebPkg) AddFile(filename string) error {
 func (deb *DebPkg) AddDirectory(dir string) error {
 	files := []string{}
 	err := filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
-		files = append(files, path)
+		if path != "." && path != ".." {
+			files = append(files, path)
+		}
 		return nil
 	})
 
 	for _, file := range files {
-		deb.AddFile(file)
+		err = deb.AddFile(file)
+		if err != nil {
+			return err
+		}
 	}
 
 	return err
@@ -604,8 +615,8 @@ func (deb *DebPkg) createDebAr(filename string) error {
 		return fmt.Errorf("cannot add data.tar.gz to deb: %v", err)
 	}
 	if deb.digest.clearsign != "" {
-		if err := addArFile(now, w, "digests", []byte(deb.digest.clearsign)); err != nil {
-			return fmt.Errorf("cannot add digests to deb: %v", err)
+		if err := addArFile(now, w, "digests.asc", []byte(deb.digest.clearsign)); err != nil {
+			return fmt.Errorf("cannot add digests.asc to deb: %v", err)
 		}
 	}
 	return nil

@@ -3,8 +3,10 @@
 # Use of this source code is governed by the MIT
 # license that can be found in the LICENSE file.
 #
-# Example debpkg.yml specfile
+# Example debpkg.yml v1 specfile
 ##
+version: 0.0.0
+homepage: https://github.com/xor-gate/debpkg
 description:
    short: This is a short description
    long: >
@@ -12,3 +14,8 @@ description:
        Bla Bla
        .
        Dusse
+files:
+  - LICENSE
+  - debpkg.go
+  - debpkg_test.go
+  - README.md
