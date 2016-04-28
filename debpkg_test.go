@@ -182,10 +182,10 @@ Files:
 	}
 }
 
-/*
+// TestDirectory verifies adding a single directory recursive to the package
 func TestAddDirectory(t *testing.T) {
 	deb := New()
-	err := deb.AddDirectory(".")
+	err := deb.AddDirectory("vendor")
 	if err != nil {
 		t.Errorf("Error adding directory '.': %v", err)
 		return
@@ -196,7 +196,6 @@ func TestAddDirectory(t *testing.T) {
 		return
 	}
 }
-*/
 
 func TestWriteSignedEmpty(t *testing.T) {
 	deb := New()
