@@ -240,10 +240,13 @@ func (deb *DebPkg) SetName(name string) {
 	deb.control.info.name = name
 }
 
-// SetVersion sets the full version string (mandatory)
+// SetVersion sets the full version string (mandatory), or user SetVersion* functions for "major.minor.patch"
+// The upstream_version may contain only alphanumerics ( A-Za-z0-9 ) and the characters . + - : ~
+//  (full stop, plus, hyphen, colon, tilde) and should start with a digit.
 // NOTE: When the full string is set the SetVersion* function calls are ignored
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
 func (deb *DebPkg) SetVersion(version string) {
+	// TODO add check for correct version string
 	deb.control.info.version.full = version
 }
 
@@ -485,9 +488,9 @@ func createControlFileString(deb *DebPkg) string {
 	if deb.control.info.priority != PriorityUnset {
 		o += fmt.Sprintf("Priority: %s\n", deb.control.info.priority)
 	}
-
-	o += fmt.Sprintf("Homepage: %s\n", deb.control.info.homepage)
-
+	if deb.control.info.homepage != "" {
+		o += fmt.Sprintf("Homepage: %s\n", deb.control.info.homepage)
+	}
 	if deb.control.info.vcsType != VcsTypeUnset && deb.control.info.vcsURL != "" {
 		o += fmt.Sprintf("Vcs-%s: %s\n", deb.control.info.vcsType, deb.control.info.vcsURL)
 	}

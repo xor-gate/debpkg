@@ -57,7 +57,6 @@ Version: 0.0.0
 Architecture: amd64
 Maintainer:  <>
 Installed-Size: 0
-Homepage: 
 Description: 
 `
 	// Empty
@@ -81,7 +80,6 @@ Version: 0.0.0
 Architecture: amd64
 Maintainer:  <>
 Installed-Size: 0
-Homepage: 
 Vcs-Git: git@github.com/xor-gate/debpkg
 Vcs-Browser: https://github.com/xor-gate/debpkg
 Description: 
@@ -110,7 +108,6 @@ Version: 1.2.3
 Architecture: amd64
 Maintainer:  <>
 Installed-Size: 0
-Homepage: 
 Description: 
 `
 
@@ -119,7 +116,6 @@ Version: 7.8.9
 Architecture: amd64
 Maintainer:  <>
 Installed-Size: 0
-Homepage: 
 Description: 
 `
 
