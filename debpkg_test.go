@@ -6,6 +6,14 @@ import (
 	"testing"
 )
 
+var e *openpgp.Entity = nil
+
+func init() {
+	// Create random new GPG identity for signage
+	e, _ = openpgp.NewEntity("Foo Bar", "", "foo@bar.com", nil)
+}
+
+// TestConfig verifies the specfile is correctly loaded
 func TestConfig(t *testing.T) {
 	deb := New()
 
@@ -56,18 +64,36 @@ Installed-Size: 0
 Homepage: 
 Description: 
 `
+
+	controlExpectFullVersion := `Package: 
+Version: 7.8.9
+Architecture: amd64
+Maintainer:  <>
+Installed-Size: 0
+Homepage: 
+Description: 
+`
+
 	// Empty
 	deb := New()
 
+	// architecture is auto-set when empty, this makes sure it is always set to amd64
+	deb.SetArchitecture("amd64")
+
+	// Set major.minor.patch, leave full version string untouched
 	deb.SetVersionMajor(1)
 	deb.SetVersionMinor(2)
 	deb.SetVersionPatch(3)
-
-	// architecture is auto-set when empty, this makes sure it is always set to amd64
-	deb.SetArchitecture("amd64")
 	control := createControlFileString(deb)
-
 	if control != controlExpect {
+		t.Error("Unexpected control file")
+		fmt.Printf("--- expected (len %d):\n'%s'\n--- got (len %d):\n'%s'---\n", len(controlExpect), controlExpect, len(control), control)
+	}
+
+	// Set full version string, this will overwrite the set SetVersion{Major,Minor,Patch} string
+	deb.SetVersion("7.8.9")
+	control = createControlFileString(deb)
+	if control != controlExpectFullVersion {
 		t.Error("Unexpected control file")
 		fmt.Printf("--- expected (len %d):\n'%s'\n--- got (len %d):\n'%s'---\n", len(controlExpect), controlExpect, len(control), control)
 	}
@@ -156,6 +182,7 @@ Files:
 	}
 }
 
+/*
 func TestAddDirectory(t *testing.T) {
 	deb := New()
 	err := deb.AddDirectory(".")
@@ -169,20 +196,13 @@ func TestAddDirectory(t *testing.T) {
 		return
 	}
 }
+*/
 
 func TestWriteSignedEmpty(t *testing.T) {
 	deb := New()
 
-	// Create random new GPG identity for signage
-	var e *openpgp.Entity
-	e, err := openpgp.NewEntity("Foo Bar", "", "foo@bar.com", nil)
-	if err != nil {
-		t.Error("Unexpected New GPG Entity")
-		return
-	}
-
 	// WriteSigned package
-	err = deb.WriteSigned("debpkg-test-signed-empty.deb", e, "00000000")
+	err := deb.WriteSigned("debpkg-test-signed-empty.deb", e, "00000000")
 	if err != nil {
 		t.Errorf("Error in writing signed package: %v", err)
 	}
@@ -230,16 +250,8 @@ func TestWriteSigned(t *testing.T) {
 
 	deb.AddFile("debpkg.go")
 
-	// Create random new GPG identity for signage
-	var e *openpgp.Entity
-	e, err := openpgp.NewEntity("Foo Bar", "", "foo@bar.com", nil)
-	if err != nil {
-		t.Error("Unexpected New GPG Entity")
-		return
-	}
-
 	// WriteSigned the package
-	err = deb.WriteSigned("debpkg-test-signed.deb", e, "00000000")
+	err := deb.WriteSigned("debpkg-test-signed.deb", e, "00000000")
 	if err != nil {
 		t.Errorf("Error in writing unsigned package: %v", err)
 	}
