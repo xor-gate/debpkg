@@ -103,6 +103,7 @@ type debPkgControlInfo struct {
 	vcsType         VcsType // E.g: "Svn", "Git" etcetera
 	vcsURL          string  // E.g: git@github.com:xor-gate/debpkg.git
 	vcsBrowser      string  // E.g: https://github.com/xor-gate/debpkg
+	builtUsing      string  // E.g: gcc-4.6 (= 4.6.0-11)
 }
 
 type debPkgControl struct {
@@ -369,6 +370,17 @@ func (deb *DebPkg) SetVcsBrowser(url string) {
 	deb.control.info.vcsBrowser = url
 }
 
+// SetBuiltUsing incorporate parts of other packages when built but do not have to depend on those packages.
+// A package using the source code from the gcc-4.6-source binary package built from the gcc-4.6 source package
+// would have this field in its control file:
+//  Built-Using: gcc-4.6 (= 4.6.0-11)
+// A package including binaries from grub2 and loadlin would have this field in its control file:
+//  Built-Using: grub2 (= 1.99-9), loadlin (= 1.6e-1)
+// See: https://www.debian.org/doc/debian-policy/ch-relationships.html#s-built-using
+func (deb *DebPkg) SetBuiltUsing(info string) {
+	deb.control.info.builtUsing = info
+}
+
 // AddControlExtra allows the advanced user to add custom script to the control.tar.gz Typical usage is
 //  for conffiles, postinst, postrm, prerm.
 // See: https://www.debian.org/doc/debian-policy/ch-maintainerscripts.html
@@ -496,6 +508,9 @@ func createControlFileString(deb *DebPkg) string {
 	}
 	if deb.control.info.vcsBrowser != "" {
 		o += fmt.Sprintf("Vcs-Browser: %s\n", deb.control.info.vcsBrowser)
+	}
+	if deb.control.info.builtUsing != "" {
+		o += fmt.Sprintf("Built-Using: %s\n", deb.control.info.builtUsing)
 	}
 
 	o += fmt.Sprintf("Description: %s\n", deb.control.info.descrShort)
