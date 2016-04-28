@@ -1,4 +1,4 @@
-sudo: true
+sudo: false
 notifications:
   email:
     on_success: change
@@ -15,7 +15,4 @@ before_install:
 script:
   - make test
   - make test-dpkg
-  - sudo dpkg --install debpkg-test.deb
-  - sudo dpkg --remove debpkg-test
-  - sudo dpkg --install debpkg-test-signed.deb
   - $HOME/gopath/bin/goveralls -service=travis-ci
