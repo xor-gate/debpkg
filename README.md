@@ -13,11 +13,11 @@ debpkg is a native [Go](https://golang.org) implementation with zero dependencie
 
 **Features**
 
-- [ ] Create simple debian packages from files and folders
+- [X] (functional but incomplete) Create simple debian packages from files and folders
 - [ ] Add custom control files (preinst, postinst, prerm, postrm etcetera)
 - [ ] [dpkg](http://manpages.ubuntu.com/manpages/precise/man1/dpkg.1.html) like tool with a subset of commands (--info, --extract, --vextract, --control)
-- [ ] Create package from debpkg.yml specfile (like [packager.io](https://packager.io) without cruft)
-- [ ] GPG sign package
+- [X] (functional but incomplete) Create package from debpkg.yml specfile (like [packager.io](https://packager.io) without cruft)
+- [ ] (implemented but doesnt work yet with dpkg -i) GPG sign package
 - [ ] GPG verify package
 
 ## Why this package was created
