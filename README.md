@@ -102,6 +102,6 @@ I would like to mention some other noticable projects:
 [Godoc-Url]: https://godoc.org/github.com/xor-gate/debpkg
 [Godoc-Image]: https://godoc.org/github.com/xor-gate/debpkg?status.svg
 [ReportCard-Url]: http://goreportcard.com/report/xor-gate/debpkg
-[ReportCard-Image]: http://goreportcard.com/badge/xor-gate/debpkg
+[ReportCard-Image]: https://goreportcard.com/badge/github.com/xor-gate/debpkg
 [Coverage-Url]: https://coveralls.io/r/xor-gate/debpkg?branch=master
 [Coverage-image]: https://img.shields.io/coveralls/xor-gate/debpkg.svg
