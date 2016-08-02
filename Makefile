@@ -7,6 +7,7 @@ ci: test
 
 build:
 	go build
+	go install github.com/xor-gate/debpkg/cmd/debpkg
 
 test:
 	go test -v -race

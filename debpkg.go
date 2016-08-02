@@ -13,7 +13,7 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"github.com/blakesmith/ar"
-	"github.com/go-yaml/yaml"
+	"gopkg.in/yaml.v2"
 	"go/build"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/clearsign"
@@ -59,6 +59,7 @@ const debPkgDigestVersion = 4
 const debPkgDigestRole = "builder"
 
 type debPkgSpecFileCfg struct {
+	Name            string `yaml:"name"`
 	Version         string `yaml:"version"`
 	Maintainer      string `yaml:"maintainer"`
 	MaintainerEmail string `yaml:"maintainer_email"`
@@ -176,12 +177,17 @@ func (deb *DebPkg) Config(filename string) error {
 		return err
 	}
 
-	deb.control.info.version.full = cfg.Version
-	deb.control.info.maintainer = cfg.Maintainer
-	deb.control.info.maintainerEmail = cfg.MaintainerEmail
-	deb.control.info.homepage = cfg.Homepage
-	deb.control.info.descrShort = cfg.Description.Short
-	deb.control.info.descr = cfg.Description.Long
+	deb.SetName(cfg.Name)
+	deb.SetVersion(cfg.Version)
+	deb.SetMaintainer(cfg.Maintainer)
+	deb.SetMaintainerEmail(cfg.MaintainerEmail)
+	deb.SetHomepage(cfg.Homepage)
+	deb.SetShortDescription(cfg.Description.Short)
+	deb.SetDescription(cfg.Description.Long)
+
+	for _, file := range cfg.Files {
+		deb.AddFile(file)
+	}
 
 	return nil
 }
@@ -191,6 +197,11 @@ func (deb *DebPkg) Write(filename string) error {
 	err := createControlTarGz(deb)
 	if err != nil {
 		return fmt.Errorf("error while creating control.tar.gz: %s", err)
+	}
+
+	// TODO move to separate function
+	if filename == "" {
+		filename = deb.control.info.name + "_" + deb.control.info.version.full + "_" + deb.control.info.architecture + ".deb"
 	}
 
 	return deb.createDebAr(filename)

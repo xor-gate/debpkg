@@ -5,6 +5,7 @@
 #
 # Example debpkg.yml v1 specfile
 ##
+name: foobar
 version: 7.6.5
 maintainer: Foo Bar
 maintainer_email: foo@bar.com
