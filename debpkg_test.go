@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-var e *openpgp.Entity = nil
+var e *openpgp.Entity
 
 func init() {
 	// Create random new GPG identity for signage
@@ -24,7 +24,7 @@ func TestConfig(t *testing.T) {
 	}
 
 	if deb.control.info.version.full != "7.6.5" {
-		t.Errorf("Unexpected deb.control.info.version: %s", deb.control.info.version)
+		t.Errorf("Unexpected deb.control.info.version.full: %s", deb.control.info.version.full)
 		return
 	}
 
