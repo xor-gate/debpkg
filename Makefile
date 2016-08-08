@@ -24,7 +24,7 @@ lint:
 	go tool vet .
 
 fmt:
-	gofmt -d -s .
+	gofmt -s -w .
 
 clean:
 	rm -Rf *.deb
