@@ -36,7 +36,7 @@ This package is heavily inspired by [godeb](https://github.com/niemeyer/godeb) a
 
 ## Installation
 
-`go get -u github.com/xor-gate/debpkg`
+`go get -u github.com/xor-gate/debpkg/cmd/debpkg`
 
 ## Status
 
