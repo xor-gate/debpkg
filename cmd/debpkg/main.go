@@ -6,26 +6,26 @@ import (
 	"github.com/xor-gate/debpkg"
 )
 
-var g_outputFile string
-var g_configFile string
+var gOutputFile string
+var gConfigFile string
 
 func init() {
-	flag.StringVar(&g_configFile, "c", "", "Yaml configuration file")
-	flag.StringVar(&g_outputFile, "o", "", "Debian output file")
+	flag.StringVar(&gConfigFile, "c", "", "Yaml configuration file")
+	flag.StringVar(&gOutputFile, "o", "", "Debian output file")
 	flag.Parse()
 }
 
 func main() {
 	deb := debpkg.New()
 
-	if g_configFile != "" {
-		err := deb.Config(g_configFile)
+	if gConfigFile != "" {
+		err := deb.Config(gConfigFile)
 		if err != nil {
-			fmt.Println("Error while loading config file", g_configFile)
+			fmt.Println("Error while loading config file", gConfigFile)
 			return
 		}
 	}
 
-	deb.Write(g_outputFile)
-	fmt.Println("Written", g_outputFile)
+	deb.Write(gOutputFile)
+	fmt.Println("Written", gOutputFile)
 }
