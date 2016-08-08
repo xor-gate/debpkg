@@ -1,7 +1,7 @@
 # debpkg
 
-debpkg is a native [Go](https://golang.org) implementation with zero dependencies to Debian deb-package perl
- tooling and libraries to create [Debian](https://www.debian.org) packages.
+debpkg is a pure [Go](https://golang.org) library to create Debian packages. It has zero dependencies to
+ Debian. It is able to generate packages from Mac OS X, *BSD and Windows. 
 
 [![License][License-Image]][License-Url]
 ![Stability][Stability-Status-Image]
@@ -15,12 +15,16 @@ debpkg is a native [Go](https://golang.org) implementation with zero dependencie
 
 The feature list below describes the usability state of the project:
 
-- [X] Create simple debian packages from files and folders (functional but needs more work)
+- [x] Create simple debian packages from files and folders
+- [x] Create package from debpkg.yml specfile 
 - [ ] Add custom control files (preinst, postinst, prerm, postrm etcetera)
 - [ ] [dpkg](http://manpages.ubuntu.com/manpages/precise/man1/dpkg.1.html) like tool with a subset of commands (--info, --extract, --vextract, --control)
-- [X] Create package from debpkg.yml specfile (functional but needs more work) 
 - [ ] GPG sign package (implemented but doesnt work yet with `dpkg -i`)
-- [ ] GPG verify package
+
+**Known issues**
+
+- Unable to specifiy file or folder destination when adding
+
 
 ## Why this package was created
 
@@ -31,8 +35,7 @@ This package was created due to the lack to debianize from other platforms (wind
 And converting a directory and files into a debian package is a pain without knowing the `deb`-file internals.
 
 This package is heavily inspired by [godeb](https://github.com/niemeyer/godeb) and
- [CPackDeb](https://cmake.org/cmake/help/v3.5/module/CPackDeb.html). It is very royal [licensed](LICENSE) to
- be used wherever your hearts have their desires to debianize stuffs.
+ [CPackDeb](https://cmake.org/cmake/help/v3.5/module/CPackDeb.html). It is very royal [licensed](LICENSE).
 
 ## Installation
 
