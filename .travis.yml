@@ -3,10 +3,12 @@ notifications:
   email:
     on_success: change
     on_failure: always
-go_import_path: github.com/xor-gate/debpkg
+
 language: go
 go:
   - 1.6
+  - 1.7
+  - 1.8
   - tip
 before_install:
   - go get github.com/axw/gocov/gocov
@@ -15,4 +17,4 @@ before_install:
 script:
   - make test
   - make test-dpkg
-  - $HOME/gopath/bin/goveralls -service=travis-ci
+  - $GOPATH/bin/goveralls -service=travis-ci
