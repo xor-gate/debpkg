@@ -70,6 +70,7 @@ description:
 
 I would like to mention some other noticable projects:
 
+* https://github.com/Debian/dh-make-golang
 * https://github.com/niemeyer/godeb
 * https://github.com/smira/aptly
 * https://github.com/esell/deb-simple
