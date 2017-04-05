@@ -26,6 +26,11 @@ func main() {
 		}
 	}
 
-	deb.Write(gOutputFile)
-	fmt.Println("Written", gOutputFile)
+	err := deb.Write(gOutputFile)
+	if err != nil {
+		fmt.Println("debpkg: error:", err)
+		return
+	}
+
+	fmt.Println("debpkg: written:", gOutputFile)
 }

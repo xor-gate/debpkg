@@ -1,5 +1,5 @@
 ##
-# Copyright 2016 Jerry Jacobs. All rights reserved.
+# Copyright 2017 Jerry Jacobs. All rights reserved.
 # Use of this source code is governed by the MIT
 # license that can be found in the LICENSE file.
 #
@@ -7,6 +7,7 @@
 ##
 name: foobar
 version: 7.6.5
+architecture: all
 maintainer: Foo Bar
 maintainer_email: foo@bar.com
 homepage: https://github.com/xor-gate/debpkg

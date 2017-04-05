@@ -61,6 +61,7 @@ const debPkgDigestRole = "builder"
 type debPkgSpecFileCfg struct {
 	Name            string `yaml:"name"`
 	Version         string `yaml:"version"`
+	Architecture    string `yaml:"architecture"`
 	Maintainer      string `yaml:"maintainer"`
 	MaintainerEmail string `yaml:"maintainer_email"`
 	Homepage        string `yaml:"homepage"`
@@ -136,6 +137,7 @@ type DebPkg struct {
 	control      debPkgControl
 	data         debPkgData
 	digest       debPkgDigest
+	files	     []string
 }
 
 // New creates new debian package with the following defaults:
@@ -179,6 +181,7 @@ func (deb *DebPkg) Config(filename string) error {
 
 	deb.SetName(cfg.Name)
 	deb.SetVersion(cfg.Version)
+	deb.SetArchitecture(cfg.Architecture)
 	deb.SetMaintainer(cfg.Maintainer)
 	deb.SetMaintainerEmail(cfg.MaintainerEmail)
 	deb.SetHomepage(cfg.Homepage)
@@ -192,9 +195,26 @@ func (deb *DebPkg) Config(filename string) error {
 	return nil
 }
 
+func (deb *DebPkg) verify() error {
+	if deb.control.info.name == "" {
+		return fmt.Errorf("empty package name")
+	}
+
+	if deb.control.info.architecture == "" {
+		return fmt.Errorf("empty architecture")
+	}
+
+	return nil
+}
+
 // Write the debian package to the filename
 func (deb *DebPkg) Write(filename string) error {
-	err := createControlTarGz(deb)
+	err := deb.verify()
+	if err != nil {
+		return err
+	}
+
+	err = createControlTarGz(deb)
 	if err != nil {
 		return fmt.Errorf("error while creating control.tar.gz: %s", err)
 	}
@@ -281,7 +301,7 @@ func (deb *DebPkg) SetVersionPatch(patch uint) {
 }
 
 // SetArchitecture sets the architecture of the package where it can be installed.
-//  E.g "i386, amd64, arm". See `dpkg-architecture -L` for all supported.
+//  E.g "i386, amd64, arm, any, all". See `dpkg-architecture -L` for all supported.
 // Architecture: any
 //    The generated binary package is an architecture dependent one usually in a compiled language.
 // Architecture: all
@@ -402,6 +422,9 @@ func (deb *DebPkg) AddControlExtra(filename string) {
 
 // AddFile adds a file by filename to the package
 func (deb *DebPkg) AddFile(filename string) error {
+	deb.files = append(deb.files, filename)
+	return nil
+/*
 	fd, err := os.Open(filename)
 	if err != nil {
 		return err
@@ -439,6 +462,7 @@ func (deb *DebPkg) AddFile(filename string) error {
 	deb.data.md5sums += fmt.Sprintf("%x  %s\n", md5, filename)
 
 	return nil
+*/
 }
 
 // AddDirectory adds a directory to the package

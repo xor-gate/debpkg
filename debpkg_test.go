@@ -230,11 +230,14 @@ Files:
 // TestDirectory verifies adding a single directory recursive to the package
 func TestAddDirectory(t *testing.T) {
 	deb := New()
+	deb.SetName("debpkg-test-add-directory")
+	deb.SetArchitecture("all")
 	err := deb.AddDirectory("vendor")
 	if err != nil {
 		t.Errorf("Error adding directory '.': %v", err)
 		return
 	}
+
 	err = deb.Write("debpkg-test-add-directory.deb")
 	if err != nil {
 		t.Errorf("Error writing debfile: %v", err)
@@ -256,6 +259,7 @@ func TestWrite(t *testing.T) {
 	deb := New()
 
 	deb.SetName("debpkg-test")
+	deb.SetArchitecture("all")
 	deb.SetVersion("0.0.1")
 	deb.SetMaintainer("Foo Bar")
 	deb.SetMaintainerEmail("foo@bar.com")
