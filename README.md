@@ -75,6 +75,7 @@ I would like to mention some other noticable projects:
 * https://github.com/smira/aptly
 * https://github.com/esell/deb-simple
 * https://github.com/paultag/go-debian
+* https://github.com/jordansissel/fpm
 
 # Debugging
 
