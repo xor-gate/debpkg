@@ -76,6 +76,9 @@ I would like to mention some other noticable projects:
 * https://github.com/esell/deb-simple
 * https://github.com/paultag/go-debian
 * https://github.com/jordansissel/fpm
+* https://github.com/laher/debgo-v0.2
+* https://github.com/debber/debber-v0.3
+* https://github.com/laher/goxc
 
 # Debugging
 
