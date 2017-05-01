@@ -12,18 +12,18 @@ import (
 	"crypto/md5"
 	"crypto/sha1"
 	"fmt"
-	"github.com/blakesmith/ar"
 	"go/build"
-	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/clearsign"
-	"golang.org/x/crypto/openpgp/packet"
-	"gopkg.in/yaml.v2"
 	"hash"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/blakesmith/ar"
+	"golang.org/x/crypto/openpgp"
+	"golang.org/x/crypto/openpgp/clearsign"
+	"golang.org/x/crypto/openpgp/packet"
 )
 
 // Priority for Debian package
@@ -57,20 +57,6 @@ const debPkgDebianBinary = "2.0\n"
 const debPkgDigestDefaultHash = crypto.SHA1
 const debPkgDigestVersion = 4
 const debPkgDigestRole = "builder"
-
-type debPkgSpecFileCfg struct {
-	Name            string `yaml:"name"`
-	Version         string `yaml:"version"`
-	Architecture    string `yaml:"architecture"`
-	Maintainer      string `yaml:"maintainer"`
-	MaintainerEmail string `yaml:"maintainer_email"`
-	Homepage        string `yaml:"homepage"`
-	Description     struct {
-		Short string `yaml:"short"`
-		Long  string `yaml:"long"`
-	}
-	Files []string `yaml:",flow"`
-}
 
 type debPkgData struct {
 	size    int64
@@ -133,66 +119,32 @@ type debPkgDigest struct {
 
 // DebPkg holds data for a single debian package
 type DebPkg struct {
-	debianBinary string
-	control      debPkgControl
-	data         debPkgData
-	digest       debPkgDigest
-	files	     []string
+	debianBinary     string
+	control          debPkgControl
+	data             debPkgData
+	digest           debPkgDigest
+	addedDirectories []string
 }
 
 // New creates new debian package with the following defaults:
 //
 //   Version: 0.0.0
 func New() *DebPkg {
-	d := &DebPkg{}
+	deb := &DebPkg{}
 
-	d.debianBinary = debPkgDebianBinary
-	d.control.info.vcsType = VcsTypeUnset
-	d.control.info.priority = PriorityUnset
+	deb.debianBinary = debPkgDebianBinary
+	deb.control.info.vcsType = VcsTypeUnset
+	deb.control.info.priority = PriorityUnset
 
-	d.control.buf = &bytes.Buffer{}
-	d.control.gw = gzip.NewWriter(d.control.buf)
-	d.control.tw = tar.NewWriter(d.control.gw)
+	deb.control.buf = &bytes.Buffer{}
+	deb.control.gw = gzip.NewWriter(deb.control.buf)
+	deb.control.tw = tar.NewWriter(deb.control.gw)
 
-	d.data.buf = &bytes.Buffer{}
-	d.data.gw = gzip.NewWriter(d.data.buf)
-	d.data.tw = tar.NewWriter(d.data.gw)
+	deb.data.buf = &bytes.Buffer{}
+	deb.data.gw = gzip.NewWriter(deb.data.buf)
+	deb.data.tw = tar.NewWriter(deb.data.gw)
 
-	return d
-}
-
-// Config loads settings from a depkg.yml specfile
-func (deb *DebPkg) Config(filename string) error {
-	cfg := debPkgSpecFileCfg{}
-	data := new(bytes.Buffer)
-
-	fd, err := os.Open(filename)
-	if err != nil {
-		return err
-	}
-	defer fd.Close()
-
-	io.Copy(data, fd)
-
-	err = yaml.Unmarshal(data.Bytes(), &cfg)
-	if err != nil {
-		return err
-	}
-
-	deb.SetName(cfg.Name)
-	deb.SetVersion(cfg.Version)
-	deb.SetArchitecture(cfg.Architecture)
-	deb.SetMaintainer(cfg.Maintainer)
-	deb.SetMaintainerEmail(cfg.MaintainerEmail)
-	deb.SetHomepage(cfg.Homepage)
-	deb.SetShortDescription(cfg.Description.Short)
-	deb.SetDescription(cfg.Description.Long)
-
-	for _, file := range cfg.Files {
-		deb.AddFile(file)
-	}
-
-	return nil
+	return deb
 }
 
 func (deb *DebPkg) verify() error {
@@ -380,7 +332,7 @@ func (deb *DebPkg) SetShortDescription(descr string) {
 // NOTE: The debian control file has a special formatting of the long description
 //        this function replaces newlines with a newline and a space.
 func (deb *DebPkg) SetDescription(descr string) {
-	deb.control.info.descr = " " + strings.Replace(descr, "\n", "\n ", -1) + "\n"
+	deb.control.info.descr = " " + strings.Replace(descr, "\n", "\n ", -1)
 }
 
 // SetVcsType sets the version control system (Vcs) type for the source package.
@@ -420,11 +372,31 @@ func (deb *DebPkg) AddControlExtra(filename string) {
 	deb.control.extra = append(deb.control.extra, filename)
 }
 
-// AddFile adds a file by filename to the package
-func (deb *DebPkg) AddFile(filename string) error {
-	deb.files = append(deb.files, filename)
+func (deb *DebPkg) writeDirectory(filename string) error {
+	for _, addedDir := range deb.addedDirectories {
+		if addedDir == filename {
+			return nil
+		}
+	}
+
+	header := &tar.Header{
+		Name:     filename,
+		Mode:     int64(0755 | 040000),
+		Typeflag: tar.TypeDir,
+		ModTime:  time.Now(),
+		Size:     0,
+	}
+
+	if err := deb.data.tw.WriteHeader(header); err != nil {
+		return fmt.Errorf("tar-header for dir: %v", err)
+	}
+
+	deb.addedDirectories = append(deb.addedDirectories, filename)
 	return nil
-/*
+}
+
+// AddFile adds a file by filename to the package
+func (deb *DebPkg) AddFile(filename string, dest ...string) error {
 	fd, err := os.Open(filename)
 	if err != nil {
 		return err
@@ -440,11 +412,28 @@ func (deb *DebPkg) AddFile(filename string) error {
 	}
 
 	// now lets create the header as needed for this file within the tarball
-	header := new(tar.Header)
-	header.Name = filename
-	header.Size = stat.Size()
-	header.Mode = int64(stat.Mode())
-	header.ModTime = stat.ModTime()
+	header, err := tar.FileInfoHeader(stat, filename)
+	if err != nil {
+		return fmt.Errorf("dir tar finfo: %v", err)
+	}
+	if len(dest) > 0 {
+		header.Name = dest[0]
+	} else {
+		header.Name = filename
+	}
+
+	dirname := filepath.Dir(header.Name)
+	if dirname != "." {
+		dirname = strings.Replace(dirname, "\\", "/", -1)
+		dirs := strings.Split(dirname, "/")
+		var current string
+		for _, dir := range dirs {
+			if len(dir) > 0 {
+				current += dir + "/"
+				deb.writeDirectory(current)
+			}
+		}
+	}
 
 	// write the header to the tarball archive
 	if err := deb.data.tw.WriteHeader(header); err != nil {
@@ -458,31 +447,39 @@ func (deb *DebPkg) AddFile(filename string) error {
 
 	// append md5sum for control.tar.gz file
 	md5, _ := computeMd5(fd)
-	deb.data.size += stat.Size()
+	deb.data.size += stat.Size() / 1024
 	deb.data.md5sums += fmt.Sprintf("%x  %s\n", md5, filename)
 
 	return nil
-*/
+}
+
+func (deb *DebPkg) AddEmptyDirectory(dir string) error {
+	dirname := strings.Replace(dir, "\\", "/", -1)
+	dirs := strings.Split(dirname, "/")
+	var current string
+	for _, dir := range dirs {
+		if len(dir) > 0 {
+			current += dir + "/"
+			err := deb.writeDirectory(current)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 // AddDirectory adds a directory to the package
 func (deb *DebPkg) AddDirectory(dir string) error {
-	files := []string{}
-	err := filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
+	return filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
 		if path != "." && path != ".." {
-			files = append(files, path)
+			err := deb.AddFile(path)
+			if err != nil {
+				return err
+			}
 		}
 		return nil
 	})
-
-	for _, file := range files {
-		err = deb.AddFile(file)
-		if err != nil {
-			return err
-		}
-	}
-
-	return err
 }
 
 // GetArchitecture gets the current local CPU architecture in debian-form
@@ -658,12 +655,18 @@ func addArFile(now time.Time, w *ar.Writer, name string, body []byte) error {
 
 func (deb *DebPkg) createDebAr(filename string) error {
 	// Create file
+	removeDeb := true
 	fd, err := os.Create(filename)
 	if err != nil {
 		return fmt.Errorf("unable to create: %s", filename)
 	}
-	// TODO when something goes wrong in writing, we should remove the stale package file...
-	defer fd.Close()
+
+	defer func() {
+		fd.Close()
+		if removeDeb {
+			os.Remove(filename)
+		}
+	}()
 
 	deb.data.tw.Close()
 	deb.data.gw.Close()
@@ -687,5 +690,6 @@ func (deb *DebPkg) createDebAr(filename string) error {
 			return fmt.Errorf("cannot add digests.asc to deb: %v", err)
 		}
 	}
+	removeDeb = false
 	return nil
 }

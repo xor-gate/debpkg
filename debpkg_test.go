@@ -19,7 +19,7 @@ func TestConfig(t *testing.T) {
 
 	err := deb.Config("debpkg.yml")
 	if err != nil {
-		t.Error("Unable to open debpkg.yml in CWD")
+		t.Errorf("Unable to open debpkg.yml in CWD: %v", err)
 		return
 	}
 
@@ -161,8 +161,7 @@ Description: Golang package for creating (gpg signed) debian packages
  * dpkg like tool with a subset of commands (--contents, --control, --extract, --info)
  * Create package from debpkg.yml specfile (like packager.io without cruft)
  * GPG sign package
- * GPG verify package
-`
+ * GPG verify package`
 
 	// User supplied very long description without leading spaces and no ending newline
 	controlDescr := `**Features**
@@ -295,6 +294,9 @@ func TestWriteSigned(t *testing.T) {
 	deb.SetVcsType(VcsTypeGit)
 	deb.SetVcsURL("https://github.com/xor-gate/secdl")
 	deb.SetVcsBrowser("https://github.com/xor-gate/secdl")
+	deb.SetPriority(PriorityRequired)
+	deb.SetConflicts("bash")
+	deb.SetProvides("boembats")
 
 	deb.AddFile("debpkg.go")
 
@@ -303,4 +305,17 @@ func TestWriteSigned(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error in writing unsigned package: %v", err)
 	}
+}
+
+func TestWriteError(t *testing.T) {
+	deb := New()
+	err := deb.Write("")
+	if err == nil {
+		t.Errorf("deb.Write shouldnt return nil")
+	}
+	deb.control.info.name = "pkg"
+	if err := deb.Write(""); err == nil {
+		t.Errorf("deb.Write shouldnt return nil")
+	}
+
 }
