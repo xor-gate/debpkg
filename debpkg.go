@@ -119,32 +119,32 @@ type debPkgDigest struct {
 
 // DebPkg holds data for a single debian package
 type DebPkg struct {
-	debianBinary string
-	control      debPkgControl
-	data         debPkgData
-	digest       debPkgDigest
-	files        []string
+	debianBinary     string
+	control          debPkgControl
+	data             debPkgData
+	digest           debPkgDigest
+	addedDirectories []string
 }
 
 // New creates new debian package with the following defaults:
 //
 //   Version: 0.0.0
 func New() *DebPkg {
-	d := &DebPkg{}
+	deb := &DebPkg{}
 
-	d.debianBinary = debPkgDebianBinary
-	d.control.info.vcsType = VcsTypeUnset
-	d.control.info.priority = PriorityUnset
+	deb.debianBinary = debPkgDebianBinary
+	deb.control.info.vcsType = VcsTypeUnset
+	deb.control.info.priority = PriorityUnset
 
-	d.control.buf = &bytes.Buffer{}
-	d.control.gw = gzip.NewWriter(d.control.buf)
-	d.control.tw = tar.NewWriter(d.control.gw)
+	deb.control.buf = &bytes.Buffer{}
+	deb.control.gw = gzip.NewWriter(deb.control.buf)
+	deb.control.tw = tar.NewWriter(deb.control.gw)
 
-	d.data.buf = &bytes.Buffer{}
-	d.data.gw = gzip.NewWriter(d.data.buf)
-	d.data.tw = tar.NewWriter(d.data.gw)
+	deb.data.buf = &bytes.Buffer{}
+	deb.data.gw = gzip.NewWriter(deb.data.buf)
+	deb.data.tw = tar.NewWriter(deb.data.gw)
 
-	return d
+	return deb
 }
 
 func (deb *DebPkg) verify() error {
@@ -332,7 +332,7 @@ func (deb *DebPkg) SetShortDescription(descr string) {
 // NOTE: The debian control file has a special formatting of the long description
 //        this function replaces newlines with a newline and a space.
 func (deb *DebPkg) SetDescription(descr string) {
-	deb.control.info.descr = " " + strings.Replace(descr, "\n", "\n ", -1) + "\n"
+	deb.control.info.descr = " " + strings.Replace(descr, "\n", "\n ", -1)
 }
 
 // SetVcsType sets the version control system (Vcs) type for the source package.
@@ -372,69 +372,114 @@ func (deb *DebPkg) AddControlExtra(filename string) {
 	deb.control.extra = append(deb.control.extra, filename)
 }
 
-// AddFile adds a file by filename to the package
-func (deb *DebPkg) AddFile(filename string) error {
-	deb.files = append(deb.files, filename)
-	return nil
-	/*
-		fd, err := os.Open(filename)
-		if err != nil {
-			return err
-		}
-		defer fd.Close()
-
-		stat, err := fd.Stat()
-		if err != nil {
-			return err
-		}
-		if stat.Mode().IsDir() {
+func (deb *DebPkg) writeDirectory(filename string) error {
+	for _, addedDir := range deb.addedDirectories {
+		if addedDir == filename {
 			return nil
 		}
+	}
 
-		// now lets create the header as needed for this file within the tarball
-		header := new(tar.Header)
-		header.Name = filename
-		header.Size = stat.Size()
-		header.Mode = int64(stat.Mode())
-		header.ModTime = stat.ModTime()
+	header := &tar.Header{
+		Name:     filename,
+		Mode:     int64(0755 | 040000),
+		Typeflag: tar.TypeDir,
+		ModTime:  time.Now(),
+		Size:     0,
+	}
 
-		// write the header to the tarball archive
-		if err := deb.data.tw.WriteHeader(header); err != nil {
-			return err
-		}
+	if err := deb.data.tw.WriteHeader(header); err != nil {
+		return fmt.Errorf("tar-header for dir: %v", err)
+	}
 
-		// copy the file data to the tarball
-		if _, err := io.Copy(deb.data.tw, fd); err != nil {
-			return err
-		}
+	deb.addedDirectories = append(deb.addedDirectories, filename)
+	return nil
+}
 
-		// append md5sum for control.tar.gz file
-		md5, _ := computeMd5(fd)
-		deb.data.size += stat.Size()
-		deb.data.md5sums += fmt.Sprintf("%x  %s\n", md5, filename)
+// AddFile adds a file by filename to the package
+func (deb *DebPkg) AddFile(filename string, dest ...string) error {
+	fd, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer fd.Close()
 
+	stat, err := fd.Stat()
+	if err != nil {
+		return err
+	}
+	if stat.Mode().IsDir() {
 		return nil
-	*/
+	}
+
+	// now lets create the header as needed for this file within the tarball
+	header, err := tar.FileInfoHeader(stat, filename)
+	if err != nil {
+		return fmt.Errorf("dir tar finfo: %v", err)
+	}
+	if len(dest) > 0 {
+		header.Name = dest[0]
+	} else {
+		header.Name = filename
+	}
+
+	dirname := filepath.Dir(header.Name)
+	if dirname != "." {
+		dirname = strings.Replace(dirname, "\\", "/", -1)
+		dirs := strings.Split(dirname, "/")
+		var current string
+		for _, dir := range dirs {
+			if len(dir) > 0 {
+				current += dir + "/"
+				deb.writeDirectory(current)
+			}
+		}
+	}
+
+	// write the header to the tarball archive
+	if err := deb.data.tw.WriteHeader(header); err != nil {
+		return err
+	}
+
+	// copy the file data to the tarball
+	if _, err := io.Copy(deb.data.tw, fd); err != nil {
+		return err
+	}
+
+	// append md5sum for control.tar.gz file
+	md5, _ := computeMd5(fd)
+	deb.data.size += stat.Size() / 1024
+	deb.data.md5sums += fmt.Sprintf("%x  %s\n", md5, filename)
+
+	return nil
+}
+
+func (deb *DebPkg) AddEmptyDirectory(dir string) error {
+	dirname := strings.Replace(dir, "\\", "/", -1)
+	dirs := strings.Split(dirname, "/")
+	var current string
+	for _, dir := range dirs {
+		if len(dir) > 0 {
+			current += dir + "/"
+			err := deb.writeDirectory(current)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 // AddDirectory adds a directory to the package
 func (deb *DebPkg) AddDirectory(dir string) error {
-	files := []string{}
-	err := filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
+	return filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
 		if path != "." && path != ".." {
-			files = append(files, path)
+			err := deb.AddFile(path)
+			if err != nil {
+				return err
+			}
 		}
 		return nil
 	})
-
-	for _, file := range files {
-		err = deb.AddFile(file)
-		if err != nil {
-			return err
-		}
-	}
-
-	return err
 }
 
 // GetArchitecture gets the current local CPU architecture in debian-form

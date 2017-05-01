@@ -5,6 +5,7 @@
 package debpkg
 
 import (
+	"fmt"
 	"io/ioutil"
 
 	yaml "gopkg.in/yaml.v2"
@@ -21,8 +22,12 @@ type debPkgSpecFileCfg struct {
 		Short string `yaml:"short"`
 		Long  string `yaml:"long"`
 	}
-	Files       []string `yaml:",flow"`
-	Directories []string `yaml:",flow"`
+	Files []struct {
+		Src  string `yaml:"file"`
+		Dest string `yaml:"dest"`
+	} `yaml:",flow"`
+	Directories      []string `yaml:",flow"`
+	EmptyDirectories []string `yaml:"emptydirs,flow"`
 }
 
 // Config loads settings from a depkg.yml specfile
@@ -49,11 +54,24 @@ func (deb *DebPkg) Config(filename string) error {
 	deb.SetDescription(cfg.Description.Long)
 
 	for _, file := range cfg.Files {
-		deb.AddFile(file)
+		err := deb.AddFile(file.Src, file.Dest)
+		if err != nil {
+			fmt.Printf("error adding file %s: %v\n", file.Src, err)
+		}
 	}
 
 	for _, dir := range cfg.Directories {
-		deb.AddDirectory(dir)
+		err := deb.AddDirectory(dir)
+		if err != nil {
+			fmt.Printf("error adding directory %s: %v\n", dir, err)
+		}
+	}
+
+	for _, dir := range cfg.EmptyDirectories {
+		err := deb.AddEmptyDirectory(dir)
+		if err != nil {
+			fmt.Printf("error adding directory %s: %v\n", dir, err)
+		}
 	}
 
 	return nil
