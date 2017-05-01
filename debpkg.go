@@ -12,18 +12,18 @@ import (
 	"crypto/md5"
 	"crypto/sha1"
 	"fmt"
-	"github.com/blakesmith/ar"
 	"go/build"
-	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/clearsign"
-	"golang.org/x/crypto/openpgp/packet"
-	"gopkg.in/yaml.v2"
 	"hash"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/blakesmith/ar"
+	"golang.org/x/crypto/openpgp"
+	"golang.org/x/crypto/openpgp/clearsign"
+	"golang.org/x/crypto/openpgp/packet"
 )
 
 // Priority for Debian package
@@ -57,20 +57,6 @@ const debPkgDebianBinary = "2.0\n"
 const debPkgDigestDefaultHash = crypto.SHA1
 const debPkgDigestVersion = 4
 const debPkgDigestRole = "builder"
-
-type debPkgSpecFileCfg struct {
-	Name            string `yaml:"name"`
-	Version         string `yaml:"version"`
-	Architecture    string `yaml:"architecture"`
-	Maintainer      string `yaml:"maintainer"`
-	MaintainerEmail string `yaml:"maintainer_email"`
-	Homepage        string `yaml:"homepage"`
-	Description     struct {
-		Short string `yaml:"short"`
-		Long  string `yaml:"long"`
-	}
-	Files []string `yaml:",flow"`
-}
 
 type debPkgData struct {
 	size    int64
@@ -137,7 +123,7 @@ type DebPkg struct {
 	control      debPkgControl
 	data         debPkgData
 	digest       debPkgDigest
-	files	     []string
+	files        []string
 }
 
 // New creates new debian package with the following defaults:
@@ -159,40 +145,6 @@ func New() *DebPkg {
 	d.data.tw = tar.NewWriter(d.data.gw)
 
 	return d
-}
-
-// Config loads settings from a depkg.yml specfile
-func (deb *DebPkg) Config(filename string) error {
-	cfg := debPkgSpecFileCfg{}
-	data := new(bytes.Buffer)
-
-	fd, err := os.Open(filename)
-	if err != nil {
-		return err
-	}
-	defer fd.Close()
-
-	io.Copy(data, fd)
-
-	err = yaml.Unmarshal(data.Bytes(), &cfg)
-	if err != nil {
-		return err
-	}
-
-	deb.SetName(cfg.Name)
-	deb.SetVersion(cfg.Version)
-	deb.SetArchitecture(cfg.Architecture)
-	deb.SetMaintainer(cfg.Maintainer)
-	deb.SetMaintainerEmail(cfg.MaintainerEmail)
-	deb.SetHomepage(cfg.Homepage)
-	deb.SetShortDescription(cfg.Description.Short)
-	deb.SetDescription(cfg.Description.Long)
-
-	for _, file := range cfg.Files {
-		deb.AddFile(file)
-	}
-
-	return nil
 }
 
 func (deb *DebPkg) verify() error {
@@ -424,45 +376,45 @@ func (deb *DebPkg) AddControlExtra(filename string) {
 func (deb *DebPkg) AddFile(filename string) error {
 	deb.files = append(deb.files, filename)
 	return nil
-/*
-	fd, err := os.Open(filename)
-	if err != nil {
-		return err
-	}
-	defer fd.Close()
+	/*
+		fd, err := os.Open(filename)
+		if err != nil {
+			return err
+		}
+		defer fd.Close()
 
-	stat, err := fd.Stat()
-	if err != nil {
-		return err
-	}
-	if stat.Mode().IsDir() {
+		stat, err := fd.Stat()
+		if err != nil {
+			return err
+		}
+		if stat.Mode().IsDir() {
+			return nil
+		}
+
+		// now lets create the header as needed for this file within the tarball
+		header := new(tar.Header)
+		header.Name = filename
+		header.Size = stat.Size()
+		header.Mode = int64(stat.Mode())
+		header.ModTime = stat.ModTime()
+
+		// write the header to the tarball archive
+		if err := deb.data.tw.WriteHeader(header); err != nil {
+			return err
+		}
+
+		// copy the file data to the tarball
+		if _, err := io.Copy(deb.data.tw, fd); err != nil {
+			return err
+		}
+
+		// append md5sum for control.tar.gz file
+		md5, _ := computeMd5(fd)
+		deb.data.size += stat.Size()
+		deb.data.md5sums += fmt.Sprintf("%x  %s\n", md5, filename)
+
 		return nil
-	}
-
-	// now lets create the header as needed for this file within the tarball
-	header := new(tar.Header)
-	header.Name = filename
-	header.Size = stat.Size()
-	header.Mode = int64(stat.Mode())
-	header.ModTime = stat.ModTime()
-
-	// write the header to the tarball archive
-	if err := deb.data.tw.WriteHeader(header); err != nil {
-		return err
-	}
-
-	// copy the file data to the tarball
-	if _, err := io.Copy(deb.data.tw, fd); err != nil {
-		return err
-	}
-
-	// append md5sum for control.tar.gz file
-	md5, _ := computeMd5(fd)
-	deb.data.size += stat.Size()
-	deb.data.md5sums += fmt.Sprintf("%x  %s\n", md5, filename)
-
-	return nil
-*/
+	*/
 }
 
 // AddDirectory adds a directory to the package
