@@ -55,15 +55,20 @@ A simple example is listed below:
 
 ```
 # debpkg.yml specfile
+name: foobar
+version: 7.6.5
+architecture: all
+maintainer: Foo Bar
+maintainer_email: foo@bar.com
+homepage: https://github.com/xor-gate/debpkg
 description:
-  - version: 0.0.1
-  - short: This package is just a test
-  - long:
-      This package tests the working of debpkg.
-      And can wrap multiple
-      lines.
+  short: This package is just a test
+  long: >
+    This package tests the working of debpkg.
+    And can wrap multiple
+    lines.
 
-      And multiple paragraphs.
+    And multiple paragraphs.
 ```
 
 # Mentions

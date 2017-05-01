@@ -19,7 +19,9 @@ description:
        .
        Dusse
 files:
-  - LICENSE
-  - debpkg.go
-  - debpkg_test.go
-  - README.md
+  - file: LICENSE
+  - file: debpkg.go
+  - file: debpkg_test.go
+  - file: cmd/debpkg/main.go
+    dest: /tmp/main.go
+  - file: README.md

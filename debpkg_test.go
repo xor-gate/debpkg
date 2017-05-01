@@ -19,7 +19,7 @@ func TestConfig(t *testing.T) {
 
 	err := deb.Config("debpkg.yml")
 	if err != nil {
-		t.Error("Unable to open debpkg.yml in CWD")
+		t.Errorf("Unable to open debpkg.yml in CWD: %v", err)
 		return
 	}
 
@@ -161,8 +161,7 @@ Description: Golang package for creating (gpg signed) debian packages
  * dpkg like tool with a subset of commands (--contents, --control, --extract, --info)
  * Create package from debpkg.yml specfile (like packager.io without cruft)
  * GPG sign package
- * GPG verify package
-`
+ * GPG verify package`
 
 	// User supplied very long description without leading spaces and no ending newline
 	controlDescr := `**Features**
