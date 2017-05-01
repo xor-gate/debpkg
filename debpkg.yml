@@ -25,3 +25,5 @@ files:
   - file: cmd/debpkg/main.go
     dest: /tmp/main.go
   - file: README.md
+emptydirs:
+  - /tmp/bogus/directory
