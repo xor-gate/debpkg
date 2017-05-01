@@ -610,12 +610,18 @@ func addArFile(now time.Time, w *ar.Writer, name string, body []byte) error {
 
 func (deb *DebPkg) createDebAr(filename string) error {
 	// Create file
+	removeDeb := true
 	fd, err := os.Create(filename)
 	if err != nil {
 		return fmt.Errorf("unable to create: %s", filename)
 	}
-	// TODO when something goes wrong in writing, we should remove the stale package file...
-	defer fd.Close()
+
+	defer func() {
+		fd.Close()
+		if removeDeb {
+			os.Remove(filename)
+		}
+	}()
 
 	deb.data.tw.Close()
 	deb.data.gw.Close()
@@ -639,5 +645,6 @@ func (deb *DebPkg) createDebAr(filename string) error {
 			return fmt.Errorf("cannot add digests.asc to deb: %v", err)
 		}
 	}
+	removeDeb = false
 	return nil
 }
