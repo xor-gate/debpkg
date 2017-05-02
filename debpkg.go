@@ -173,7 +173,7 @@ func (deb *DebPkg) Write(filename string) error {
 
 	// TODO move to separate function
 	if filename == "" {
-		filename = deb.control.info.name + "_" + deb.control.info.version.full + "_" + deb.control.info.architecture + ".deb"
+		filename = deb.control.info.name + "-" + deb.control.info.version.full + "_" + deb.control.info.architecture + ".deb"
 	}
 
 	return deb.createDebAr(filename)
