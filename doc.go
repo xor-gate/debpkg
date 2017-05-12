@@ -12,6 +12,7 @@
 //
 //  deb.SetName("foobar")
 //  deb.SetVersion("1.2.3")
+//  deb.SetArchitecture("amd64")
 //  deb.SetMaintainer("Foo Bar")
 //  deb.SetMaintainerEmail("foo@bar.com")
 //  deb.SetHomepage("http://foobar.com")

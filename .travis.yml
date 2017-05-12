@@ -18,5 +18,4 @@ before_install:
 
 script:
   - make test
-  - make test-dpkg
   - $GOPATH/bin/goveralls -service=travis-ci
