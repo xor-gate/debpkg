@@ -12,14 +12,6 @@ build:
 test:
 	go test -v -race
 
-test-dpkg:
-	dpkg --info debpkg-test.deb
-	dpkg --contents debpkg-test.deb
-	dpkg --info debpkg-test-add-directory.deb
-	dpkg --contents debpkg-test-add-directory.deb
-	dpkg --info debpkg-test-signed.deb
-	dpkg --contents debpkg-test-signed.deb
-
 lint:
 	go tool vet .
 

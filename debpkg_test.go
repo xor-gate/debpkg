@@ -2,6 +2,8 @@ package debpkg
 
 import (
 	"fmt"
+	"os/exec"
+	"path/filepath"
 	"golang.org/x/crypto/openpgp"
 	"testing"
 )
@@ -64,7 +66,7 @@ Description:
 
 	// architecture is auto-set when empty, this makes sure it is always set to amd64
 	deb.SetArchitecture("amd64")
-	control := createControlFileString(deb)
+	control := deb.control.String(0)
 
 	if control != controlExpect {
 		t.Error("Unexpected control file")
@@ -80,7 +82,7 @@ Version: 0.0.0
 Architecture: amd64
 Maintainer:  <>
 Installed-Size: 0
-Vcs-Git: git@github.com/xor-gate/debpkg
+Vcs-Git: https://github.com/xor-gate/debpkg.git
 Vcs-Browser: https://github.com/xor-gate/debpkg
 Description: 
 `
@@ -90,9 +92,9 @@ Description:
 	// architecture is auto-set when empty, this makes sure it is always set to amd64
 	deb.SetArchitecture("amd64")
 	deb.SetVcsType(VcsTypeGit)
-	deb.SetVcsURL("git@github.com/xor-gate/debpkg")
+	deb.SetVcsURL("https://github.com/xor-gate/debpkg.git")
 	deb.SetVcsBrowser("https://github.com/xor-gate/debpkg")
-	control := createControlFileString(deb)
+	control := deb.control.String(0)
 
 	if control != controlExpect {
 		t.Error("Unexpected control file")
@@ -103,33 +105,26 @@ Description:
 // Test correct output of the control file when SetVersion* functions are called
 // Only the mandatory fields are exported then, this behaviour is checked
 func TestControlFileSetVersionMajorMinorPatch(t *testing.T) {
-	controlExpect := `Package: 
-Version: 1.2.3
-Architecture: amd64
-Maintainer:  <>
-Installed-Size: 0
-Description: 
-`
-
-	controlExpectFullVersion := `Package: 
-Version: 7.8.9
-Architecture: amd64
-Maintainer:  <>
-Installed-Size: 0
-Description: 
-`
-
 	// Empty
 	deb := New()
 
-	// architecture is auto-set when empty, this makes sure it is always set to amd64
+	deb.SetName("foobar")
 	deb.SetArchitecture("amd64")
 
 	// Set major.minor.patch, leave full version string untouched
 	deb.SetVersionMajor(1)
 	deb.SetVersionMinor(2)
 	deb.SetVersionPatch(3)
-	control := createControlFileString(deb)
+
+	controlExpect := `Package: foobar
+Version: 1.2.3
+Architecture: amd64
+Maintainer:  <>
+Installed-Size: 0
+Description: 
+`
+	control := deb.control.String(0)
+
 	if control != controlExpect {
 		t.Error("Unexpected control file")
 		fmt.Printf("--- expected (len %d):\n'%s'\n--- got (len %d):\n'%s'---\n", len(controlExpect), controlExpect, len(control), control)
@@ -137,7 +132,16 @@ Description:
 
 	// Set full version string, this will overwrite the set SetVersion{Major,Minor,Patch} string
 	deb.SetVersion("7.8.9")
-	control = createControlFileString(deb)
+	control = deb.control.String(0)
+
+	controlExpectFullVersion := `Package: foobar
+Version: 7.8.9
+Architecture: amd64
+Maintainer:  <>
+Installed-Size: 0
+Description: 
+`
+
 	if control != controlExpectFullVersion {
 		t.Error("Unexpected control file")
 		fmt.Printf("--- expected (len %d):\n'%s'\n--- got (len %d):\n'%s'---\n", len(controlExpect), controlExpect, len(control), control)
@@ -185,7 +189,7 @@ Description: Golang package for creating (gpg signed) debian packages
 	deb.SetDescription(controlDescr)
 	// architecture is auto-set when empty, this makes sure it is always set to amd64
 	deb.SetArchitecture("amd64")
-	control := createControlFileString(deb)
+	control := deb.control.String(0)
 
 	if control != controlExpect {
 		t.Error("Unexpected control file")
@@ -317,5 +321,54 @@ func TestWriteError(t *testing.T) {
 	if err := deb.Write(""); err == nil {
 		t.Errorf("deb.Write shouldnt return nil")
 	}
+}
 
+func ExampleWrite() {
+	deb := New()
+
+	deb.SetName("foobar")
+	deb.SetVersion("1.2.3")
+	deb.SetArchitecture("amd64")
+	deb.SetMaintainer("Foo Bar")
+	deb.SetMaintainerEmail("foo@bar.com")
+	deb.SetHomepage("http://foobar.com")
+
+	deb.SetShortDescription("Minimal foo bar package")
+	deb.SetDescription("Foo bar package doesn't do anything")
+
+	deb.AddFile("debpkg.go")
+	fmt.Println(deb.Write("foobar.deb"))
+
+	// Output: <nil>
+}
+
+func dpkg(cmd, action, filename string) error {
+	args := []string{"--"+action, filename}
+	if err := exec.Command(cmd, args...).Run(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func TestReadWithNativeDpkg(t *testing.T) {
+	dpkgCmd, err := exec.LookPath("dpkg")
+	if err != nil || dpkgCmd == "" {
+		fmt.Println("Skip test, unable to find dpkg in PATH")
+		return
+	}
+
+	debs, err := filepath.Glob("*.deb")
+	for _, deb := range debs {
+		err = dpkg(dpkgCmd, "info", deb)
+		if err != nil {
+			t.Errorf("dpkg --info failed on " + deb)
+		}
+		fmt.Println("dpkg --info passed on " + deb)
+
+		dpkg(dpkgCmd, "contents", deb)
+		if err != nil {
+			t.Errorf("dpkg --contents failed on " + deb)
+		}
+		fmt.Println("dpkg --contents passed on " + deb)
+	}
 }
