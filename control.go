@@ -59,7 +59,6 @@ func (deb *DebPkg) SetName(name string) {
 // NOTE: When the full string is set the SetVersion* function calls are ignored
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
 func (deb *DebPkg) SetVersion(version string) {
-	// TODO add check for correct version string
 	deb.control.info.version.full = version
 }
 
@@ -103,7 +102,6 @@ func (deb *DebPkg) SetMaintainer(maintainer string) {
 // SetMaintainerEmail sets the package maintainers email address. E.g: "foo@bar.com"
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Maintainer
 func (deb *DebPkg) SetMaintainerEmail(email string) {
-	// TODO check email
 	deb.control.info.maintainerEmail = email
 }
 
@@ -147,7 +145,6 @@ func (deb *DebPkg) SetReplaces(replaces string) {
 
 // SetHomepage sets the homepage URL of the package. E.g: "https://github.com/foo/bar"
 func (deb *DebPkg) SetHomepage(url string) {
-	// TODO check url
 	deb.control.info.homepage = url
 }
 

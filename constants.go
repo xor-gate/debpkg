@@ -28,3 +28,4 @@ const (
 )
 
 const debPkgDebianBinary = "2.0\n"
+const debPkgDebianFileExtension = "deb"
