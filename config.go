@@ -18,6 +18,8 @@ type debPkgSpecFileCfg struct {
 	Maintainer      string `yaml:"maintainer"`
 	MaintainerEmail string `yaml:"maintainer_email"`
 	Homepage        string `yaml:"homepage"`
+	Section         string `yaml:"section"`
+	Priority        string `yaml:"priority"`
 	Description     struct {
 		Short string `yaml:"short"`
 		Long  string `yaml:"long"`
@@ -44,6 +46,8 @@ func (deb *DebPkg) Config(filename string) error {
 		return err
 	}
 
+	deb.SetSection(cfg.Section)
+	deb.SetPriority(Priority(cfg.Priority))
 	deb.SetName(cfg.Name)
 	deb.SetVersion(cfg.Version)
 	deb.SetArchitecture(cfg.Architecture)
