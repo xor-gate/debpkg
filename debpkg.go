@@ -13,7 +13,6 @@ import (
 	"time"
 	"github.com/xor-gate/debpkg/lib/targzip"
 
-	"github.com/blakesmith/ar"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/clearsign"
 	"golang.org/x/crypto/openpgp/packet"
@@ -27,9 +26,7 @@ type DebPkg struct {
 	digest           debPkgDigest
 }
 
-// New creates new debian package with the following defaults:
-//
-//   Version: 0.0.0
+// New creates new debian package
 func New() *DebPkg {
 	deb := &DebPkg{}
 
@@ -70,12 +67,24 @@ func (deb *DebPkg) Write(filename string) error {
 		return fmt.Errorf("error while creating control.tar.gz: %s", err)
 	}
 
-	// TODO move to separate function
 	if filename == "" {
-		filename = deb.control.info.name + "-" + deb.control.info.version.full + "_" + deb.control.info.architecture + ".deb"
+		filename = deb.GetFilename()
 	}
 
 	return deb.createDebAr(filename)
+}
+
+// GetFilename calculates the filename based on name, version and architecture
+// SetName("foo")
+// SetVersion("1.33.7")
+// SetArchitecture("amd64")
+// Generates filename "foo-1.33.7_amd64.deb"
+func (deb *DebPkg) GetFilename() string {
+	return fmt.Sprintf("%s-%s_%s.%s",
+		deb.control.info.name,
+		deb.control.info.version.full,
+		deb.control.info.architecture,
+		debPkgDebianFileExtension)
 }
 
 // WriteSigned package with GPG entity
@@ -108,6 +117,7 @@ func (deb *DebPkg) WriteSigned(filename string, entity *openpgp.Entity, keyid st
 	if _, err = clearsign.Write([]byte(deb.digest.plaintext)); err != nil {
 		return fmt.Errorf("error from Write: %s", err)
 	}
+
 	if err = clearsign.Close(); err != nil {
 		return fmt.Errorf("error from Close: %s", err)
 	}
@@ -130,12 +140,19 @@ func (deb *DebPkg) AddEmptyDirectory(dir string) error {
 // AddDirectory adds a directory to the package
 func (deb *DebPkg) AddDirectory(dir string) error {
 	return filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
-		if path != "." && path != ".." {
-			err := deb.AddFile(path)
-			if err != nil {
-				return err
-			}
+		if err != nil {
+			return err
 		}
+
+		if path == "." || path == ".." {
+			return nil
+		}
+
+		err = deb.AddFile(path)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 }
@@ -147,63 +164,4 @@ func GetArchitecture() string {
 		return "i386"
 	}
 	return arch
-}
-
-func addArFile(now time.Time, w *ar.Writer, name string, body []byte) error {
-	hdr := ar.Header{
-		Name:    name,
-		Size:    int64(len(body)),
-		Mode:    0644,
-		ModTime: now,
-	}
-
-	if err := w.WriteHeader(&hdr); err != nil {
-		return fmt.Errorf("cannot write file header: %v", err)
-	}
-
-	_, err := w.Write(body)
-
-	return err
-}
-
-func (deb *DebPkg) createDebAr(filename string) error {
-	removeDeb := true
-	fd, err := os.Create(filename)
-	if err != nil {
-		return fmt.Errorf("unable to create: %s", filename)
-	}
-
-	defer func() {
-		fd.Close()
-		if removeDeb {
-			os.Remove(filename)
-		}
-	}()
-
-	deb.data.tgz.Close()
-
-	now := time.Now()
-	w := ar.NewWriter(fd)
-
-	if err := w.WriteGlobalHeader(); err != nil {
-		return fmt.Errorf("cannot write ar header to deb file: %v", err)
-	}
-	if err := addArFile(now, w, "debian-binary", []byte(deb.debianBinary)); err != nil {
-		return fmt.Errorf("cannot pack debian-binary: %v", err)
-	}
-	if err := addArFile(now, w, "control.tar.gz", deb.control.buf.Bytes()); err != nil {
-		return fmt.Errorf("cannot add control.tar.gz to deb: %v", err)
-	}
-	if err := addArFile(now, w, "data.tar.gz", deb.data.buf.Bytes()); err != nil {
-		return fmt.Errorf("cannot add data.tar.gz to deb: %v", err)
-	}
-	if deb.digest.clearsign != "" {
-		if err := addArFile(now, w, "digests.asc", []byte(deb.digest.clearsign)); err != nil {
-			return fmt.Errorf("cannot add digests.asc to deb: %v", err)
-		}
-	}
-
-	removeDeb = false
-
-	return nil
 }
