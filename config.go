@@ -34,18 +34,27 @@ type debPkgSpecFileCfg struct {
 
 // Config loads settings from a depkg.yml specfile
 func (deb *DebPkg) Config(filename string) error {
-	cfg := debPkgSpecFileCfg{}
+	cfg := debPkgSpecFileCfg{
+		Name:            "unknown",
+		Version:         "0.1.0+dev",
+		Architecture:    "any",
+		Maintainer:      "anonymous",
+		MaintainerEmail: "anon@foo.bar",
+		Homepage:        "https://www.google.com",
+		Section:         "misc",
+		Priority:        string(PriorityOptional),
+	}
+	cfg.Description.Long = "-"
+	cfg.Description.Short = "-"
 
 	cfgFile, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return err
 	}
-
 	err = yaml.Unmarshal(cfgFile, &cfg)
 	if err != nil {
 		return err
 	}
-
 	deb.SetSection(cfg.Section)
 	deb.SetPriority(Priority(cfg.Priority))
 	deb.SetName(cfg.Name)
