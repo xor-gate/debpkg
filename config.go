@@ -1,4 +1,4 @@
-// Copyright 2016 Jerry Jacobs. All rights reserved.
+// Copyright 2017 Jerry Jacobs & Rik van der Heijden. All rights reserved.
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
@@ -7,6 +7,7 @@ package debpkg
 import (
 	"fmt"
 	"io/ioutil"
+	"runtime"
 
 	yaml "gopkg.in/yaml.v2"
 )
@@ -20,6 +21,7 @@ type debPkgSpecFileCfg struct {
 	Homepage        string `yaml:"homepage"`
 	Section         string `yaml:"section"`
 	Priority        string `yaml:"priority"`
+	BuiltUsing      string `yaml:"built_using"`
 	Description     struct {
 		Short string `yaml:"short"`
 		Long  string `yaml:"long"`
@@ -43,6 +45,7 @@ func (deb *DebPkg) Config(filename string) error {
 		Homepage:        "https://www.google.com",
 		Section:         "misc",
 		Priority:        string(PriorityOptional),
+		BuiltUsing:      runtime.Version(),
 	}
 	cfg.Description.Long = "-"
 	cfg.Description.Short = "-"
@@ -65,6 +68,7 @@ func (deb *DebPkg) Config(filename string) error {
 	deb.SetHomepage(cfg.Homepage)
 	deb.SetShortDescription(cfg.Description.Short)
 	deb.SetDescription(cfg.Description.Long)
+	deb.SetBuiltUsing(cfg.BuiltUsing)
 
 	for _, file := range cfg.Files {
 		err := deb.AddFile(file.Src, file.Dest)

@@ -1,5 +1,5 @@
 ##
-# Copyright 2017 Jerry Jacobs. All rights reserved.
+# Copyright 2017 Jerry Jacobs & Rik van der Heijden. All rights reserved.
 # Use of this source code is governed by the MIT
 # license that can be found in the LICENSE file.
 #
@@ -11,6 +11,9 @@ architecture: all
 maintainer: Foo Bar
 maintainer_email: foo@bar.com
 homepage: https://github.com/xor-gate/debpkg
+section: devel
+priority: standard
+built_using: golang
 description:
    short: This is a short description
    long: >
@@ -25,5 +28,7 @@ files:
   - file: cmd/debpkg/main.go
     dest: /tmp/main.go
   - file: README.md
+directories:
+  - vendor
 emptydirs:
   - /tmp/bogus/directory
