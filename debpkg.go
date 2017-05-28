@@ -140,13 +140,22 @@ func (deb *DebPkg) AddEmptyDirectory(dir string) error {
 
 // AddDirectory adds a directory to the package
 func (deb *DebPkg) AddDirectory(dir string) error {
+	deb.data.addDirectory(dir)
+
 	return filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		if path == "." || path == ".." {
+		if path == "." || path == ".." || dir == path {
 			return nil
 		}
+		if f.IsDir() {
+			if err := deb.data.addDirectory(path); err != nil {
+				return err
+			}
+			return deb.AddDirectory(path)
+		}
+
 		return deb.AddFile(path)
 	})
 }

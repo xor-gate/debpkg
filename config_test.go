@@ -18,7 +18,7 @@ func TestExampleConfig(t *testing.T) {
 
 	err := deb.Config("debpkg.yml")
 	if err != nil {
-		t.Errorf("Unable to open debpkg.yml in CWD: %v", err)
+		t.Errorf("debpkg.yml error: %v", err)
 	}
 	assert.Equal(t, "7.6.5", deb.control.info.version.full,
 		"Unexpected deb.control.info.version.full")

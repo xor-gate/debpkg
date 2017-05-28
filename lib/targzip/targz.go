@@ -114,11 +114,9 @@ func (t *TarGzip) AddDirectory(dirpath string) error {
 		ModTime:  time.Now(),
 		Size:     0,
 	}
-
 	if err := t.WriteHeader(hdr); err != nil {
 		return fmt.Errorf("tar-header for dir: %v", err)
 	}
-
 	return nil
 }
 

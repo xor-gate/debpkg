@@ -29,13 +29,10 @@ func (d *debPkgData) addDirectory(dirpath string) error {
 			return nil
 		}
 	}
-
 	if err := d.tgz.AddDirectory(dirpath); err != nil {
 		return err
 	}
-
 	d.dirs = append(d.dirs, dirpath)
-
 	return nil
 }
 
