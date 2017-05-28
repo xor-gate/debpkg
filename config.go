@@ -52,11 +52,11 @@ func (deb *DebPkg) Config(filename string) error {
 
 	cfgFile, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return err
+		return fmt.Errorf("problem reading config file: %v", err)
 	}
 	err = yaml.Unmarshal(cfgFile, &cfg)
 	if err != nil {
-		return err
+		return fmt.Errorf("problem unmarshaling config file: %v", err)
 	}
 	deb.SetSection(cfg.Section)
 	deb.SetPriority(Priority(cfg.Priority))
@@ -73,21 +73,21 @@ func (deb *DebPkg) Config(filename string) error {
 	for _, file := range cfg.Files {
 		err := deb.AddFile(file.Src, file.Dest)
 		if err != nil {
-			fmt.Printf("error adding file %s: %v\n", file.Src, err)
+			return fmt.Errorf("error adding file %s: %v", file.Src, err)
 		}
 	}
 
 	for _, dir := range cfg.Directories {
 		err := deb.AddDirectory(dir)
 		if err != nil {
-			fmt.Printf("error adding directory %s: %v\n", dir, err)
+			return fmt.Errorf("error adding directory %s: %v", dir, err)
 		}
 	}
 
 	for _, dir := range cfg.EmptyDirectories {
 		err := deb.AddEmptyDirectory(dir)
 		if err != nil {
-			fmt.Printf("error adding directory %s: %v\n", dir, err)
+			return fmt.Errorf("error adding directory %s: %v", dir, err)
 		}
 	}
 

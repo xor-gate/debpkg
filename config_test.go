@@ -66,11 +66,11 @@ func TestDefaultConfig(t *testing.T) {
 		"unexpected short description")
 	assert.Equal(t, " -", deb.control.info.descr,
 		"unexpected long description")
+}
 
-	/*
-		deb.control.info.conflicts
-		deb.control.info.provides
-		deb.control.info.replaces
-		deb.control.info.suggests
-		vcs**/
+func TestNonExistingConfig(t *testing.T) {
+	deb := New()
+
+	err := deb.Config("/non/existant/config/file")
+	assert.Error(t, err, "error expected")
 }
