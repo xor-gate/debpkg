@@ -1,4 +1,4 @@
-// Copyright 2017 Jerry Jacobs. All rights reserved.
+// Copyright 2017 Debpkg authors. All rights reserved.
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
 	"github.com/xor-gate/debpkg/lib/targzip"
 
 	"golang.org/x/crypto/openpgp"
@@ -20,10 +21,10 @@ import (
 
 // DebPkg holds data for a single debian package
 type DebPkg struct {
-	debianBinary     string
-	control          debPkgControl
-	data             debPkgData
-	digest           debPkgDigest
+	debianBinary string
+	control      debPkgControl
+	data         debPkgData
+	digest       debPkgDigest
 }
 
 // New creates new debian package
@@ -99,7 +100,7 @@ func (deb *DebPkg) WriteSigned(filename string, entity *openpgp.Entity, keyid st
 		signer = id
 	}
 
-	deb.digest.date = fmt.Sprintf(time.Now().Format(time.ANSIC))
+	deb.digest.date = time.Now().Format(time.ANSIC)
 	deb.digest.signer = signer
 
 	clearsign, err := clearsign.Encode(&buf, entity.PrivateKey, &cfg)
@@ -129,7 +130,7 @@ func (deb *DebPkg) WriteSigned(filename string, entity *openpgp.Entity, keyid st
 
 // AddFile adds a file by filename to the package
 func (deb *DebPkg) AddFile(filename string, dest ...string) error {
-	return deb.data.addFile(filename, dest ...)
+	return deb.data.addFile(filename, dest...)
 }
 
 // AddEmptyDirectory adds a empty directory to the package
@@ -139,21 +140,23 @@ func (deb *DebPkg) AddEmptyDirectory(dir string) error {
 
 // AddDirectory adds a directory to the package
 func (deb *DebPkg) AddDirectory(dir string) error {
+	deb.data.addDirectory(dir)
+
 	return filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-
-		if path == "." || path == ".." {
+		if path == "." || path == ".." || dir == path {
 			return nil
 		}
-
-		err = deb.AddFile(path)
-		if err != nil {
-			return err
+		if f.IsDir() {
+			if err := deb.data.addDirectory(path); err != nil {
+				return err
+			}
+			return deb.AddDirectory(path)
 		}
 
-		return nil
+		return deb.AddFile(path)
 	})
 }
 

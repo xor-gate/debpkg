@@ -1,17 +1,17 @@
-// Copyright 2017 Jerry Jacobs. All rights reserved.
+// Copyright 2017 Debpkg authors. All rights reserved.
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
 package debpkg
 
 import (
-	"io"
-	"fmt"
 	"bytes"
-	"hash"
 	"crypto"
 	"crypto/md5"
 	"crypto/sha1"
+	"fmt"
+	"hash"
+	"io"
 )
 
 const debPkgDigestDefaultHash = crypto.SHA1

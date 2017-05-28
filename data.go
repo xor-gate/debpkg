@@ -1,16 +1,17 @@
-// Copyright 2017 Jerry Jacobs. All rights reserved.
+// Copyright 2017 Debpkg authors. All rights reserved.
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
 package debpkg
 
 import (
-	"io"
-	"fmt"
-	"os"
-	"crypto/md5"
 	"bytes"
+	"crypto/md5"
+	"fmt"
+	"io"
+	"os"
 	"strings"
+
 	"github.com/xor-gate/debpkg/lib/targzip"
 )
 
@@ -28,13 +29,10 @@ func (d *debPkgData) addDirectory(dirpath string) error {
 			return nil
 		}
 	}
-
 	if err := d.tgz.AddDirectory(dirpath); err != nil {
 		return err
 	}
-
 	d.dirs = append(d.dirs, dirpath)
-
 	return nil
 }
 
@@ -72,7 +70,10 @@ func (d *debPkgData) addFile(filename string, dest ...string) error {
 		return err
 	}
 
-	md5, _ := computeMd5(fd)
+	md5, err := computeMd5(fd)
+	if err != nil {
+		return err
+	}
 	d.size += stat.Size() / 1024
 	d.md5sums += fmt.Sprintf("%x  %s\n", md5, filename)
 

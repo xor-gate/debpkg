@@ -1,13 +1,14 @@
-// Copyright 2017 Jerry Jacobs. All rights reserved.
+// Copyright 2017 Debpkg authors. All rights reserved.
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
 package debpkg
 
 import (
-	"time"
 	"fmt"
 	"os"
+	"time"
+
 	"github.com/blakesmith/ar"
 )
 
@@ -42,7 +43,9 @@ func (deb *DebPkg) createDebAr(filename string) error {
 		}
 	}()
 
-	deb.data.tgz.Close()
+	if err := deb.data.tgz.Close(); err != nil {
+		return fmt.Errorf("cannot close tgz writer: %v", err)
+	}
 
 	now := time.Now()
 	w := ar.NewWriter(fd)

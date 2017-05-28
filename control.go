@@ -1,21 +1,22 @@
-// Copyright 2017 Jerry Jacobs. All rights reserved.
+// Copyright 2017 Debpkg authors. All rights reserved.
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
 package debpkg
 
 import (
-	"strings"
 	"bytes"
 	"fmt"
+	"strings"
+
 	"github.com/xor-gate/debpkg/lib/targzip"
 )
 
 type debPkgControl struct {
-	buf   *bytes.Buffer
-	tgz   *targzip.TarGzip
-	info  debPkgControlInfo
-	extra []string // Extra files added to the control.tar.gz. Typical usage is for conffiles, postinst, postrm, prerm.
+	buf       *bytes.Buffer
+	tgz       *targzip.TarGzip
+	info      debPkgControlInfo
+	extra     []string // Extra files added to the control.tar.gz. Typical usage is for conffiles, postinst, postrm, prerm.
 	conffiles []string // Conffiles which must be treated as configuration files
 }
 

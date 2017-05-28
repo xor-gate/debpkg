@@ -1,4 +1,4 @@
-// Copyright 2017 Jerry Jacobs. All rights reserved.
+// Copyright 2017 Debpkg authors. All rights reserved.
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
@@ -8,8 +8,9 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
-	"golang.org/x/crypto/openpgp"
 	"testing"
+
+	"golang.org/x/crypto/openpgp"
 )
 
 var e *openpgp.Entity
@@ -17,42 +18,6 @@ var e *openpgp.Entity
 func init() {
 	// Create random new GPG identity for signage
 	e, _ = openpgp.NewEntity("Foo Bar", "", "foo@bar.com", nil)
-}
-
-// TestConfig verifies the specfile is correctly loaded
-func TestConfig(t *testing.T) {
-	deb := New()
-
-	err := deb.Config("debpkg.yml")
-	if err != nil {
-		t.Errorf("Unable to open debpkg.yml in CWD: %v", err)
-		return
-	}
-
-	if deb.control.info.version.full != "7.6.5" {
-		t.Errorf("Unexpected deb.control.info.version.full: %s", deb.control.info.version.full)
-		return
-	}
-
-	if deb.control.info.maintainer != "Foo Bar" {
-		t.Errorf("Unexpected deb.control.info.maintainer: %s", deb.control.info.maintainer)
-		return
-	}
-
-	if deb.control.info.maintainerEmail != "foo@bar.com" {
-		t.Errorf("Unexpected deb.control.info.maintainerEmail: %s", deb.control.info.maintainerEmail)
-		return
-	}
-
-	if deb.control.info.homepage != "https://github.com/xor-gate/debpkg" {
-		t.Errorf("Unexpected deb.control.info.homepage: %s", deb.control.info.homepage)
-		return
-	}
-
-	if deb.control.info.descrShort != "This is a short description" {
-		t.Error("Unexpected short description")
-		return
-	}
 }
 
 // Test creation of empty digest
@@ -201,11 +166,7 @@ func ExampleWrite() {
 }
 
 func dpkg(cmd, action, filename string) error {
-	args := []string{"--"+action, filename}
-	if err := exec.Command(cmd, args...).Run(); err != nil {
-		return err
-	}
-	return nil
+	return exec.Command(cmd, "--"+action, filename).Run()
 }
 
 func TestReadWithNativeDpkg(t *testing.T) {
@@ -216,6 +177,9 @@ func TestReadWithNativeDpkg(t *testing.T) {
 	}
 
 	debs, err := filepath.Glob("*.deb")
+	if err != nil {
+		t.Errorf("Unexpected error on glob: %v", err)
+	}
 	for _, deb := range debs {
 		err = dpkg(dpkgCmd, "info", deb)
 		if err != nil {

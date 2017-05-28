@@ -1,20 +1,21 @@
-// Copyright 2017 Jerry Jacobs. All rights reserved.
+// Copyright 2017 Debpkg authors. All rights reserved.
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
 package targzip
 
 import (
-	"os"
-	"io"
-	"fmt"
-	"time"
-	"strings"
 	"archive/tar"
-	"path/filepath"
 	"compress/gzip"
+	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
 )
 
+// TarGzip is a combined writer for .tar.gz-alike files
 type TarGzip struct {
 	tw *tar.Writer
 	gw *gzip.Writer
@@ -113,11 +114,9 @@ func (t *TarGzip) AddDirectory(dirpath string) error {
 		ModTime:  time.Now(),
 		Size:     0,
 	}
-
 	if err := t.WriteHeader(hdr); err != nil {
 		return fmt.Errorf("tar-header for dir: %v", err)
 	}
-
 	return nil
 }
 
