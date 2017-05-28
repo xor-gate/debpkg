@@ -144,17 +144,10 @@ func (deb *DebPkg) AddDirectory(dir string) error {
 		if err != nil {
 			return err
 		}
-
 		if path == "." || path == ".." {
 			return nil
 		}
-
-		err = deb.AddFile(path)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return deb.AddFile(path)
 	})
 }
 

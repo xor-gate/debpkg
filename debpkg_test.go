@@ -181,6 +181,9 @@ func TestReadWithNativeDpkg(t *testing.T) {
 	}
 
 	debs, err := filepath.Glob("*.deb")
+	if err != nil {
+		t.Errorf("Unexpected error on glob: %v", err)
+	}
 	for _, deb := range debs {
 		err = dpkg(dpkgCmd, "info", deb)
 		if err != nil {
