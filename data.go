@@ -1,16 +1,17 @@
-// Copyright 2017 Jerry Jacobs. All rights reserved.
+// Copyright 2017 Debpkg authors. All rights reserved.
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
 package debpkg
 
 import (
-	"io"
-	"fmt"
-	"os"
-	"crypto/md5"
 	"bytes"
+	"crypto/md5"
+	"fmt"
+	"io"
+	"os"
 	"strings"
+
 	"github.com/xor-gate/debpkg/lib/targzip"
 )
 

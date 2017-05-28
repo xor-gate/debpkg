@@ -25,7 +25,6 @@ The feature list below describes the usability state of the project:
 
 - Unable to specifiy file or folder destination when adding
 
-
 ## Why this package was created
 
 This package was created due to the lack to debianize from other platforms (windows/mac/*bsd). Because

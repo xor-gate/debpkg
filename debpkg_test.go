@@ -1,4 +1,4 @@
-// Copyright 2017 Jerry Jacobs. All rights reserved.
+// Copyright 2017 Debpkg authors. All rights reserved.
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
@@ -8,8 +8,9 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
-	"golang.org/x/crypto/openpgp"
 	"testing"
+
+	"golang.org/x/crypto/openpgp"
 )
 
 var e *openpgp.Entity
@@ -165,7 +166,7 @@ func ExampleWrite() {
 }
 
 func dpkg(cmd, action, filename string) error {
-	args := []string{"--"+action, filename}
+	args := []string{"--" + action, filename}
 	if err := exec.Command(cmd, args...).Run(); err != nil {
 		return err
 	}

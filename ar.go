@@ -1,13 +1,14 @@
-// Copyright 2017 Jerry Jacobs. All rights reserved.
+// Copyright 2017 Debpkg authors. All rights reserved.
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
 package debpkg
 
 import (
-	"time"
 	"fmt"
 	"os"
+	"time"
+
 	"github.com/blakesmith/ar"
 )
 

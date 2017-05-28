@@ -1,4 +1,4 @@
-// Copyright 2017 Jerry Jacobs. All rights reserved.
+// Copyright 2017 Debpkg authors. All rights reserved.
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
 	"github.com/xor-gate/debpkg/lib/targzip"
 
 	"golang.org/x/crypto/openpgp"
@@ -20,10 +21,10 @@ import (
 
 // DebPkg holds data for a single debian package
 type DebPkg struct {
-	debianBinary     string
-	control          debPkgControl
-	data             debPkgData
-	digest           debPkgDigest
+	debianBinary string
+	control      debPkgControl
+	data         debPkgData
+	digest       debPkgDigest
 }
 
 // New creates new debian package
@@ -129,7 +130,7 @@ func (deb *DebPkg) WriteSigned(filename string, entity *openpgp.Entity, keyid st
 
 // AddFile adds a file by filename to the package
 func (deb *DebPkg) AddFile(filename string, dest ...string) error {
-	return deb.data.addFile(filename, dest ...)
+	return deb.data.addFile(filename, dest...)
 }
 
 // AddEmptyDirectory adds a empty directory to the package

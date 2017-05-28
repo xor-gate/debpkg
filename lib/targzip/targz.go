@@ -1,18 +1,18 @@
-// Copyright 2017 Jerry Jacobs. All rights reserved.
+// Copyright 2017 Debpkg authors. All rights reserved.
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
 package targzip
 
 import (
-	"os"
-	"io"
-	"fmt"
-	"time"
-	"strings"
 	"archive/tar"
-	"path/filepath"
 	"compress/gzip"
+	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
 )
 
 type TarGzip struct {
