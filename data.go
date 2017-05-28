@@ -73,7 +73,10 @@ func (d *debPkgData) addFile(filename string, dest ...string) error {
 		return err
 	}
 
-	md5, _ := computeMd5(fd)
+	md5, err := computeMd5(fd)
+	if err != nil {
+		return err
+	}
 	d.size += stat.Size() / 1024
 	d.md5sums += fmt.Sprintf("%x  %s\n", md5, filename)
 

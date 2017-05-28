@@ -43,7 +43,9 @@ func (deb *DebPkg) createDebAr(filename string) error {
 		}
 	}()
 
-	deb.data.tgz.Close()
+	if err := deb.data.tgz.Close(); err != nil {
+		return fmt.Errorf("cannot close tgz writer: %v", err)
+	}
 
 	now := time.Now()
 	w := ar.NewWriter(fd)

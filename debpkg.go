@@ -100,7 +100,7 @@ func (deb *DebPkg) WriteSigned(filename string, entity *openpgp.Entity, keyid st
 		signer = id
 	}
 
-	deb.digest.date = fmt.Sprintf(time.Now().Format(time.ANSIC))
+	deb.digest.date = time.Now().Format(time.ANSIC)
 	deb.digest.signer = signer
 
 	clearsign, err := clearsign.Encode(&buf, entity.PrivateKey, &cfg)

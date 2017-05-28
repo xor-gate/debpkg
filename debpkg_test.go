@@ -166,11 +166,7 @@ func ExampleWrite() {
 }
 
 func dpkg(cmd, action, filename string) error {
-	args := []string{"--" + action, filename}
-	if err := exec.Command(cmd, args...).Run(); err != nil {
-		return err
-	}
-	return nil
+	return exec.Command(cmd, "--"+action, filename).Run()
 }
 
 func TestReadWithNativeDpkg(t *testing.T) {
