@@ -15,6 +15,7 @@ import (
 	"time"
 )
 
+// TarGzip is a combined writer for .tar.gz-alike files
 type TarGzip struct {
 	tw *tar.Writer
 	gw *gzip.Writer
