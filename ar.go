@@ -6,13 +6,14 @@ package debpkg
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"time"
 
 	"github.com/blakesmith/ar"
 )
 
-func addArFile(now time.Time, w *ar.Writer, name string, body []byte) error {
+func addArFileFromBuffer(now time.Time, w *ar.Writer, name string, body []byte) error {
 	hdr := ar.Header{
 		Name:    name,
 		Size:    int64(len(body)),
@@ -25,6 +26,36 @@ func addArFile(now time.Time, w *ar.Writer, name string, body []byte) error {
 	}
 
 	_, err := w.Write(body)
+
+	return err
+}
+
+func addArFile(now time.Time, w *ar.Writer, dstname, filename string) error {
+	f, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+
+	stat, err := f.Stat()
+	if err != nil {
+		f.Close()
+		return err
+	}
+
+	hdr := ar.Header{
+		Name:    dstname,
+		Size:    stat.Size(),
+		Mode:    0644,
+		ModTime: now,
+	}
+
+	if err := w.WriteHeader(&hdr); err != nil {
+		f.Close()
+		return fmt.Errorf("cannot write file header: %v", err)
+	}
+
+	_, err = io.Copy(w, f)
+	f.Close()
 
 	return err
 }
@@ -43,27 +74,23 @@ func (deb *DebPkg) createDebAr(filename string) error {
 		}
 	}()
 
-	if err := deb.data.tgz.Close(); err != nil {
-		return fmt.Errorf("cannot close tgz writer: %v", err)
-	}
-
 	now := time.Now()
 	w := ar.NewWriter(fd)
 
 	if err := w.WriteGlobalHeader(); err != nil {
 		return fmt.Errorf("cannot write ar header to deb file: %v", err)
 	}
-	if err := addArFile(now, w, "debian-binary", []byte(deb.debianBinary)); err != nil {
+	if err := addArFileFromBuffer(now, w, "debian-binary", []byte(deb.debianBinary)); err != nil {
 		return fmt.Errorf("cannot pack debian-binary: %v", err)
 	}
-	if err := addArFile(now, w, "control.tar.gz", deb.control.buf.Bytes()); err != nil {
+	if err := addArFile(now, w, "control.tar.gz", deb.control.tgz.Name()); err != nil {
 		return fmt.Errorf("cannot add control.tar.gz to deb: %v", err)
 	}
-	if err := addArFile(now, w, "data.tar.gz", deb.data.buf.Bytes()); err != nil {
+	if err := addArFile(now, w, "data.tar.gz", deb.data.tgz.Name()); err != nil {
 		return fmt.Errorf("cannot add data.tar.gz to deb: %v", err)
 	}
 	if deb.digest.clearsign != "" {
-		if err := addArFile(now, w, "digests.asc", []byte(deb.digest.clearsign)); err != nil {
+		if err := addArFileFromBuffer(now, w, "digests.asc", []byte(deb.digest.clearsign)); err != nil {
 			return fmt.Errorf("cannot add digests.asc to deb: %v", err)
 		}
 	}

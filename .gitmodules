@@ -1,6 +1,6 @@
 [submodule "vendor/github.com/blakesmith/ar"]
 	path = vendor/github.com/blakesmith/ar
-	url = https://github.com/blakesmith/ar
+	url = https://github.com/xor-gate/ar
 [submodule "vendor/golang.org/x/crypto"]
 	path = vendor/golang.org/x/crypto
 	url = https://github.com/golang/crypto

@@ -31,5 +31,5 @@ const (
 	VcsTypeSubversion VcsType = "Svn"   // Subversion
 )
 
-const debPkgDebianBinary = "2.0\n"
-const debPkgDebianFileExtension = "deb"
+const debianBinaryVersion = "2.0\n"
+const debianFileExtension = "deb"

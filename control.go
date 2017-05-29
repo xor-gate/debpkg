@@ -5,31 +5,30 @@
 package debpkg
 
 import (
-	"bytes"
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/xor-gate/debpkg/lib/targzip"
 )
 
-type debPkgControl struct {
-	buf       *bytes.Buffer
+type control struct {
 	tgz       *targzip.TarGzip
-	info      debPkgControlInfo
+	info      controlInfo
 	extra     []string // Extra files added to the control.tar.gz. Typical usage is for conffiles, postinst, postrm, prerm.
 	conffiles []string // Conffiles which must be treated as configuration files
 }
 
-type debPkgControlInfoVersion struct {
+type controlInfoVersion struct {
 	full  string // Full version string. E.g "0.1.2"
 	major uint   // Major version number
 	minor uint   // Minor version number
 	patch uint   // Patch version number
 }
 
-type debPkgControlInfo struct {
+type controlInfo struct {
 	name            string
-	version         debPkgControlInfoVersion
+	version         controlInfoVersion
 	architecture    string
 	maintainer      string
 	maintainerEmail string
@@ -54,10 +53,10 @@ func (deb *DebPkg) SetName(name string) {
 	deb.control.info.name = name
 }
 
-// SetVersion sets the full version string (mandatory), or user SetVersion* functions for "major.minor.patch"
+// SetVersion sets the full version string (mandatory), or use SetVersion* functions for "major.minor.patch"
 // The upstream_version may contain only alphanumerics ( A-Za-z0-9 ) and the characters . + - : ~
 //  (full stop, plus, hyphen, colon, tilde) and should start with a digit.
-// NOTE: When the full string is set the SetVersion* function calls are ignored
+// NOTE: When the full string is set the other SetVersion* function calls are ignored
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
 func (deb *DebPkg) SetVersion(version string) {
 	deb.control.info.version.full = version
@@ -203,39 +202,50 @@ func (deb *DebPkg) AddConffile(filename string) {
 	deb.control.conffiles = append(deb.control.conffiles, filename)
 }
 
+// verify the control file for validity
+func (c *control) verify() error {
+	if c.info.name == "" {
+		return fmt.Errorf("empty package name")
+	}
+	if c.info.architecture == "" {
+		return fmt.Errorf("empty architecture")
+	}
+	return nil
+}
+
 func createControlTarGz(deb *DebPkg) error {
-	controlFile := []byte(deb.control.String(deb.data.size))
+	controlFile := []byte(deb.control.String(deb.data.tgz.Written()))
 	if err := deb.control.tgz.AddFileFromBuffer("control", controlFile); err != nil {
 		return err
 	}
 	if err := deb.control.tgz.AddFileFromBuffer("md5sums", []byte(deb.data.md5sums)); err != nil {
 		return err
 	}
-	if err := deb.control.tgz.Close(); err != nil {
-		return err
-	}
 	return nil
 }
 
-// Create control file for control.tar.gz
-func (c *debPkgControl) String(installedSize int64) string {
-	var o string
-
-	// Autogenerate version string (e.g "1.2.3") when unset
-	if c.info.version.full == "" {
-		c.info.version.full = fmt.Sprintf("%d.%d.%d",
+// Generate version string (e.g "1.2.3") from major,minor patch or from full version
+func (c *control) version() string {
+	if c.info.version.full != "" {
+		return c.info.version.full
+	}
+	return fmt.Sprintf("%d.%d.%d",
 			c.info.version.major,
 			c.info.version.minor,
 			c.info.version.patch)
-	}
+}
+
+// Create control file for control.tar.gz
+func (c *control) String(installedSize uint64) string {
+	var o string
 
 	o += fmt.Sprintf("Package: %s\n", c.info.name)
-	o += fmt.Sprintf("Version: %s\n", c.info.version.full)
+	o += fmt.Sprintf("Version: %s\n", c.version())
 	o += fmt.Sprintf("Architecture: %s\n", c.info.architecture)
 	o += fmt.Sprintf("Maintainer: %s <%s>\n",
 		c.info.maintainer,
 		c.info.maintainerEmail)
-	o += fmt.Sprintf("Installed-Size: %d\n", installedSize)
+	o += fmt.Sprintf("Installed-Size: %d\n", uint64(math.Floor((float64(installedSize)/1024)+0.5)))
 
 	if c.info.section != "" {
 		o += fmt.Sprintf("Section: %s\n", c.info.section)

@@ -21,6 +21,7 @@ Description:
 `
 	// Empty
 	deb := New()
+	defer deb.Close()
 
 	// architecture is auto-set when empty, this makes sure it is always set to amd64
 	deb.SetArchitecture("amd64")
@@ -46,6 +47,7 @@ Description:
 `
 	// Empty
 	deb := New()
+	defer deb.Close()
 
 	// architecture is auto-set when empty, this makes sure it is always set to amd64
 	deb.SetArchitecture("amd64")
@@ -65,6 +67,7 @@ Description:
 func TestControlFileSetVersionMajorMinorPatch(t *testing.T) {
 	// Empty
 	deb := New()
+	defer deb.Close()
 
 	deb.SetName("foobar")
 	deb.SetArchitecture("amd64")
@@ -137,6 +140,7 @@ Description: Golang package for creating (gpg signed) debian packages
 
 	// Empty
 	deb := New()
+	defer deb.Close()
 
 	deb.SetName("debpkg")
 	deb.SetVersion("0.0.0")

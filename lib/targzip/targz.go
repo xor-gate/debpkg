@@ -9,6 +9,7 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,17 +18,33 @@ import (
 
 // TarGzip is a combined writer for .tar.gz-alike files
 type TarGzip struct {
-	tw *tar.Writer
-	gw *gzip.Writer
+	wc       io.WriteCloser
+	tw       *tar.Writer
+	gw       *gzip.Writer
+	written  uint64
+	fileName string
 }
 
-// New creates a new targzip writer
-func New(w io.Writer) *TarGzip {
+// new creates a new targzip writer
+func newWriter(wc io.WriteCloser) *TarGzip {
 	t := &TarGzip{}
 
-	t.gw = gzip.NewWriter(w)
+	t.wc = wc
+	t.gw = gzip.NewWriter(wc)
 	t.tw = tar.NewWriter(t.gw)
 
+	return t
+}
+
+// NewTempFile create a new targzip writer tempfile
+func NewTempFile() *TarGzip {
+	tmpfile, err := ioutil.TempFile("", "debpkg")
+	if err != nil {
+		return nil
+	}
+
+	t := newWriter(tmpfile)
+	t.fileName = tmpfile.Name()
 	return t
 }
 
@@ -72,7 +89,7 @@ func (t *TarGzip) AddFile(filename string, dest ...string) error {
 	}
 
 	// write the header to the tarball archive
-	if err := t.WriteHeader(hdr); err != nil {
+	if err := t.writeHeader(hdr); err != nil {
 		return err
 	}
 
@@ -94,7 +111,7 @@ func (t *TarGzip) AddFileFromBuffer(filename string, b []byte) error {
 		Typeflag: tar.TypeReg,
 	}
 
-	if err := t.WriteHeader(&hdr); err != nil {
+	if err := t.writeHeader(&hdr); err != nil {
 		return fmt.Errorf("cannot write header of file: %v", err)
 	}
 
@@ -114,20 +131,29 @@ func (t *TarGzip) AddDirectory(dirpath string) error {
 		ModTime:  time.Now(),
 		Size:     0,
 	}
-	if err := t.WriteHeader(hdr); err != nil {
+	if err := t.writeHeader(hdr); err != nil {
 		return fmt.Errorf("tar-header for dir: %v", err)
 	}
 	return nil
 }
 
-// WriteHeader writes a raw tar header
-func (t *TarGzip) WriteHeader(hdr *tar.Header) error {
+// writeHeader writes a raw tar header
+func (t *TarGzip) writeHeader(hdr *tar.Header) error {
 	return t.tw.WriteHeader(hdr)
 }
 
 // Write writes raw tar data
 func (t *TarGzip) Write(p []byte) (n int, err error) {
-	return t.tw.Write(p)
+	n, err = t.tw.Write(p)
+	if err == nil {
+		t.written += uint64(n)
+	}
+	return n, err
+}
+
+// Written returns the amount of bytes written in uncompressed form
+func (t *TarGzip) Written() uint64 {
+	return t.written
 }
 
 // Close closes the targzip writer
@@ -139,4 +165,16 @@ func (t *TarGzip) Close() error {
 		return err
 	}
 	return nil
+}
+
+func (t *TarGzip) Name() string {
+	return t.fileName
+}
+
+// Remove removes the tempfile
+func (t *TarGzip) Remove() error {
+	if t.fileName == "" {
+		return nil
+	}
+	return os.Remove(t.fileName)
 }

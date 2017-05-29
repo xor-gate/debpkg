@@ -23,4 +23,5 @@
 //  deb.AddFile("/tmp/foobar")
 //
 //  deb.Write("foobar.deb")
+//  deb.Close()
 package debpkg

@@ -15,6 +15,7 @@ import (
 // TestExampleConfig verifies if the config example in the root is correctly loaded
 func TestExampleConfig(t *testing.T) {
 	deb := New()
+	defer deb.Close()
 
 	err := deb.Config("debpkg.yml")
 	if err != nil {
@@ -45,6 +46,8 @@ func TestDefaultConfig(t *testing.T) {
 	}
 	f.Close()
 	deb := New()
+	defer deb.Close()
+
 	if err := deb.Config(f.Name()); err != nil {
 		t.Errorf("Unexpected error during load of empty config: %v", err)
 	}
@@ -74,6 +77,7 @@ func TestDefaultConfig(t *testing.T) {
 
 func TestNonExistingConfig(t *testing.T) {
 	deb := New()
+	defer deb.Close()
 
 	err := deb.Config("/non/existant/config/file")
 	assert.Error(t, err, "error expected")
