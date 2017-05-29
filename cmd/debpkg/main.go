@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
+
 	"github.com/xor-gate/debpkg"
 )
 
@@ -18,17 +20,14 @@ func init() {
 func main() {
 	deb := debpkg.New()
 
-	if gConfigFile != "" {
-		err := deb.Config(gConfigFile)
-		if err != nil {
-			fmt.Println("Error while loading config file", gConfigFile)
-			return
-		}
+	if gConfigFile == "" {
+		gConfigFile = "debpkg.yml"
 	}
-
-	err := deb.Write(gOutputFile)
-	if err != nil {
-		fmt.Println("debpkg: error:", err)
+	if err := deb.Config(gConfigFile); err != nil {
+		log.Fatalf("Error while loading config file: %v", err)
+	}
+	if err := deb.Write(gOutputFile); err != nil {
+		log.Fatalf("Error writing outputfile: %v", err)
 		return
 	}
 
