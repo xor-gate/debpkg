@@ -22,43 +22,63 @@ import (
 // DebPkg holds data for a single debian package
 type DebPkg struct {
 	debianBinary string
-	control      debPkgControl
-	data         debPkgData
-	digest       debPkgDigest
+	control      control
+	data         data
+	digest       digest
+}
+
+var debpkgTempDir = os.TempDir() // default temporary directory is os.TempDir
+
+// SetTempDir sets the directory for temporary files. When the directory doesn't
+//  exist it is automaticly created (but not removed).
+func SetTempDir(dir string) error {
+	if dir == "" {
+		debpkgTempDir = os.TempDir()
+	}
+
+	finfo, err := os.Stat(dir)
+	if os.IsExist(err) && finfo.IsDir() {
+		return nil
+	} else if !finfo.IsDir() {
+		return fmt.Errorf("not a directory")
+	}
+
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		return err
+	}
+
+	debpkgTempDir = dir
+	return nil
+}
+
+// TempDir returns the directory to use for temporary files.
+func TempDir() string () {
+	return debpkgTempDir
 }
 
 // New creates new debian package
 func New() *DebPkg {
 	deb := &DebPkg{}
 
-	deb.debianBinary = debPkgDebianBinary
+	deb.debianBinary = debianBinaryVersion
 	deb.control.info.vcsType = VcsTypeUnset
 	deb.control.info.priority = PriorityUnset
 
-	deb.control.buf = &bytes.Buffer{}
-	deb.control.tgz = targzip.New(deb.control.buf)
-
-	deb.data.buf = &bytes.Buffer{}
-	deb.data.tgz = targzip.New(deb.data.buf)
+	deb.control.tgz = targzip.NewTempFile(debpkgTempDir)
+	deb.data.tgz = targzip.NewTempFile(debpkgTempDir)
 
 	return deb
 }
 
-func (deb *DebPkg) verify() error {
-	if deb.control.info.name == "" {
-		return fmt.Errorf("empty package name")
-	}
-
-	if deb.control.info.architecture == "" {
-		return fmt.Errorf("empty architecture")
-	}
-
+func (deb *DebPkg) Close() error {
+	deb.control.tgz.Remove()
+	deb.data.tgz.Remove()
 	return nil
 }
 
 // Write the debian package to the filename
 func (deb *DebPkg) Write(filename string) error {
-	err := deb.verify()
+	err := deb.control.verify()
 	if err != nil {
 		return err
 	}
@@ -70,6 +90,14 @@ func (deb *DebPkg) Write(filename string) error {
 
 	if filename == "" {
 		filename = deb.GetFilename()
+	}
+
+	if err := deb.control.tgz.Close(); err != nil {
+		return fmt.Errorf("cannot close tgz writer: %v", err)
+	}
+
+	if err := deb.data.tgz.Close(); err != nil {
+		return fmt.Errorf("cannot close tgz writer: %v", err)
 	}
 
 	return deb.createDebAr(filename)
@@ -85,7 +113,7 @@ func (deb *DebPkg) GetFilename() string {
 		deb.control.info.name,
 		deb.control.info.version.full,
 		deb.control.info.architecture,
-		debPkgDebianFileExtension)
+		debianFileExtension)
 }
 
 // WriteSigned package with GPG entity
@@ -93,7 +121,7 @@ func (deb *DebPkg) WriteSigned(filename string, entity *openpgp.Entity, keyid st
 	var buf bytes.Buffer
 	var cfg packet.Config
 	var signer string
-	cfg.DefaultHash = debPkgDigestDefaultHash
+	cfg.DefaultHash = digestDefaultHash
 
 	for id := range entity.Identities {
 		// TODO real search for keyid, need to investigate maybe a subkey?
@@ -138,7 +166,7 @@ func (deb *DebPkg) AddEmptyDirectory(dir string) error {
 	return deb.data.addEmptyDirectory(dir)
 }
 
-// AddDirectory adds a directory to the package
+// AddDirectory adds a directory recursive to the package
 func (deb *DebPkg) AddDirectory(dir string) error {
 	deb.data.addDirectory(dir)
 

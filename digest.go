@@ -14,12 +14,12 @@ import (
 	"io"
 )
 
-const debPkgDigestDefaultHash = crypto.SHA1
-const debPkgDigestVersion = 4
-const debPkgDigestRole = "builder"
+const digestDefaultHash = crypto.SHA1
+const digestVersion = 4
+const digestRole = "builder"
 
 // Digest file for GPG signing
-type debPkgDigest struct {
+type digest struct {
 	plaintext string // Plaintext package digest (empty when unsigned)
 	clearsign string // GPG clearsigned package digest (empty when unsigned)
 	version   int    // Always version 4 (for dpkg-sig 0.13.1+nmu2)
@@ -42,8 +42,8 @@ Date: %s
 Role: %s
 Files: 
 %s`
-	deb.digest.version = debPkgDigestVersion
-	deb.digest.role = debPkgDigestRole
+	deb.digest.version = digestVersion
+	deb.digest.role = digestRole
 
 	// debian-binary
 	deb.digest.files += fmt.Sprintf("\t%x %x %d %s\n",
@@ -55,13 +55,13 @@ Files:
 	// control.tar.gz
 	deb.digest.files += fmt.Sprintf("\t%x %x %d %s\n",
 		0, 0,
-		len(deb.control.buf.Bytes()),
+		0, // TODO control size
 		"control.tar.gz")
 
 	// data.tar.gz
 	deb.digest.files += fmt.Sprintf("\t%x %x %d %s\n",
 		0, 0,
-		len(deb.data.buf.Bytes()),
+		0, // TODO data size
 		"data.tar.gz")
 
 	return fmt.Sprintf(digestFileTmpl,

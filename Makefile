@@ -20,5 +20,6 @@ fmt:
 
 clean:
 	rm -Rf *.deb
+	rm -Rf *.tar.gz
 
 .PHONY: clean
