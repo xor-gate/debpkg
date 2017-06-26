@@ -27,13 +27,13 @@ type DebPkg struct {
 	digest       digest
 }
 
-var debpkgTempDir = "" // default temporary directory is os.TempDir
+var debpkgTempDir = os.TempDir() // default temporary directory is os.TempDir
 
-// SetTempDir sets the temporary directory for intermediate files. When the directory doesn't
-//  exist it is automaticly created. The caller is responsible for the cleanup of tempdir.
+// SetTempDir sets the directory for temporary files. When the directory doesn't
+//  exist it is automaticly created (but not removed).
 func SetTempDir(dir string) error {
 	if dir == "" {
-		debpkgTempDir = dir
+		debpkgTempDir = os.TempDir()
 	}
 
 	finfo, err := os.Stat(dir)
@@ -49,6 +49,11 @@ func SetTempDir(dir string) error {
 
 	debpkgTempDir = dir
 	return nil
+}
+
+// TempDir returns the directory to use for temporary files.
+func TempDir() string () {
+	return debpkgTempDir
 }
 
 // New creates new debian package
