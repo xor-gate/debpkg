@@ -6,6 +6,7 @@ package debpkg
 
 import (
 	"os"
+	"time"
 	"bytes"
 	"crypto"
 	"crypto/md5"
@@ -13,6 +14,10 @@ import (
 	"fmt"
 	"hash"
 	"io"
+
+	"golang.org/x/crypto/openpgp"
+	"golang.org/x/crypto/openpgp/clearsign"
+	"golang.org/x/crypto/openpgp/packet"
 )
 
 const digestDefaultHash = crypto.SHA1
@@ -92,3 +97,49 @@ func digestCalcDataHash(in io.Reader, hash hash.Hash) (string, error) {
 	}
 	return string(hash.Sum(result)),nil
 }
+
+// WriteSigned package with GPG entity
+func (deb *DebPkg) WriteSigned(filename string, entity *openpgp.Entity) error {
+	var buf bytes.Buffer
+	var cfg packet.Config
+	var signer string
+	cfg.DefaultHash = digestDefaultHash
+
+	fmt.Printf("e: %+v\n", e)
+
+	for id := range entity.Identities {
+		// TODO real search for keyid, need to investigate maybe a subkey?
+		signer = id
+	}
+
+	deb.digest.date = time.Now().Format(time.ANSIC)
+	deb.digest.signer = signer
+
+	clearsign, err := clearsign.Encode(&buf, entity.PrivateKey, &cfg)
+	if err != nil {
+		return fmt.Errorf("error while signing: %s", err)
+	}
+
+	if err := deb.writeControlData(); err != nil {
+		return err
+	}
+
+	deb.digest.plaintext = createDigestFileString(deb)
+
+	if _, err = clearsign.Write([]byte(deb.digest.plaintext)); err != nil {
+		return fmt.Errorf("error from Write: %s", err)
+	}
+
+	if err = clearsign.Close(); err != nil {
+		return fmt.Errorf("error from Close: %s", err)
+	}
+
+	deb.digest.clearsign = buf.String()
+
+	if filename == "" {
+		filename = deb.GetFilename()
+	}
+	return deb.createDebAr(filename)
+}
+
+

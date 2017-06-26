@@ -89,7 +89,7 @@ func TestWriteSigned(t *testing.T) {
 	deb.AddFile("debpkg.go")
 
 	// WriteSigned the package
-	err := deb.WriteSigned("debpkg-test-signed.deb", e, "00000000")
+	err := deb.WriteSigned("debpkg-test-signed.deb", e)
 	if err != nil {
 		t.Errorf("Error in writing unsigned package: %v", err)
 	}

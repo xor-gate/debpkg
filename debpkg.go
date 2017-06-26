@@ -5,18 +5,12 @@
 package debpkg
 
 import (
-	"bytes"
 	"fmt"
 	"go/build"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/xor-gate/debpkg/lib/targzip"
-
-	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/clearsign"
-	"golang.org/x/crypto/openpgp/packet"
 )
 
 // DebPkg holds data for a single debian package
@@ -119,48 +113,6 @@ func (deb *DebPkg) GetFilename() string {
 		deb.control.info.version.full,
 		deb.control.info.architecture,
 		debianFileExtension)
-}
-
-// WriteSigned package with GPG entity
-func (deb *DebPkg) WriteSigned(filename string, entity *openpgp.Entity, keyid string) error {
-	var buf bytes.Buffer
-	var cfg packet.Config
-	var signer string
-	cfg.DefaultHash = digestDefaultHash
-
-	for id := range entity.Identities {
-		// TODO real search for keyid, need to investigate maybe a subkey?
-		signer = id
-	}
-
-	deb.digest.date = time.Now().Format(time.ANSIC)
-	deb.digest.signer = signer
-
-	clearsign, err := clearsign.Encode(&buf, entity.PrivateKey, &cfg)
-	if err != nil {
-		return fmt.Errorf("error while signing: %s", err)
-	}
-
-	if err := deb.writeControlData(); err != nil {
-		return err
-	}
-
-	deb.digest.plaintext = createDigestFileString(deb)
-
-	if _, err = clearsign.Write([]byte(deb.digest.plaintext)); err != nil {
-		return fmt.Errorf("error from Write: %s", err)
-	}
-
-	if err = clearsign.Close(); err != nil {
-		return fmt.Errorf("error from Close: %s", err)
-	}
-
-	deb.digest.clearsign = buf.String()
-
-	if filename == "" {
-		filename = deb.GetFilename()
-	}
-	return deb.createDebAr(filename)
 }
 
 // AddFile adds a file by filename to the package
