@@ -172,12 +172,7 @@ func (t *TarGzip) Name() string {
 }
 
 func (t *TarGzip) Size() int64 {
-	f, err := os.Open(t.Name())
-	if err != nil {
-		return 0
-	}
-	defer f.Close()
-	fi, err := f.Stat()
+	fi, err := os.Stat(t.Name())
 	if err != nil {
 		return 0
 	}

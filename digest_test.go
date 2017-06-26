@@ -5,7 +5,6 @@
 package debpkg
 
 import (
-//	"fmt"
 	"testing"
 
 	"golang.org/x/crypto/openpgp"
