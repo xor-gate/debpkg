@@ -5,16 +5,41 @@
 package debpkg
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"golang.org/x/crypto/openpgp"
+	"golang.org/x/crypto/openpgp/armor"
 )
 
 var e *openpgp.Entity
 
 func init() {
 	// Create random new GPG identity for signage
-	e, _ = openpgp.NewEntity("Foo Bar", "", "foo@bar.com", nil)
+	e, _ = openpgp.NewEntity("Debpkg Authors", "", "debpkg-authors@xor-gate.org", nil)
+
+        // Sign all the identities
+        for _, id := range e.Identities {
+                err := id.SelfSignature.SignUserId(id.UserId.Id, e.PrimaryKey, e.PrivateKey, nil)
+                if err != nil {
+                        fmt.Println(err)
+                        return
+                }
+        }
+
+	f, _ := os.Create("digest_test.key")
+        w, err := armor.Encode(f, openpgp.PublicKeyType, nil)
+        if err != nil {
+                fmt.Println(err)
+                return
+        }
+	devnull, _ := os.Open(os.DevNull)
+	e.SerializePrivate(devnull, nil)
+	devnull.Close()
+        e.Serialize(w)
+	w.Close()
+	f.Close()
 }
 
 /*
