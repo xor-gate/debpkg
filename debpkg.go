@@ -52,7 +52,7 @@ func SetTempDir(dir string) error {
 }
 
 // TempDir returns the directory to use for temporary files.
-func TempDir() string () {
+func TempDir() string {
 	return debpkgTempDir
 }
 
