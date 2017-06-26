@@ -6,4 +6,4 @@
 	url = https://github.com/golang/crypto
 [submodule "vendor/gopkg.in/yaml.v2"]
 	path = vendor/gopkg.in/yaml.v2
-	url = http://gopkg.in/yaml.v2
+	url = https://gopkg.in/yaml.v2

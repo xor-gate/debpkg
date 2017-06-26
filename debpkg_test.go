@@ -107,13 +107,11 @@ func TestReadWithNativeDpkg(t *testing.T) {
 		if err != nil {
 			t.Errorf("dpkg --info failed on " + deb)
 		}
-		fmt.Println("dpkg --info passed on " + deb)
 
 		dpkg(dpkgCmd, "contents", deb)
 		if err != nil {
 			t.Errorf("dpkg --contents failed on " + deb)
 		}
-		fmt.Println("dpkg --contents passed on " + deb)
 	}
 }
 
