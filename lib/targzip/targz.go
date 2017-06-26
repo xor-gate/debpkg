@@ -171,6 +171,19 @@ func (t *TarGzip) Name() string {
 	return t.fileName
 }
 
+func (t *TarGzip) Size() int64 {
+	f, err := os.Open(t.Name())
+	if err != nil {
+		return 0
+	}
+	defer f.Close()
+	fi, err := f.Stat()
+	if err != nil {
+		return 0
+	}
+	return fi.Size()
+}
+
 // Remove removes the tempfile
 func (t *TarGzip) Remove() error {
 	if t.fileName == "" {

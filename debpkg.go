@@ -76,8 +76,7 @@ func (deb *DebPkg) Close() error {
 	return nil
 }
 
-// Write the debian package to the filename
-func (deb *DebPkg) Write(filename string) error {
+func (deb *DebPkg) writeControlData() error {
 	err := deb.control.verify()
 	if err != nil {
 		return err
@@ -88,10 +87,6 @@ func (deb *DebPkg) Write(filename string) error {
 		return fmt.Errorf("error while creating control.tar.gz: %s", err)
 	}
 
-	if filename == "" {
-		filename = deb.GetFilename()
-	}
-
 	if err := deb.control.tgz.Close(); err != nil {
 		return fmt.Errorf("cannot close tgz writer: %v", err)
 	}
@@ -99,7 +94,17 @@ func (deb *DebPkg) Write(filename string) error {
 	if err := deb.data.tgz.Close(); err != nil {
 		return fmt.Errorf("cannot close tgz writer: %v", err)
 	}
+	return nil
+}
 
+// Write the debian package to the filename
+func (deb *DebPkg) Write(filename string) error {
+	if err := deb.writeControlData(); err != nil {
+		return err
+	}
+	if filename == "" {
+		filename = deb.GetFilename()
+	}
 	return deb.createDebAr(filename)
 }
 
@@ -136,9 +141,8 @@ func (deb *DebPkg) WriteSigned(filename string, entity *openpgp.Entity, keyid st
 		return fmt.Errorf("error while signing: %s", err)
 	}
 
-	err = createControlTarGz(deb)
-	if err != nil {
-		return fmt.Errorf("error while creating control.tar.gz: %s", err)
+	if err := deb.writeControlData(); err != nil {
+		return err
 	}
 
 	deb.digest.plaintext = createDigestFileString(deb)
@@ -153,6 +157,9 @@ func (deb *DebPkg) WriteSigned(filename string, entity *openpgp.Entity, keyid st
 
 	deb.digest.clearsign = buf.String()
 
+	if filename == "" {
+		filename = deb.GetFilename()
+	}
 	return deb.createDebAr(filename)
 }
 

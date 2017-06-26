@@ -5,6 +5,7 @@
 package debpkg
 
 import (
+	"os"
 	"bytes"
 	"crypto"
 	"crypto/md5"
@@ -22,10 +23,8 @@ const digestRole = "builder"
 type digest struct {
 	plaintext string // Plaintext package digest (empty when unsigned)
 	clearsign string // GPG clearsigned package digest (empty when unsigned)
-	version   int    // Always version 4 (for dpkg-sig 0.13.1+nmu2)
 	signer    string // Name <email>
 	date      string // Mon Jan 2 15:04:05 2006 (time.ANSIC)
-	role      string // builder
 	files     string // Multiple "\t<md5sum> <sha1sum> <size> <filename>"
 	// E.g:
 	//       3cf918272ffa5de195752d73f3da3e5e 7959c969e092f2a5a8604e2287807ac5b1b384ad 4 debian-binary
@@ -42,40 +41,54 @@ Date: %s
 Role: %s
 Files: 
 %s`
-	deb.digest.version = digestVersion
-	deb.digest.role = digestRole
-
 	// debian-binary
+	md5sum, _ := digestCalcDataHash(bytes.NewBuffer([]byte(deb.debianBinary)), md5.New())
+	sha1sum, _ := digestCalcDataHash(bytes.NewBuffer([]byte(deb.debianBinary)), sha1.New())
 	deb.digest.files += fmt.Sprintf("\t%x %x %d %s\n",
-		digestCalcDataHash(bytes.NewBuffer([]byte(deb.debianBinary)), md5.New()),
-		digestCalcDataHash(bytes.NewBuffer([]byte(deb.debianBinary)), sha1.New()),
+		md5sum,
+		sha1sum,
 		len(deb.debianBinary),
 		"debian-binary")
 
 	// control.tar.gz
+	md5sum, _ = digestCalcDataHashFromFile(deb.control.tgz.Name(), md5.New())
+	sha1sum, _ = digestCalcDataHashFromFile(deb.control.tgz.Name(), sha1.New())
 	deb.digest.files += fmt.Sprintf("\t%x %x %d %s\n",
-		0, 0,
-		0, // TODO control size
+		md5sum,
+		sha1sum,
+		deb.control.tgz.Size(),
 		"control.tar.gz")
 
 	// data.tar.gz
+	md5sum, _ = digestCalcDataHashFromFile(deb.data.tgz.Name(), md5.New())
+	sha1sum, _ = digestCalcDataHashFromFile(deb.data.tgz.Name(), sha1.New())
 	deb.digest.files += fmt.Sprintf("\t%x %x %d %s\n",
-		0, 0,
-		0, // TODO data size
+		md5sum,
+		sha1sum,
+		deb.data.tgz.Size(),
 		"data.tar.gz")
 
 	return fmt.Sprintf(digestFileTmpl,
-		deb.digest.version,
+		digestVersion,
 		deb.digest.signer,
 		deb.digest.date,
-		deb.digest.role,
+		digestRole,
 		deb.digest.files)
 }
 
-func digestCalcDataHash(data *bytes.Buffer, hash hash.Hash) string {
-	var result []byte
-	if _, err := io.Copy(hash, data); err != nil {
-		return ""
+func digestCalcDataHashFromFile(filename string, hash hash.Hash) (string, error) {
+	f, err := os.Open(filename)
+	if err != nil {
+		return "", err
 	}
-	return string(hash.Sum(result))
+	defer f.Close()
+	return digestCalcDataHash(f, hash)
+}
+
+func digestCalcDataHash(in io.Reader, hash hash.Hash) (string, error) {
+	var result []byte
+	if _, err := io.Copy(hash, in); err != nil {
+		return "", err
+	}
+	return string(hash.Sum(result)),nil
 }
