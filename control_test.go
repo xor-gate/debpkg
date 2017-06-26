@@ -158,3 +158,45 @@ Description: Golang package for creating (gpg signed) debian packages
 		fmt.Printf("--- expected (len %d):\n'%s'\n--- got (len %d):\n'%s'---\n", len(controlExpect), controlExpect, len(control), control)
 	}
 }
+
+// Test correct output of a control file Installed-Size property
+func TestControlInstalledSize(t *testing.T) {
+	controlExpect1K := `Package: 
+Version: 0.0.0
+Architecture: amd64
+Maintainer:  <>
+Installed-Size: 1
+Description: 
+`
+	// Empty
+	deb := New()
+	defer deb.Close()
+
+	// architecture is auto-set when empty, this makes sure it is always set to amd64
+	deb.SetArchitecture("amd64")
+	control := deb.control.String(1024)
+
+	if control != controlExpect1K {
+		t.Error("Unexpected control file")
+	}
+
+	controlExpect2K := `Package: 
+Version: 0.0.0
+Architecture: amd64
+Maintainer:  <>
+Installed-Size: 2
+Description: 
+`
+
+	// 1KByte + 1 byte
+	control = deb.control.String(1025)
+	if control != controlExpect2K {
+		t.Error("Unexpected control file")
+	}
+
+	// 2KByte
+	control = deb.control.String(2048)
+	if control != controlExpect2K {
+		t.Error("Unexpected control file")
+	}
+}

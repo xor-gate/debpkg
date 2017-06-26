@@ -245,7 +245,7 @@ func (c *control) String(installedSize uint64) string {
 	o += fmt.Sprintf("Maintainer: %s <%s>\n",
 		c.info.maintainer,
 		c.info.maintainerEmail)
-	o += fmt.Sprintf("Installed-Size: %d\n", uint64(math.Floor((float64(installedSize)/1024)+0.5)))
+	o += fmt.Sprintf("Installed-Size: %d\n", uint64(math.Ceil(float64(installedSize)/1024)))
 
 	if c.info.section != "" {
 		o += fmt.Sprintf("Section: %s\n", c.info.section)
