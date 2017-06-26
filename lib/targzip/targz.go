@@ -37,8 +37,8 @@ func newWriter(wc io.WriteCloser) *TarGzip {
 }
 
 // NewTempFile create a new targzip writer tempfile
-func NewTempFile() *TarGzip {
-	tmpfile, err := ioutil.TempFile("", "debpkg")
+func NewTempFile(dir string) *TarGzip {
+	tmpfile, err := ioutil.TempFile(dir, "debpkg")
 	if err != nil {
 		return nil
 	}
