@@ -5,18 +5,12 @@
 package debpkg
 
 import (
-	"bytes"
 	"fmt"
 	"go/build"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/xor-gate/debpkg/lib/targzip"
-
-	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/clearsign"
-	"golang.org/x/crypto/openpgp/packet"
 )
 
 // DebPkg holds data for a single debian package
@@ -52,7 +46,7 @@ func SetTempDir(dir string) error {
 }
 
 // TempDir returns the directory to use for temporary files.
-func TempDir() string () {
+func TempDir() string {
 	return debpkgTempDir
 }
 
@@ -76,8 +70,7 @@ func (deb *DebPkg) Close() error {
 	return nil
 }
 
-// Write the debian package to the filename
-func (deb *DebPkg) Write(filename string) error {
+func (deb *DebPkg) writeControlData() error {
 	err := deb.control.verify()
 	if err != nil {
 		return err
@@ -88,10 +81,6 @@ func (deb *DebPkg) Write(filename string) error {
 		return fmt.Errorf("error while creating control.tar.gz: %s", err)
 	}
 
-	if filename == "" {
-		filename = deb.GetFilename()
-	}
-
 	if err := deb.control.tgz.Close(); err != nil {
 		return fmt.Errorf("cannot close tgz writer: %v", err)
 	}
@@ -99,7 +88,17 @@ func (deb *DebPkg) Write(filename string) error {
 	if err := deb.data.tgz.Close(); err != nil {
 		return fmt.Errorf("cannot close tgz writer: %v", err)
 	}
+	return nil
+}
 
+// Write the debian package to the filename
+func (deb *DebPkg) Write(filename string) error {
+	if err := deb.writeControlData(); err != nil {
+		return err
+	}
+	if filename == "" {
+		filename = deb.GetFilename()
+	}
 	return deb.createDebAr(filename)
 }
 
@@ -114,46 +113,6 @@ func (deb *DebPkg) GetFilename() string {
 		deb.control.info.version.full,
 		deb.control.info.architecture,
 		debianFileExtension)
-}
-
-// WriteSigned package with GPG entity
-func (deb *DebPkg) WriteSigned(filename string, entity *openpgp.Entity, keyid string) error {
-	var buf bytes.Buffer
-	var cfg packet.Config
-	var signer string
-	cfg.DefaultHash = digestDefaultHash
-
-	for id := range entity.Identities {
-		// TODO real search for keyid, need to investigate maybe a subkey?
-		signer = id
-	}
-
-	deb.digest.date = time.Now().Format(time.ANSIC)
-	deb.digest.signer = signer
-
-	clearsign, err := clearsign.Encode(&buf, entity.PrivateKey, &cfg)
-	if err != nil {
-		return fmt.Errorf("error while signing: %s", err)
-	}
-
-	err = createControlTarGz(deb)
-	if err != nil {
-		return fmt.Errorf("error while creating control.tar.gz: %s", err)
-	}
-
-	deb.digest.plaintext = createDigestFileString(deb)
-
-	if _, err = clearsign.Write([]byte(deb.digest.plaintext)); err != nil {
-		return fmt.Errorf("error from Write: %s", err)
-	}
-
-	if err = clearsign.Close(); err != nil {
-		return fmt.Errorf("error from Close: %s", err)
-	}
-
-	deb.digest.clearsign = buf.String()
-
-	return deb.createDebAr(filename)
 }
 
 // AddFile adds a file by filename to the package

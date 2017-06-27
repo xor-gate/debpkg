@@ -6,40 +6,53 @@ package debpkg
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"golang.org/x/crypto/openpgp"
+	"golang.org/x/crypto/openpgp/armor"
 )
 
 var e *openpgp.Entity
 
 func init() {
 	// Create random new GPG identity for signage
-	e, _ = openpgp.NewEntity("Foo Bar", "", "foo@bar.com", nil)
+	e, _ = openpgp.NewEntity("Debpkg Authors", "", "debpkg-authors@xor-gate.org", nil)
+
+        // Sign all the identities
+        for _, id := range e.Identities {
+                err := id.SelfSignature.SignUserId(id.UserId.Id, e.PrimaryKey, e.PrivateKey, nil)
+                if err != nil {
+                        fmt.Println(err)
+                        return
+                }
+        }
+
+	// TODO write to tempfile
+	f, _ := os.Create("digest_test.key")
+        w, err := armor.Encode(f, openpgp.PublicKeyType, nil)
+        if err != nil {
+                fmt.Println(err)
+                return
+        }
+	devnull, _ := os.Open(os.DevNull)
+	e.SerializePrivate(devnull, nil)
+	devnull.Close()
+        e.Serialize(w)
+	w.Close()
+	f.Close()
 }
 
-// Test creation of empty digest
+/*
 func TestDigestCreateEmpty(t *testing.T) {
-	// FIXME it seems whe digesting the data buf the whole tarball will go corrupt...
-	/*
-	   	digestExpect := `Version: 4
-	   Signer:
-	   Date:
-	   Role: builder
-	   Files:
-	   	3cf918272ffa5de195752d73f3da3e5e 7959c969e092f2a5a8604e2287807ac5b1b384ad 4 debian-binary
-	   	d41d8cd98f00b204e9800998ecf8427e da39a3ee5e6b4b0d3255bfef95601890afd80709 0 control.tar.gz
-	   	d41d8cd98f00b204e9800998ecf8427e da39a3ee5e6b4b0d3255bfef95601890afd80709 0 data.tar.gz
-	   `
-	*/
 	digestExpect := `Version: 4
-Signer: 
-Date: 
+Signer:
+Date:
 Role: builder
-Files: 
+Files:
 	3cf918272ffa5de195752d73f3da3e5e 7959c969e092f2a5a8604e2287807ac5b1b384ad 4 debian-binary
-	0 0 0 control.tar.gz
-	0 0 0 data.tar.gz
+	d41d8cd98f00b204e9800998ecf8427e da39a3ee5e6b4b0d3255bfef95601890afd80709 0 control.tar.gz
+   	d41d8cd98f00b204e9800998ecf8427e da39a3ee5e6b4b0d3255bfef95601890afd80709 0 data.tar.gz
 `
 
 	deb := New()
@@ -51,24 +64,16 @@ Files:
 		fmt.Printf("--- expected (len %d):\n'%s'\n--- got (len %d):\n'%s'---\n", len(digestExpect), digestExpect, len(digest), digest)
 	}
 }
-
-/*
-func TestWriteSignedEmpty(t *testing.T) {
-	deb := New()
-
-	// WriteSigned package
-	err := deb.WriteSigned("debpkg-test-signed-empty.deb", e, "00000000")
-	if err != nil {
-		t.Errorf("Error in writing signed package: %v", err)
-	}
-}
+*/
 
 func TestWriteSigned(t *testing.T) {
 	deb := New()
+	defer deb.Close()
 
 	deb.SetName("debpkg-test-signed")
 	deb.SetVersion("0.0.1")
 	deb.SetMaintainer("Foo Bar")
+	deb.SetArchitecture("any")
 	deb.SetMaintainerEmail("foo@bar.com")
 	deb.SetHomepage("https://foobar.com")
 	deb.SetShortDescription("some awesome foobar pkg")
@@ -85,9 +90,8 @@ func TestWriteSigned(t *testing.T) {
 	deb.AddFile("debpkg.go")
 
 	// WriteSigned the package
-	err := deb.WriteSigned("debpkg-test-signed.deb", e, "00000000")
+	err := deb.WriteSigned("debpkg-test-signed.deb", e)
 	if err != nil {
 		t.Errorf("Error in writing unsigned package: %v", err)
 	}
 }
-*/

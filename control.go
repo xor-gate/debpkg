@@ -235,6 +235,10 @@ func (c *control) version() string {
 			c.info.version.patch)
 }
 
+func (c *control) size() int64 {
+	return c.tgz.Size()
+}
+
 // Create control file for control.tar.gz
 func (c *control) String(installedSize uint64) string {
 	var o string
