@@ -105,8 +105,6 @@ func (deb *DebPkg) WriteSigned(filename string, entity *openpgp.Entity) error {
 	var signer string
 	cfg.DefaultHash = digestDefaultHash
 
-	fmt.Printf("e: %+v\n", e)
-
 	for id := range entity.Identities {
 		// TODO real search for keyid, need to investigate maybe a subkey?
 		signer = id

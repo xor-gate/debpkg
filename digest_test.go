@@ -28,6 +28,7 @@ func init() {
                 }
         }
 
+	// TODO write to tempfile
 	f, _ := os.Create("digest_test.key")
         w, err := armor.Encode(f, openpgp.PublicKeyType, nil)
         if err != nil {
