@@ -9,6 +9,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
+	"os"
+	"github.com/stretchr/testify/assert"
 )
 
 // TestDirectory verifies adding a single directory recursive to the package
@@ -17,17 +19,9 @@ func TestAddDirectory(t *testing.T) {
 	defer deb.Close()
 	deb.SetName("debpkg-test-add-directory")
 	deb.SetArchitecture("all")
-	err := deb.AddDirectory("vendor")
-	if err != nil {
-		t.Errorf("Error adding directory '.': %v", err)
-		return
-	}
 
-	err = deb.Write("debpkg-test-add-directory.deb")
-	if err != nil {
-		t.Errorf("Error writing debfile: %v", err)
-		return
-	}
+	assert.Nil(t, deb.AddDirectory("vendor"))
+	assert.Nil(t, deb.Write(os.TempDir() + "/debpkg-test-add-directory.deb"))
 }
 
 func TestWrite(t *testing.T) {
@@ -49,23 +43,16 @@ func TestWrite(t *testing.T) {
 
 	deb.AddFile("debpkg.go")
 
-	err := deb.Write("debpkg-test.deb")
-	if err != nil {
-		t.Errorf("Error in writing package: %v", err)
-	}
+	assert.Nil(t, deb.Write(os.TempDir() + "/debpkg-test.deb"))
 }
 
 func TestWriteError(t *testing.T) {
 	deb := New()
 	defer deb.Close()
-	err := deb.Write("")
-	if err == nil {
-		t.Errorf("deb.Write shouldnt return nil")
-	}
+	assert.NotNil(t, deb.Write(""), "deb.Write should return nil")
+
 	deb.control.info.name = "pkg"
-	if err := deb.Write(""); err == nil {
-		t.Errorf("deb.Write shouldnt return nil")
-	}
+	assert.Equal(t, fmt.Errorf("empty architecture"), deb.Write(""))
 }
 
 func ExampleWrite() {
@@ -83,7 +70,7 @@ func ExampleWrite() {
 	deb.SetDescription("Foo bar package doesn't do anything")
 
 	deb.AddFile("debpkg.go")
-	fmt.Println(deb.Write("foobar.deb"))
+	fmt.Println(deb.Write(os.TempDir() + "/foobar.deb"))
 
 	// Output: <nil>
 }
@@ -99,19 +86,10 @@ func TestReadWithNativeDpkg(t *testing.T) {
 	}
 
 	debs, err := filepath.Glob("*.deb")
-	if err != nil {
-		t.Errorf("Unexpected error on glob: %v", err)
-	}
+	assert.Nil(t, err)
 	for _, deb := range debs {
-		err = dpkg(dpkgCmd, "info", deb)
-		if err != nil {
-			t.Errorf("dpkg --info failed on " + deb)
-		}
-
-		dpkg(dpkgCmd, "contents", deb)
-		if err != nil {
-			t.Errorf("dpkg --contents failed on " + deb)
-		}
+		assert.Nil(t, dpkg(dpkgCmd, "info", deb))
+		assert.Nil(t, dpkg(dpkgCmd, "contents", deb))
 	}
 }
 
@@ -123,8 +101,5 @@ func TestFilenameFromFullVersion(t *testing.T) {
 	deb.SetVersion("1.33.7")
 	deb.SetArchitecture("amd64")
 
-	fn := deb.GetFilename()
-	if fn != "foo-1.33.7_amd64.deb" {
-		t.Errorf("unexpected filename: " + fn)
-	}
+	assert.Equal(t, "foo-1.33.7_amd64.deb", deb.GetFilename())
 }
