@@ -55,23 +55,8 @@ Files:
 		len(deb.debianBinary),
 		"debian-binary")
 
-	// control.tar.gz
-	md5sum, _ = digestCalcDataHashFromFile(deb.control.tgz.Name(), md5.New())
-	sha1sum, _ = digestCalcDataHashFromFile(deb.control.tgz.Name(), sha1.New())
-	deb.digest.files += fmt.Sprintf("\t%x %x %d %s\n",
-		md5sum,
-		sha1sum,
-		deb.control.tgz.Size(),
-		"control.tar.gz")
-
-	// data.tar.gz
-	md5sum, _ = digestCalcDataHashFromFile(deb.data.tgz.Name(), md5.New())
-	sha1sum, _ = digestCalcDataHashFromFile(deb.data.tgz.Name(), sha1.New())
-	deb.digest.files += fmt.Sprintf("\t%x %x %d %s\n",
-		md5sum,
-		sha1sum,
-		deb.data.tgz.Size(),
-		"data.tar.gz")
+	deb.digestAddFile("control.tar.gz", deb.control.tgz.Name(), deb.control.tgz.Size())
+	deb.digestAddFile("data.tar.gz", deb.data.tgz.Name(), deb.data.tgz.Size())
 
 	return fmt.Sprintf(digestFileTmpl,
 		digestVersion,
@@ -79,6 +64,16 @@ Files:
 		deb.digest.date,
 		digestRole,
 		deb.digest.files)
+}
+
+func (deb *DebPkg) digestAddFile(filename, filepath string, size int64) {
+	md5sum, _ := digestCalcDataHashFromFile(filepath, md5.New())
+	sha1sum, _ := digestCalcDataHashFromFile(filepath, sha1.New())
+	deb.digest.files += fmt.Sprintf("\t%x %x %d %s\n",
+		md5sum,
+		sha1sum,
+		size,
+		filename)
 }
 
 func digestCalcDataHashFromFile(filename string, hash hash.Hash) (string, error) {

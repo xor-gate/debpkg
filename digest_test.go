@@ -11,6 +11,8 @@ import (
 
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var e *openpgp.Entity
@@ -30,11 +32,7 @@ func init() {
 
 	// TODO write to tempfile
 	f, _ := os.Create("digest_test.key")
-        w, err := armor.Encode(f, openpgp.PublicKeyType, nil)
-        if err != nil {
-                fmt.Println(err)
-                return
-        }
+        w, _ := armor.Encode(f, openpgp.PublicKeyType, nil)
 	devnull, _ := os.Open(os.DevNull)
 	e.SerializePrivate(devnull, nil)
 	devnull.Close()
@@ -43,28 +41,23 @@ func init() {
 	f.Close()
 }
 
-/*
 func TestDigestCreateEmpty(t *testing.T) {
 	digestExpect := `Version: 4
-Signer:
-Date:
+Signer: 
+Date: 
 Role: builder
-Files:
+Files: 
 	3cf918272ffa5de195752d73f3da3e5e 7959c969e092f2a5a8604e2287807ac5b1b384ad 4 debian-binary
 	d41d8cd98f00b204e9800998ecf8427e da39a3ee5e6b4b0d3255bfef95601890afd80709 0 control.tar.gz
-   	d41d8cd98f00b204e9800998ecf8427e da39a3ee5e6b4b0d3255bfef95601890afd80709 0 data.tar.gz
+	d41d8cd98f00b204e9800998ecf8427e da39a3ee5e6b4b0d3255bfef95601890afd80709 0 data.tar.gz
 `
 
 	deb := New()
 	defer deb.Close()
 	digest := createDigestFileString(deb)
 
-	if digest != digestExpect {
-		t.Error("Unexpected digest file")
-		fmt.Printf("--- expected (len %d):\n'%s'\n--- got (len %d):\n'%s'---\n", len(digestExpect), digestExpect, len(digest), digest)
-	}
+	assert.Equal(t, digest, digestExpect)
 }
-*/
 
 func TestWriteSigned(t *testing.T) {
 	deb := New()
@@ -89,9 +82,5 @@ func TestWriteSigned(t *testing.T) {
 
 	deb.AddFile("debpkg.go")
 
-	// WriteSigned the package
-	err := deb.WriteSigned("debpkg-test-signed.deb", e)
-	if err != nil {
-		t.Errorf("Error in writing unsigned package: %v", err)
-	}
+	assert.Nil(t, deb.WriteSigned(os.TempDir() + "/debpkg-test-signed.deb", e))
 }

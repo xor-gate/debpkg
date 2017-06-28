@@ -5,8 +5,8 @@
 package debpkg
 
 import (
-	"fmt"
 	"testing"
+	"github.com/stretchr/testify/assert"
 )
 
 // Test correct output of a empty control file when no DepPkg Set* functions are called
@@ -25,12 +25,8 @@ Description:
 
 	// architecture is auto-set when empty, this makes sure it is always set to amd64
 	deb.SetArchitecture("amd64")
-	control := deb.control.String(0)
 
-	if control != controlExpect {
-		t.Error("Unexpected control file")
-		fmt.Printf("--- expected (len %d):\n'%s'\n--- got (len %d):\n'%s'---\n", len(controlExpect), controlExpect, len(control), control)
-	}
+	assert.Equal(t, controlExpect, deb.control.String(0))
 }
 
 // Test correct output of a control file when SetVcs* functions are called
@@ -54,12 +50,8 @@ Description:
 	deb.SetVcsType(VcsTypeGit)
 	deb.SetVcsURL("https://github.com/xor-gate/debpkg.git")
 	deb.SetVcsBrowser("https://github.com/xor-gate/debpkg")
-	control := deb.control.String(0)
 
-	if control != controlExpect {
-		t.Error("Unexpected control file")
-		fmt.Printf("--- expected (len %d):\n'%s'\n--- got (len %d):\n'%s'---\n", len(controlExpect), controlExpect, len(control), control)
-	}
+	assert.Equal(t, controlExpect, deb.control.String(0))
 }
 
 // Test correct output of the control file when SetVersion* functions are called
@@ -84,16 +76,11 @@ Maintainer:  <>
 Installed-Size: 0
 Description: 
 `
-	control := deb.control.String(0)
-
-	if control != controlExpect {
-		t.Error("Unexpected control file")
-		fmt.Printf("--- expected (len %d):\n'%s'\n--- got (len %d):\n'%s'---\n", len(controlExpect), controlExpect, len(control), control)
-	}
+	assert.Equal(t, controlExpect, deb.control.String(0))
 
 	// Set full version string, this will overwrite the set SetVersion{Major,Minor,Patch} string
 	deb.SetVersion("7.8.9")
-	control = deb.control.String(0)
+
 
 	controlExpectFullVersion := `Package: foobar
 Version: 7.8.9
@@ -103,10 +90,7 @@ Installed-Size: 0
 Description: 
 `
 
-	if control != controlExpectFullVersion {
-		t.Error("Unexpected control file")
-		fmt.Printf("--- expected (len %d):\n'%s'\n--- got (len %d):\n'%s'---\n", len(controlExpect), controlExpect, len(control), control)
-	}
+	assert.Equal(t, controlExpectFullVersion, deb.control.String(0))
 }
 
 // Test correct output of control file when the mandatory DepPkg Set* functions are called
@@ -151,16 +135,20 @@ Description: Golang package for creating (gpg signed) debian packages
 	deb.SetDescription(controlDescr)
 	// architecture is auto-set when empty, this makes sure it is always set to amd64
 	deb.SetArchitecture("amd64")
-	control := deb.control.String(0)
 
-	if control != controlExpect {
-		t.Error("Unexpected control file")
-		fmt.Printf("--- expected (len %d):\n'%s'\n--- got (len %d):\n'%s'---\n", len(controlExpect), controlExpect, len(control), control)
-	}
+	assert.Equal(t, controlExpect, deb.control.String(0))
 }
 
 // Test correct output of a control file Installed-Size property
 func TestControlInstalledSize(t *testing.T) {
+	// Empty
+	deb := New()
+	defer deb.Close()
+
+	// architecture is auto-set when empty, this makes sure it is always set to amd64
+	deb.SetArchitecture("amd64")
+
+	// 1KByte
 	controlExpect1K := `Package: 
 Version: 0.0.0
 Architecture: amd64
@@ -168,18 +156,9 @@ Maintainer:  <>
 Installed-Size: 1
 Description: 
 `
-	// Empty
-	deb := New()
-	defer deb.Close()
+	assert.Equal(t, controlExpect1K, deb.control.String(1024))
 
-	// architecture is auto-set when empty, this makes sure it is always set to amd64
-	deb.SetArchitecture("amd64")
-	control := deb.control.String(1024)
-
-	if control != controlExpect1K {
-		t.Error("Unexpected control file")
-	}
-
+	// 2Kbyte
 	controlExpect2K := `Package: 
 Version: 0.0.0
 Architecture: amd64
@@ -187,16 +166,6 @@ Maintainer:  <>
 Installed-Size: 2
 Description: 
 `
-
-	// 1KByte + 1 byte
-	control = deb.control.String(1025)
-	if control != controlExpect2K {
-		t.Error("Unexpected control file")
-	}
-
-	// 2KByte
-	control = deb.control.String(2048)
-	if control != controlExpect2K {
-		t.Error("Unexpected control file")
-	}
+	assert.Equal(t, controlExpect2K, deb.control.String(1025))
+	assert.Equal(t, controlExpect2K, deb.control.String(2048))
 }
