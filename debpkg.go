@@ -10,7 +10,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/xor-gate/debpkg/lib/targzip"
+	"github.com/xor-gate/debpkg/internal/targzip"
 )
 
 // DebPkg holds data for a single debian package
@@ -19,6 +19,7 @@ type DebPkg struct {
 	control      control
 	data         data
 	digest       digest
+	err          error
 }
 
 var debpkgTempDir = os.TempDir() // default temporary directory is os.TempDir
@@ -27,14 +28,13 @@ var debpkgTempDir = os.TempDir() // default temporary directory is os.TempDir
 //  exist it is automaticly created (but not removed).
 func SetTempDir(dir string) error {
 	if dir == "" {
-		debpkgTempDir = os.TempDir()
+		dir = os.TempDir()
 	}
 
-	finfo, err := os.Stat(dir)
-	if os.IsExist(err) && finfo.IsDir() {
+	stat, err := os.Stat(dir)
+	if err == nil && stat.IsDir() {
+		debpkgTempDir = dir
 		return nil
-	} else if !finfo.IsDir() {
-		return fmt.Errorf("not a directory")
 	}
 
 	if err := os.MkdirAll(dir, 0700); err != nil {
@@ -43,6 +43,15 @@ func SetTempDir(dir string) error {
 
 	debpkgTempDir = dir
 	return nil
+}
+
+// RemoveTempDir removes the temporary directory recursive. This is safe against
+//  when TempDir() is set to os.TempDir() then it does nothing
+func RemoveTempDir() error {
+	if TempDir() == os.TempDir() {
+		return nil
+	}
+	return os.RemoveAll(TempDir())
 }
 
 // TempDir returns the directory to use for temporary files.
@@ -64,9 +73,14 @@ func New() *DebPkg {
 	return deb
 }
 
+// Close closes the File (and removes the intermediate files), rendering it unusable for I/O. It returns an error, if any.
 func (deb *DebPkg) Close() error {
+	if deb.err == ErrClosed {
+		return deb.err
+	}
 	deb.control.tgz.Remove()
 	deb.data.tgz.Remove()
+	deb.err = ErrClosed // FIXME make deb.SetError work...
 	return nil
 }
 
@@ -93,13 +107,20 @@ func (deb *DebPkg) writeControlData() error {
 
 // Write the debian package to the filename
 func (deb *DebPkg) Write(filename string) error {
+	if deb.err != nil {
+		return deb.err
+	}
 	if err := deb.writeControlData(); err != nil {
+		deb.setError(err)
 		return err
 	}
 	if filename == "" {
 		filename = deb.GetFilename()
 	}
-	return deb.createDebAr(filename)
+	err := deb.createDebAr(filename)
+	deb.setError(err)
+	deb.Close()
+	return err
 }
 
 // GetFilename calculates the filename based on name, version and architecture
@@ -117,16 +138,26 @@ func (deb *DebPkg) GetFilename() string {
 
 // AddFile adds a file by filename to the package
 func (deb *DebPkg) AddFile(filename string, dest ...string) error {
-	return deb.data.addFile(filename, dest...)
+	if deb.err != nil {
+		return deb.err
+	}
+	return deb.setError(deb.data.addFile(filename, dest...))
 }
 
 // AddEmptyDirectory adds a empty directory to the package
 func (deb *DebPkg) AddEmptyDirectory(dir string) error {
-	return deb.data.addEmptyDirectory(dir)
+	if deb.err != nil {
+		return deb.err
+	}
+	return deb.setError(deb.data.addEmptyDirectory(dir))
 }
 
 // AddDirectory adds a directory recursive to the package
 func (deb *DebPkg) AddDirectory(dir string) error {
+	if deb.err != nil {
+		return deb.err
+	}
+
 	deb.data.addDirectory(dir)
 
 	return filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
@@ -138,16 +169,16 @@ func (deb *DebPkg) AddDirectory(dir string) error {
 		}
 		if f.IsDir() {
 			if err := deb.data.addDirectory(path); err != nil {
-				return err
+				return deb.setError(err)
 			}
 			return deb.AddDirectory(path)
 		}
 
-		return deb.AddFile(path)
+		return deb.setError(deb.AddFile(path))
 	})
 }
 
-// GetArchitecture gets the current local CPU architecture in debian-form
+// GetArchitecture gets the current build.Default.GOARCH in debian-form
 func GetArchitecture() string {
 	arch := build.Default.GOARCH
 	if arch == "386" {

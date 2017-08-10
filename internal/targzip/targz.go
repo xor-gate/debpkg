@@ -66,7 +66,9 @@ func (t *TarGzip) AddFile(filename string, dest ...string) error {
 
 	dirname := filepath.Dir(filename)
 	if dirname != "." {
-		dirname = strings.Replace(dirname, "\\", "/", -1)
+		if os.PathSeparator != '/' {
+			dirname = strings.Replace(dirname, string(os.PathSeparator), "/", -1)
+		}
 		dirs := strings.Split(dirname, "/")
 		var current string
 		for _, dir := range dirs {
@@ -167,10 +169,12 @@ func (t *TarGzip) Close() error {
 	return nil
 }
 
+// Name returns the name of the file as presented to Open.
 func (t *TarGzip) Name() string {
 	return t.fileName
 }
 
+// Size returns the length in bytes for the closed file
 func (t *TarGzip) Size() int64 {
 	fi, err := os.Stat(t.Name())
 	if err != nil {
