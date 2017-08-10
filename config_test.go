@@ -5,27 +5,54 @@
 package debpkg
 
 import (
-	"io/ioutil"
 	"runtime"
 	"testing"
-
+	"github.com/xor-gate/debpkg/internal/test"
 	"github.com/stretchr/testify/assert"
 )
 
 // TestExampleConfig verifies if the config example in the root is correctly loaded
 func TestExampleConfig(t *testing.T) {
+	const configFile = `name: debpkg
+version: 7.6.5
+architecture: all
+maintainer: Deb Pkg
+maintainer_email: deb@pkg.com
+homepage: https://github.com/xor-gate/debpkg
+section: devel
+priority: standard
+built_using: golang
+description:
+   short: This is a short description
+   long: >
+       Bla bla
+       Bla Bla
+       .
+       Dusse
+files:
+  - file: LICENSE
+    dest: {{.DATAROOTDIR}}/foobar/LICENSE
+  - file: debpkg.go
+  - file: debpkg_test.go
+  - file: README.md
+    dest: {{.DATAROOTDIR}}/foobar/README.md
+directories:
+  - ./internal
+emptydirs:
+  - /var/cache/foobar
+`
+	filepath, err := test.WriteTempFile("debpkg.yml", configFile)
+	assert.Nil(t, err)
+
 	deb := New()
 	defer deb.Close()
 
-	err := deb.Config("debpkg.yml")
-	if err != nil {
-		t.Errorf("debpkg.yml error: %v", err)
-	}
+	assert.Nil(t, deb.Config(filepath))
 	assert.Equal(t, "7.6.5", deb.control.info.version.full,
 		"Unexpected deb.control.info.version.full")
-	assert.Equal(t, "Foo Bar", deb.control.info.maintainer,
+	assert.Equal(t, "Deb Pkg", deb.control.info.maintainer,
 		"Unexpected deb.control.info.maintainer")
-	assert.Equal(t, "foo@bar.com", deb.control.info.maintainerEmail,
+	assert.Equal(t, "deb@pkg.com", deb.control.info.maintainerEmail,
 		"Unexpected deb.control.info.maintainerEmail")
 	assert.Equal(t, "https://github.com/xor-gate/debpkg", deb.control.info.homepage,
 		"Unexpected deb.control.info.homepage")
@@ -37,20 +64,19 @@ func TestExampleConfig(t *testing.T) {
 		"unexpected section")
 	assert.Equal(t, PriorityStandard, deb.control.info.priority,
 		"unexpected priority")
+
+	assert.Nil(t, testWrite(t, deb))
 }
 
 func TestDefaultConfig(t *testing.T) {
-	f, err := ioutil.TempFile("", "config")
-	if err != nil {
-		t.Errorf("unexpected error creating tempfile: %v", err)
-	}
-	f.Close()
+	filepath, err := test.WriteTempFile("emptyfile.yml", "")
+	assert.Nil(t, err)
+
 	deb := New()
 	defer deb.Close()
 
-	if err := deb.Config(f.Name()); err != nil {
-		t.Errorf("Unexpected error during load of empty config: %v", err)
-	}
+	assert.Nil(t, deb.Config(filepath))
+
 	assert.Equal(t, "any", deb.control.info.architecture,
 		"unexpected architecture")
 	assert.Equal(t, "anonymous", deb.control.info.maintainer,
@@ -79,6 +105,5 @@ func TestNonExistingConfig(t *testing.T) {
 	deb := New()
 	defer deb.Close()
 
-	err := deb.Config("/non/existant/config/file")
-	assert.Error(t, err, "error expected")
+	assert.NotNil(t, deb.Config("/non/existant/config/file"))
 }

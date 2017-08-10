@@ -11,7 +11,6 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 )
@@ -37,15 +36,15 @@ func newWriter(wc io.WriteCloser) *TarGzip {
 }
 
 // NewTempFile create a new targzip writer tempfile
-func NewTempFile(dir string) *TarGzip {
-	tmpfile, err := ioutil.TempFile(dir, "debpkg")
+func NewTempFile(dir string) (*TarGzip, error) {
+	f, err := ioutil.TempFile(dir, "debpkg")
 	if err != nil {
-		return nil
+		return nil,err
 	}
 
-	t := newWriter(tmpfile)
-	t.fileName = tmpfile.Name()
-	return t
+	t := newWriter(f)
+	t.fileName = f.Name()
+	return t,nil
 }
 
 // AddFile write a file from filename into dest
@@ -64,31 +63,25 @@ func (t *TarGzip) AddFile(filename string, dest ...string) error {
 		return nil
 	}
 
-	dirname := filepath.Dir(filename)
-	if dirname != "." {
-		if os.PathSeparator != '/' {
-			dirname = strings.Replace(dirname, string(os.PathSeparator), "/", -1)
-		}
-		dirs := strings.Split(dirname, "/")
-		var current string
-		for _, dir := range dirs {
-			if len(dir) > 0 {
-				current += dir + "/"
-				t.AddDirectory(current)
-			}
-		}
-	}
-
 	// now lets create the header as needed for this file within the tarball
 	hdr, err := tar.FileInfoHeader(stat, filename)
 	if err != nil {
 		return fmt.Errorf("dir tar finfo: %v", err)
 	}
-	if len(dest) > 0 {
+
+	if len(dest) > 0 && len(dest[0]) > 0 {
 		hdr.Name = dest[0]
 	} else {
 		hdr.Name = filename
 	}
+
+	if hdr.Name == "" {
+		return fmt.Errorf("empty destination filename")
+	}
+
+	hdr.Name = strings.Trim(hdr.Name, "/")
+	hdr.Uid  = 0
+	hdr.Gid  = 0
 
 	// write the header to the tarball archive
 	if err := t.writeHeader(hdr); err != nil {
@@ -109,6 +102,8 @@ func (t *TarGzip) AddFileFromBuffer(filename string, b []byte) error {
 		Name:     filename,
 		Size:     int64(len(b)),
 		Mode:     0644,
+		Uid:      0,
+		Gid:      0,
 		ModTime:  time.Now(),
 		Typeflag: tar.TypeReg,
 	}
@@ -126,6 +121,7 @@ func (t *TarGzip) AddFileFromBuffer(filename string, b []byte) error {
 
 // AddDirectory adds a directory entry
 func (t *TarGzip) AddDirectory(dirpath string) error {
+	dirpath = strings.Trim(dirpath, "/")
 	hdr := &tar.Header{
 		Name:     dirpath,
 		Mode:     int64(0755 | 040000),

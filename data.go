@@ -10,7 +10,7 @@ import (
 	"io"
 	"os"
 	"strings"
-
+	"path/filepath"
 	"github.com/xor-gate/debpkg/internal/targzip"
 )
 
@@ -21,11 +21,16 @@ type data struct {
 }
 
 func (d *data) addDirectory(dirpath string) error {
+	dirpath = filepath.Clean(dirpath)
 	for _, addedDir := range d.dirs {
 		if addedDir == dirpath {
 			return nil
 		}
 	}
+	if dirpath == "." {
+		return nil
+	}
+
 	if err := d.tgz.AddDirectory(dirpath); err != nil {
 		return err
 	}
@@ -49,7 +54,35 @@ func (d *data) addEmptyDirectory(dir string) error {
 	return nil
 }
 
+func (d *data) addDirectoriesForFile(filename string) {
+	dirname := filepath.Dir(filename)
+	if dirname != "." {
+		if os.PathSeparator != '/' {
+			dirname = strings.Replace(dirname, string(os.PathSeparator), "/", -1)
+		}
+		dirs := strings.Split(dirname, "/")
+		var current string
+		for _, dir := range dirs {
+			if len(dir) > 0 {
+				current += dir + "/"
+				d.addDirectory(current)
+			}
+		}
+	}
+}
+
 func (d *data) addFile(filename string, dest ...string) error {
+	var destfilename string
+
+	if len(dest) > 0 && len(dest[0]) > 0 {
+		destfilename = dest[0]
+	} else {
+		destfilename = filename
+	}
+
+	d.addDirectoriesForFile(destfilename)
+
+	// 
 	if err := d.tgz.AddFile(filename, dest...); err != nil {
 		return err
 	}

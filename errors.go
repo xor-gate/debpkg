@@ -8,8 +8,11 @@ import (
 	"errors"
 )
 
+// ErrClosed when the file I/O is requested and it is already closed
 var ErrClosed = errors.New("debpkg: Closed")
-var ErrIO     = errors.New("debpkg: I/O failed")
+
+// ErrIO is returned when any file I/O failed
+var ErrIO = errors.New("debpkg: I/O failed")
 
 // setError sets the package error when not nil
 // setting an error when the current error is ErrClosed it will panic
