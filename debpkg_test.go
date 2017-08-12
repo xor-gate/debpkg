@@ -9,12 +9,11 @@ import (
 	"go/build"
 	"os/exec"
 	"testing"
-	"os"
 	"github.com/xor-gate/debpkg/internal/test"
 	"github.com/stretchr/testify/assert"
 )
 
-// testWrite writes the deb package to a temporary file
+// testWrite writes the deb package to a temporary file and verifies with native dpkg tool when available
 func testWrite(t *testing.T, deb *DebPkg) error {
 	f := test.TempFile(t)
 	err := deb.Write(f)
@@ -35,44 +34,9 @@ func testReadWithNativeDpkg(t *testing.T, filename string) {
 		return exec.Command(dpkgCmd, "--"+action, filename).Run()
 	}
 
-	// TODO test dry-run install...
+	// TODO test control, extract, verify...
 	assert.Nil(t, dpkg("info", filename))
 	assert.Nil(t, dpkg("contents", filename))
-}
-
-// TestTempDir verifies the correct working of TempDir and SetTempDir
-func TestTempDir(t *testing.T) {
-	dirExists := func(path string) bool {
-		if stat, err := os.Stat(path); err == nil && stat.IsDir() {
-			return true
-		}
-		return false
-	}
-
-	// Default the TempDir points to os.TempDir()
-	assert.Equal(t, os.TempDir(), TempDir())
-
-	// Unset debpkgTempDir and verify it is set to os.TempDir() when SetTempDir received a empty string
-	debpkgTempDir = ""
-	assert.Nil(t, SetTempDir(""))
-	assert.Equal(t, os.TempDir(), TempDir())
-
-	// Check if custom test tempdir is created
-	tempdir := os.TempDir() + "/debpkg-test-tempdir"
-
-	assert.Nil(t, SetTempDir(tempdir))
-	assert.True(t, dirExists(tempdir))
-	assert.Nil(t, RemoveTempDir())
-	assert.False(t, dirExists(tempdir))
-	assert.Nil(t, SetTempDir(""))
-
-	// Check if TempDir() == os.TempDir() is not removed and RemoveTempDir() returns nil on os.TempDir()
-	assert.True(t, dirExists(TempDir()))
-	assert.Nil(t, RemoveTempDir())
-	assert.True(t, dirExists(TempDir()))
-
-	// Restore to os.TempDir()
-	assert.Nil(t, SetTempDir(""))
 }
 
 // TestDirectory verifies adding a single directory recursive to the package
@@ -82,7 +46,7 @@ func TestAddDirectory(t *testing.T) {
 	deb.SetName("debpkg-test-add-directory")
 	deb.SetArchitecture("all")
 
-	assert.Nil(t, deb.AddDirectory("vendor"))
+	assert.Nil(t, deb.AddDirectory("internal"))
 	assert.Nil(t, testWrite(t, deb))
 }
 
@@ -90,6 +54,7 @@ func TestAddDirectory(t *testing.T) {
 func TestWrite(t *testing.T) {
 	deb := New()
 	defer deb.Close()
+
 	deb.SetName("debpkg-test")
 	deb.SetArchitecture("all")
 	deb.SetVersion("0.0.1")

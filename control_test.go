@@ -5,8 +5,6 @@
 package debpkg
 
 import (
-	"os"
-	"io/ioutil"
 	"testing"
 	"github.com/xor-gate/debpkg/internal/test"
 	"github.com/stretchr/testify/assert"
@@ -204,8 +202,9 @@ func TestControlFileExtra(t *testing.T) {
 	const script = `#!/bin/sh
 echo "hello world from debpkg"
 `
-	filename := test.TempDir() + string(os.PathSeparator) + t.Name() + ".sh"
-	assert.Nil(t, ioutil.WriteFile(filename, []byte(script), 0644))
+
+	filepath, err := test.WriteTempFile(t.Name() + ".sh", script)
+	assert.Nil(t, err)
 
 	deb.SetName("debpkg-control-file-extra")
 	deb.SetArchitecture("all")
@@ -216,9 +215,13 @@ echo "hello world from debpkg"
 	// parsing file '/var/lib/dpkg/tmp.ci/control' near line 6 package 'debpkg-control-file-extra:any':
 	// end of file during value of field 'Description' (missing final newline)
 
-	deb.AddControlExtra("preinst", filename)
-	deb.AddControlExtra("postinst", filename)
-	deb.AddControlExtraString("prerm", filename)
-	deb.AddControlExtraString("postrm", filename)
+	deb.AddControlExtra("preinst", filepath)
+	deb.AddControlExtra("postinst", filepath)
+	deb.AddControlExtra("prerm", filepath)
+	deb.AddControlExtra("postrm", filepath)
+
+	// FIXME AddControlExtra seems to add the full TMPDIR directory inside the control.tar.gz
+	// E.g on mac var/folders/s5/x8wc0jqd387_sg4py6tg6xq00000gn/T/debpkg-test921120249
+
 	assert.Nil(t, testWrite(t, deb))
 }

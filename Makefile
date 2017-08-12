@@ -1,9 +1,14 @@
+export CGO_ENABLED=0
 export GOPATH?=$(PWD)/../../../../
 export DESTDIR?=$(GOPATH)/bin
 export GOBIN?=$(DESTDIR)
 
 all: build
-ci: test
+ci: env test
+
+env:
+	go env
+	echo "---"
 
 dep:
 	go get -u ./

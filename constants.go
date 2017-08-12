@@ -31,5 +31,14 @@ const (
 	VcsTypeSubversion VcsType = "Svn"   // Subversion
 )
 
-const debianBinaryVersion = "2.0\n"
-const debianFileExtension = "deb"
+const (
+	DefaultInstallPrefix = "/usr"
+	DefaultBinDir        = "bin"
+	DefaultSbinDir       = "sbin"
+	DefaultSysConfDir    = "etc"
+	DefaultDataRootDir   = "share"
+)
+
+const debianPathSeparator  = "/"
+const debianBinaryVersion  = "2.0\n"
+const debianFileExtension  = "deb"

@@ -28,6 +28,13 @@ func TempFile(t *testing.T) string {
 	return TempDir() + string(os.PathSeparator) + t.Name() + ".deb"
 }
 
+// WriteTempFile writes data to TempDir()/filename
+func WriteTempFile(filename, data string) (filepath string, err error)  {
+	filepath = TempDir() + string(os.PathSeparator) + filename
+	err = ioutil.WriteFile(filepath, []byte(data), 0644)
+	return
+}
+
 // TempOpenPGPIdentity creates a new identity in TempDir()
 func TempOpenPGPIdentity() (e *openpgp.Entity, err error) {
 	// Create random new GPG identity for signage
