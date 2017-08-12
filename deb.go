@@ -6,9 +6,9 @@ package debpkg
 
 import (
 	"fmt"
+	"github.com/xor-gate/debpkg/internal/targzip"
 	"os"
 	"path/filepath"
-	"github.com/xor-gate/debpkg/internal/targzip"
 )
 
 // DebPkg holds data for a single debian package
@@ -41,7 +41,7 @@ func New() *DebPkg {
 	}
 
 	deb.control.tgz = control
-	deb.data.tgz    = data
+	deb.data.tgz = data
 
 	return deb
 }

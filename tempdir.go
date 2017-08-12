@@ -11,7 +11,7 @@ import (
 var tempDir = os.TempDir() // default temporary directory is os.TempDir
 
 // SetTempDir sets the directory for temporary files. When the directory doesn't
-//  exist it is automaticly created (but not removed).
+//  exist it is automaticlly created (but not removed).
 func SetTempDir(dir string) error {
 	if dir == "" {
 		dir = os.TempDir()

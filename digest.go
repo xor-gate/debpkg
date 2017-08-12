@@ -5,8 +5,6 @@
 package debpkg
 
 import (
-	"os"
-	"time"
 	"bytes"
 	"crypto"
 	"crypto/md5"
@@ -14,6 +12,8 @@ import (
 	"fmt"
 	"hash"
 	"io"
+	"os"
+	"time"
 
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/clearsign"
@@ -90,7 +90,7 @@ func digestCalcDataHash(in io.Reader, hash hash.Hash) (string, error) {
 	if _, err := io.Copy(hash, in); err != nil {
 		return "", err
 	}
-	return string(hash.Sum(result)),nil
+	return string(hash.Sum(result)), nil
 }
 
 // WriteSigned package with GPG entity
@@ -134,5 +134,3 @@ func (deb *DebPkg) WriteSigned(filename string, entity *openpgp.Entity) error {
 	}
 	return deb.createDebAr(filename)
 }
-
-

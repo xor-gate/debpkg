@@ -15,10 +15,10 @@ var vars map[string]string
 func init() {
 	vars = make(map[string]string)
 	vars["INSTALLPREFIX"] = DefaultInstallPrefix
-	vars["BINDIR"]        = DefaultBinDir
-	vars["SBINDIR"]       = DefaultSbinDir
-	vars["SYSCONFDIR"]    = DefaultSysConfDir
-	vars["DATAROOTDIR"]   = DefaultDataRootDir
+	vars["BINDIR"] = DefaultBinDir
+	vars["SBINDIR"] = DefaultSbinDir
+	vars["SYSCONFDIR"] = DefaultSysConfDir
+	vars["DATAROOTDIR"] = DefaultDataRootDir
 }
 
 // SetVar sets a variable for use with config file
@@ -35,7 +35,7 @@ func GetVar(v string) string {
 }
 
 // GetVarWithPrefix gets a variable and appends INSTALLPREFIX when the value doesn't start with "/"
-func GetVarWithPrefix(v string) string{
+func GetVarWithPrefix(v string) string {
 	val := GetVar(v)
 	if val == "" {
 		return val
@@ -54,10 +54,10 @@ func ExpandVar(msg string) (string, error) {
 	}
 	env := struct {
 		INSTALLPREFIX string
-		BINDIR string
-		SBINDIR string
-		DATAROOTDIR string
-		SYSCONFDIR string
+		BINDIR        string
+		SBINDIR       string
+		DATAROOTDIR   string
+		SYSCONFDIR    string
 	}{
 		INSTALLPREFIX: vars["INSTALLPREFIX"],
 		BINDIR:        GetVarWithPrefix("BINDIR"),
@@ -67,7 +67,7 @@ func ExpandVar(msg string) (string, error) {
 	}
 	buf := bytes.NewBuffer(nil)
 	if err := tmpl.Execute(buf, env); err != nil {
-		return "",err
+		return "", err
 	}
-	return buf.String(),nil
+	return buf.String(), nil
 }

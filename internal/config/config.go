@@ -6,10 +6,11 @@ package config
 
 import (
 	"fmt"
-	"runtime"
 	"gopkg.in/yaml.v2"
+	"runtime"
 )
 
+// PkgSpecFile represents a single debian package
 type PkgSpecFile struct {
 	Name            string `yaml:"name"`
 	Version         string `yaml:"version"`
@@ -32,7 +33,8 @@ type PkgSpecFile struct {
 	EmptyDirectories []string `yaml:"emptydirs,flow"`
 }
 
-func PkgSpecFileUnmarshal(data []byte) (*PkgSpecFile, error){
+// PkgSpecFileUnmarshal loads the configuration data into a PkgSpecFile structure
+func PkgSpecFileUnmarshal(data []byte) (*PkgSpecFile, error) {
 	cfg := &PkgSpecFile{
 		Name:            "unknown",
 		Version:         "0.1.0+dev",
@@ -49,8 +51,8 @@ func PkgSpecFileUnmarshal(data []byte) (*PkgSpecFile, error){
 
 	err := yaml.Unmarshal(data, &cfg)
 	if err != nil {
-		return nil,fmt.Errorf("problem unmarshaling config file: %v", err)
+		return nil, fmt.Errorf("problem unmarshaling config file: %v", err)
 	}
 
-	return cfg,nil
+	return cfg, nil
 }

@@ -7,11 +7,11 @@ package debpkg
 import (
 	"crypto/md5"
 	"fmt"
+	"github.com/xor-gate/debpkg/internal/targzip"
 	"io"
 	"os"
-	"strings"
 	"path/filepath"
-	"github.com/xor-gate/debpkg/internal/targzip"
+	"strings"
 )
 
 type data struct {
@@ -82,7 +82,7 @@ func (d *data) addFile(filename string, dest ...string) error {
 
 	d.addDirectoriesForFile(destfilename)
 
-	// 
+	//
 	if err := d.tgz.AddFile(filename, dest...); err != nil {
 		return err
 	}

@@ -6,11 +6,11 @@ package debpkg
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/assert"
+	"github.com/xor-gate/debpkg/internal/test"
 	"go/build"
 	"os/exec"
 	"testing"
-	"github.com/xor-gate/debpkg/internal/test"
-	"github.com/stretchr/testify/assert"
 )
 
 // testWrite writes the deb package to a temporary file and verifies with native dpkg tool when available
@@ -87,8 +87,8 @@ func TestWriteError(t *testing.T) {
 	assert.Equal(t, fmt.Errorf("empty package name"), deb.Write(""))
 }
 
-// ExampleWrite demonstrates generating a simple package
-func ExampleWrite() {
+// ExampleDebPkgWrite demonstrates generating a simple package
+func ExampleDebPkg_Write() {
 	tempfile := TempDir() + "/foobar.deb"
 
 	deb := New()
@@ -110,7 +110,7 @@ func ExampleWrite() {
 	// Do something with tempfile other than removing it...
 }
 
-// TestFilenameFromFullVersion verifies if the whole version string is correctly concatinated
+// TestFilenameFromFullVersion verifies if the whole version string is correctly calculated
 func TestFilenameFromFullVersion(t *testing.T) {
 	deb := New()
 	defer deb.Close()

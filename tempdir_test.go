@@ -5,10 +5,10 @@
 package debpkg
 
 import (
-	"testing"
+	"github.com/stretchr/testify/assert"
 	"os"
 	"runtime"
-	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 // TestTempDir verifies the correct working of TempDir and SetTempDir

@@ -39,12 +39,12 @@ func newWriter(wc io.WriteCloser) *TarGzip {
 func NewTempFile(dir string) (*TarGzip, error) {
 	f, err := ioutil.TempFile(dir, "debpkg")
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 
 	t := newWriter(f)
 	t.fileName = f.Name()
-	return t,nil
+	return t, nil
 }
 
 // AddFile write a file from filename into dest
@@ -80,8 +80,8 @@ func (t *TarGzip) AddFile(filename string, dest ...string) error {
 	}
 
 	hdr.Name = strings.Trim(hdr.Name, "/")
-	hdr.Uid  = 0
-	hdr.Gid  = 0
+	hdr.Uid = 0
+	hdr.Gid = 0
 
 	// write the header to the tarball archive
 	if err := t.writeHeader(hdr); err != nil {

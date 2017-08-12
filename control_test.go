@@ -5,9 +5,9 @@
 package debpkg
 
 import (
-	"testing"
-	"github.com/xor-gate/debpkg/internal/test"
 	"github.com/stretchr/testify/assert"
+	"github.com/xor-gate/debpkg/internal/test"
+	"testing"
 )
 
 // Test correct output of a empty control file when no DepPkg Set* functions are called
@@ -81,7 +81,6 @@ Description:
 
 	// Set full version string, this will overwrite the set SetVersion{Major,Minor,Patch} string
 	deb.SetVersion("7.8.9")
-
 
 	controlExpectFullVersion := `Package: foobar
 Version: 7.8.9
@@ -203,7 +202,7 @@ func TestControlFileExtra(t *testing.T) {
 echo "hello world from debpkg"
 `
 
-	filepath, err := test.WriteTempFile(t.Name() + ".sh", script)
+	filepath, err := test.WriteTempFile(t.Name()+".sh", script)
 	assert.Nil(t, err)
 
 	deb.SetName("debpkg-control-file-extra")

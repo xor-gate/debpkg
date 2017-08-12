@@ -5,8 +5,8 @@
 package debpkg
 
 import (
-	"io"
 	"fmt"
+	"io"
 	"math"
 	"strings"
 
@@ -193,14 +193,14 @@ func (deb *DebPkg) SetBuiltUsing(info string) {
 
 // AddControlExtraString is the same as AddControlExtra except it uses a string input
 func (deb *DebPkg) AddControlExtraString(name, s string) error {
-	return deb.control.tgz.AddFileFromBuffer(name, []byte(s));
+	return deb.control.tgz.AddFileFromBuffer(name, []byte(s))
 }
 
 // AddControlExtra allows the advanced user to add custom script to the control.tar.gz Typical usage is
 //  for preinst, postinst, postrm, prerm: https://www.debian.org/doc/debian-policy/ch-maintainerscripts.html
 // And: https://www.debian.org/doc/manuals/maint-guide/dother.en.html#maintscripts
 func (deb *DebPkg) AddControlExtra(name, filename string) error {
-	return deb.control.tgz.AddFile(filename, name);
+	return deb.control.tgz.AddFile(filename, name)
 }
 
 // AddConffile adds a file to the conffiles so it is treated as configuration files. Configuration files are not
@@ -236,9 +236,9 @@ func (c *control) version() string {
 		return c.info.version.full
 	}
 	return fmt.Sprintf("%d.%d.%d",
-			c.info.version.major,
-			c.info.version.minor,
-			c.info.version.patch)
+		c.info.version.major,
+		c.info.version.minor,
+		c.info.version.patch)
 }
 
 func (c *control) size() int64 {

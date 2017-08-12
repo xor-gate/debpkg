@@ -6,8 +6,8 @@ package debpkg
 
 import (
 	"fmt"
-	"io/ioutil"
 	"github.com/xor-gate/debpkg/internal/config"
+	"io/ioutil"
 )
 
 // Config loads settings from a depkg.yml specfile

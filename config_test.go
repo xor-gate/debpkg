@@ -5,10 +5,10 @@
 package debpkg
 
 import (
+	"github.com/stretchr/testify/assert"
+	"github.com/xor-gate/debpkg/internal/test"
 	"runtime"
 	"testing"
-	"github.com/xor-gate/debpkg/internal/test"
-	"github.com/stretchr/testify/assert"
 )
 
 // TestExampleConfig verifies if the config example in the root is correctly loaded
@@ -105,5 +105,5 @@ func TestNonExistingConfig(t *testing.T) {
 	deb := New()
 	defer deb.Close()
 
-	assert.NotNil(t, deb.Config("/non/existant/config/file"))
+	assert.NotNil(t, deb.Config("/non/existent/config/file"))
 }

@@ -5,12 +5,12 @@
 package debpkg
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestVarInit(t *testing.T) {
-	tvs := map[string]string {
+	tvs := map[string]string{
 		"INSTALLPREFIX": DefaultInstallPrefix,
 		"BINDIR":        DefaultBinDir,
 		"SBINDIR":       DefaultSbinDir,
@@ -24,7 +24,7 @@ func TestVarInit(t *testing.T) {
 }
 
 func TestGetVarWithPrefix(t *testing.T) {
-	tvs := map[string]string {
+	tvs := map[string]string{
 		"BINDIR":      "/usr/bin",
 		"SBINDIR":     "/usr/sbin",
 		"SYSCONFDIR":  "/usr/etc", // FIXME should not be possible -> "/etc"
@@ -37,7 +37,7 @@ func TestGetVarWithPrefix(t *testing.T) {
 }
 
 func TestExpandVarBinDir(t *testing.T) {
-	tvs := map[string]string {
+	tvs := map[string]string{
 		"{{.BINDIR}}":      "/usr/bin",
 		"{{.SBINDIR}}":     "/usr/sbin",
 		"{{.SYSCONFDIR}}":  "/usr/etc", // FIXME should not be possible -> "/etc"

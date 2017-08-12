@@ -5,11 +5,11 @@
 package test
 
 import (
-	"os"
-	"io/ioutil"
-	"testing"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
+	"io/ioutil"
+	"os"
+	"testing"
 )
 
 var tempdir string
@@ -29,7 +29,7 @@ func TempFile(t *testing.T) string {
 }
 
 // WriteTempFile writes data to TempDir()/filename
-func WriteTempFile(filename, data string) (filepath string, err error)  {
+func WriteTempFile(filename, data string) (filepath string, err error) {
 	filepath = TempDir() + string(os.PathSeparator) + filename
 	err = ioutil.WriteFile(filepath, []byte(data), 0644)
 	return
