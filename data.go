@@ -11,7 +11,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/xor-gate/debpkg/lib/targzip"
+	"github.com/xor-gate/debpkg/internal/targzip"
 )
 
 type data struct {

@@ -5,7 +5,10 @@
 package debpkg
 
 import (
+	"os"
+	"io/ioutil"
 	"testing"
+	"github.com/xor-gate/debpkg/internal/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -133,7 +136,6 @@ Description: Golang package for creating (gpg signed) debian packages
 	deb.SetHomepage("https://github.com/xor-gate/debpkg")
 	deb.SetShortDescription("Golang package for creating (gpg signed) debian packages")
 	deb.SetDescription(controlDescr)
-	// architecture is auto-set when empty, this makes sure it is always set to amd64
 	deb.SetArchitecture("amd64")
 
 	assert.Equal(t, controlExpect, deb.control.String(0))
@@ -168,4 +170,55 @@ Description:
 `
 	assert.Equal(t, controlExpect2K, deb.control.String(1025))
 	assert.Equal(t, controlExpect2K, deb.control.String(2048))
+}
+
+func TestControlFileExtraString(t *testing.T) {
+	deb := New()
+	defer deb.Close()
+
+	deb.SetName("debpkg-control-file-extra-string")
+	deb.SetArchitecture("all")
+	deb.SetDescription("bla bla\n")
+
+	// BUG SetDescription should add the newline itself, and must not be left empty
+	// dpkg: error processing archive /tmp/TestControlFileExtra.deb (--install):
+	// parsing file '/var/lib/dpkg/tmp.ci/control' near line 6 package 'debpkg-control-file-extra:any':
+	// end of file during value of field 'Description' (missing final newline)
+
+	deb.AddControlExtraString("preinst", `#!/bin/sh
+	echo "preinst: hello world from debpkg!"`)
+	deb.AddControlExtraString("postinst", `#!/bin/sh
+	echo "postinst: hello world from debpkg!"`)
+	deb.AddControlExtraString("prerm", `#!/bin/sh
+	echo "prerm: hello world from debpkg!"`)
+	deb.AddControlExtraString("postrm", `#!/bin/sh
+	echo "postrm: hello world from debpkg!"`)
+
+	assert.Nil(t, testWrite(t, deb))
+}
+
+func TestControlFileExtra(t *testing.T) {
+	deb := New()
+	defer deb.Close()
+
+	const script = `#!/bin/sh
+echo "hello world from debpkg"
+`
+	filename := test.TempDir() + string(os.PathSeparator) + t.Name() + ".sh"
+	assert.Nil(t, ioutil.WriteFile(filename, []byte(script), 0644))
+
+	deb.SetName("debpkg-control-file-extra")
+	deb.SetArchitecture("all")
+	deb.SetDescription("bla bla\n")
+
+	// BUG SetDescription should add the newline itself, and must not be left empty
+	// dpkg: error processing archive /tmp/TestControlFileExtra.deb (--install):
+	// parsing file '/var/lib/dpkg/tmp.ci/control' near line 6 package 'debpkg-control-file-extra:any':
+	// end of file during value of field 'Description' (missing final newline)
+
+	deb.AddControlExtra("preinst", filename)
+	deb.AddControlExtra("postinst", filename)
+	deb.AddControlExtraString("prerm", filename)
+	deb.AddControlExtraString("postrm", filename)
+	assert.Nil(t, testWrite(t, deb))
 }

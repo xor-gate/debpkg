@@ -5,18 +5,19 @@
 package debpkg
 
 import (
+	"io"
 	"fmt"
 	"math"
 	"strings"
 
-	"github.com/xor-gate/debpkg/lib/targzip"
+	"github.com/xor-gate/debpkg/internal/targzip"
 )
 
 type control struct {
 	tgz       *targzip.TarGzip
 	info      controlInfo
-	extra     []string // Extra files added to the control.tar.gz. Typical usage is for conffiles, postinst, postrm, prerm.
-	conffiles []string // Conffiles which must be treated as configuration files
+	extra     map[string][]byte // Extra files added to the control.tar.gz. Typical usage is for preinst, postinst, prerm, postrm.
+	conffiles map[string][]byte // Conffiles which must be treated as configuration files
 }
 
 type controlInfoVersion struct {
@@ -190,16 +191,21 @@ func (deb *DebPkg) SetBuiltUsing(info string) {
 	deb.control.info.builtUsing = info
 }
 
-// AddControlExtra allows the advanced user to add custom script to the control.tar.gz Typical usage is
-//  for conffiles, postinst, postrm, prerm: https://www.debian.org/doc/debian-policy/ch-maintainerscripts.html
-// And: https://www.debian.org/doc/manuals/maint-guide/dother.en.html#maintscripts
-func (deb *DebPkg) AddControlExtra(filename string) {
-	deb.control.extra = append(deb.control.extra, filename)
+// AddControlExtraString is the same as AddControlExtra except it uses a string input
+func (deb *DebPkg) AddControlExtraString(name, s string) error {
+	return deb.control.tgz.AddFileFromBuffer(name, []byte(s));
 }
 
-// AddConffile adds a file to the conffiles so it is treated as configuration files. Configuration files are not overwritten during an update unless specified.
-func (deb *DebPkg) AddConffile(filename string) {
-	deb.control.conffiles = append(deb.control.conffiles, filename)
+// AddControlExtra allows the advanced user to add custom script to the control.tar.gz Typical usage is
+//  for preinst, postinst, postrm, prerm: https://www.debian.org/doc/debian-policy/ch-maintainerscripts.html
+// And: https://www.debian.org/doc/manuals/maint-guide/dother.en.html#maintscripts
+func (deb *DebPkg) AddControlExtra(name, filename string) error {
+	return deb.control.tgz.AddFile(filename, name);
+}
+
+// AddConffile adds a file to the conffiles so it is treated as configuration files. Configuration files are not
+// overwritten during an update unless specified.
+func (deb *DebPkg) AddConffile(filename string, r io.Reader) {
 }
 
 // verify the control file for validity
