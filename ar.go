@@ -10,7 +10,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/blakesmith/ar"
+	"github.com/xor-gate/ar"
 )
 
 func addArFileFromBuffer(now time.Time, w *ar.Writer, name string, body []byte) error {
