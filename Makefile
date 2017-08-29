@@ -18,7 +18,7 @@ build:
 	go install github.com/xor-gate/debpkg/cmd/debpkg
 
 test:
-	go test -v
+	go test -v $(shell go list ./... | grep -v '^vendor\/')
 
 lint:
 	go get -u github.com/golang/lint/golint
