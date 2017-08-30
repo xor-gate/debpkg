@@ -17,7 +17,7 @@ The feature list below describes the usability state of the project:
 
 - [x] Create simple debian packages from files and folders
 - [x] Create package from debpkg.yml specfile 
-- [ ] Add custom control files (preinst, postinst, prerm, postrm etcetera)
+- [x] Add custom control files (preinst, postinst, prerm, postrm etcetera)
 - [ ] [dpkg](http://manpages.ubuntu.com/manpages/precise/man1/dpkg.1.html) like tool with a subset of commands (--info, --extract, --vextract, --control)
 - [ ] GPG sign package (implemented but doesnt work yet with `dpkg -i`)
 
