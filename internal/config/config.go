@@ -33,6 +33,12 @@ type PkgSpecFile struct {
 	} `yaml:",flow"`
 	Directories      []string `yaml:",flow"`
 	EmptyDirectories []string `yaml:"emptydirs,flow"`
+	ControlExtra     struct {
+		Preinst  string `yaml:"preinst"`
+		Postinst string `yaml:"postinst"`
+		Prerm    string `yaml:"prerm"`
+		Postrm   string `yaml:"postrm"`
+	} `yaml:"control_extra"`
 }
 
 // PkgSpecFileUnmarshal loads the configuration data into a PkgSpecFile structure

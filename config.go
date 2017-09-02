@@ -7,6 +7,7 @@ package debpkg
 import (
 	"fmt"
 	"io/ioutil"
+	"strings"
 
 	"github.com/xor-gate/debpkg/internal/config"
 )
@@ -67,5 +68,36 @@ func (deb *DebPkg) Config(filename string) error {
 		}
 	}
 
+	if len(cfg.ControlExtra.Preinst) > 0 {
+		if strings.ContainsAny(cfg.ControlExtra.Preinst, "\n") {
+			deb.AddControlExtraString("preinst", cfg.ControlExtra.Preinst)
+		} else {
+			deb.AddControlExtra("preinst", cfg.ControlExtra.Preinst)
+		}
+	}
+
+	if len(cfg.ControlExtra.Postinst) > 0 {
+		if strings.ContainsAny(cfg.ControlExtra.Postinst, "\n") {
+			deb.AddControlExtraString("postinst", cfg.ControlExtra.Postinst)
+		} else {
+			deb.AddControlExtra("postinst", cfg.ControlExtra.Postinst)
+		}
+	}
+
+	if len(cfg.ControlExtra.Prerm) > 0 {
+		if strings.ContainsAny(cfg.ControlExtra.Prerm, "\n") {
+			deb.AddControlExtraString("prerm", cfg.ControlExtra.Prerm)
+		} else {
+			deb.AddControlExtra("prerm", cfg.ControlExtra.Prerm)
+		}
+	}
+
+	if len(cfg.ControlExtra.Postrm) > 0 {
+		if strings.ContainsAny(cfg.ControlExtra.Postrm, "\n") {
+			deb.AddControlExtraString("postrm", cfg.ControlExtra.Postrm)
+		} else {
+			deb.AddControlExtra("postrm", cfg.ControlExtra.Postrm)
+		}
+	}
 	return nil
 }

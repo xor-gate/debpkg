@@ -45,6 +45,11 @@ directories:
   - ./internal
 emptydirs:
   - /var/cache/foobar
+control_extra:
+  postrm: Makefile
+  prerm: Makefile
+  postinst: Makefile
+  preinst: Makefile
 `
 	filepath, err := test.WriteTempFile("debpkg.yml", configFile)
 	assert.Nil(t, err)
@@ -68,6 +73,52 @@ emptydirs:
 	assert.Equal(t, "devel", deb.control.info.section,
 		"unexpected section")
 	assert.Equal(t, PriorityStandard, deb.control.info.priority,
+		"unexpected priority")
+
+	assert.Nil(t, testWrite(t, deb))
+}
+
+func TestExampleConfig2(t *testing.T) {
+	const configFile = `name: foo-bar
+version: 1.2.3
+architecture: amd64
+maintainer: Mr. Foo Bar
+maintainer_email: foo@bar.org
+homepage: https://www.debian.org
+section: net
+priority: important
+control_extra:
+  postrm: >
+    #!/bin/bash
+    echo "post rm!!"
+  prerm: >
+    #!/bin/bash
+    echo "pre rm!!"
+  postinst: >
+    #!/bin/bash
+    echo "post inst!!"
+  preinst: 	>
+    #!/bin/bash
+    echo "pre inst!!"
+`
+	filepath, err := test.WriteTempFile("debpkg.yml", configFile)
+	assert.Nil(t, err)
+
+	deb := New()
+	defer deb.Close()
+
+	assert.Nil(t, deb.Config(filepath))
+	assert.Equal(t, "1.2.3", deb.control.info.version.full,
+		"Unexpected deb.control.info.version.full")
+	assert.Equal(t, "Mr. Foo Bar", deb.control.info.maintainer,
+		"Unexpected deb.control.info.maintainer")
+	assert.Equal(t, "foo@bar.org", deb.control.info.maintainerEmail,
+		"Unexpected deb.control.info.maintainerEmail")
+	assert.Equal(t, "https://www.debian.org", deb.control.info.homepage,
+		"Unexpected deb.control.info.homepage")
+	assert.Equal(t, "net", deb.control.info.section,
+		"unexpected section")
+	assert.Equal(t, PriorityImportant, deb.control.info.priority,
 		"unexpected priority")
 
 	assert.Nil(t, testWrite(t, deb))
