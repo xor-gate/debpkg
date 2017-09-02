@@ -136,7 +136,7 @@ func (deb *DebPkg) AddEmptyDirectory(dir string) error {
 	if deb.err != nil {
 		return deb.err
 	}
-	return deb.setError(deb.data.addEmptyDirectory(dir))
+	return deb.setError(deb.data.addDirectory(dir))
 }
 
 // AddDirectory adds a directory recursive to the package

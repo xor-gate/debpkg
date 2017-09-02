@@ -24,6 +24,7 @@ type data struct {
 
 func (d *data) addDirectory(dirpath string) error {
 	dirpath = filepath.Clean(dirpath)
+	d.addParentDirectories(dirpath)
 	for _, addedDir := range d.dirs {
 		if addedDir == dirpath {
 			return nil
@@ -40,23 +41,7 @@ func (d *data) addDirectory(dirpath string) error {
 	return nil
 }
 
-func (d *data) addEmptyDirectory(dir string) error {
-	dirname := strings.Replace(dir, "\\", "/", -1)
-	dirs := strings.Split(dirname, "/")
-	var current string
-	for _, dir := range dirs {
-		if len(dir) > 0 {
-			current += dir + "/"
-			err := d.addDirectory(current)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-func (d *data) addDirectoriesForFile(filename string) {
+func (d *data) addParentDirectories(filename string) {
 	dirname := filepath.Dir(filename)
 	if dirname != "." {
 		if os.PathSeparator != '/' {
@@ -74,7 +59,7 @@ func (d *data) addDirectoriesForFile(filename string) {
 }
 
 func (d *data) addFileString(contents string, dest string) error {
-	d.addDirectoriesForFile(dest)
+	d.addParentDirectories(dest)
 
 	if err := d.tgz.AddFileFromBuffer(dest, []byte(contents)); err != nil {
 		return err
@@ -98,7 +83,7 @@ func (d *data) addFile(filename string, dest ...string) error {
 		destfilename = filename
 	}
 
-	d.addDirectoriesForFile(destfilename)
+	d.addParentDirectories(destfilename)
 
 	//
 	if err := d.tgz.AddFile(filename, dest...); err != nil {
