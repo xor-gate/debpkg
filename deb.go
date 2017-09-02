@@ -6,9 +6,10 @@ package debpkg
 
 import (
 	"fmt"
-	"github.com/xor-gate/debpkg/internal/targzip"
 	"os"
 	"path/filepath"
+
+	"github.com/xor-gate/debpkg/internal/targzip"
 )
 
 // DebPkg holds data for a single debian package
@@ -122,12 +123,20 @@ func (deb *DebPkg) AddFile(filename string, dest ...string) error {
 	return deb.setError(deb.data.addFile(filename, dest...))
 }
 
+// AddFileString adds a file to the package with the provided content
+func (deb *DebPkg) AddFileString(contents, dest string) error {
+	if deb.err != nil {
+		return deb.err
+	}
+	return deb.setError(deb.data.addFileString(contents, dest))
+}
+
 // AddEmptyDirectory adds a empty directory to the package
 func (deb *DebPkg) AddEmptyDirectory(dir string) error {
 	if deb.err != nil {
 		return deb.err
 	}
-	return deb.setError(deb.data.addEmptyDirectory(dir))
+	return deb.setError(deb.data.addDirectory(dir))
 }
 
 // AddDirectory adds a directory recursive to the package

@@ -7,6 +7,7 @@ package debpkg
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math"
 	"strings"
 
@@ -34,10 +35,12 @@ type controlInfo struct {
 	maintainer      string
 	maintainerEmail string
 	homepage        string
+	depends         string
+	recommends      string
 	suggests        string
 	conflicts       string
-	replaces        string
 	provides        string
+	replaces        string
 	section         string
 	priority        Priority
 	descrShort      string  // Short package description
@@ -106,6 +109,18 @@ func (deb *DebPkg) SetMaintainerEmail(email string) {
 	deb.control.info.maintainerEmail = email
 }
 
+// SetDepends sets the package dependencies. E.g: "lsb-release"
+// See: https://www.debian.org/doc/debian-policy/ch-relationships.html#s-binarydeps
+func (deb *DebPkg) SetDepends(depends string) {
+	deb.control.info.depends = depends
+}
+
+// SetRecommends sets the package recommendations. E.g: "aptitude"
+// See: https://www.debian.org/doc/debian-policy/ch-relationships.html#s-binarydeps
+func (deb *DebPkg) SetRecommends(recommends string) {
+	deb.control.info.recommends = recommends
+}
+
 // SetSuggests sets the package suggestions. E.g: "aptitude"
 // See: https://www.debian.org/doc/debian-policy/ch-relationships.html#s-binarydeps
 func (deb *DebPkg) SetSuggests(suggests string) {
@@ -124,6 +139,12 @@ func (deb *DebPkg) SetProvides(provides string) {
 	deb.control.info.provides = provides
 }
 
+// SetReplaces sets the names of packages which will be replaced. E.g: "pico"
+// See: https://www.debian.org/doc/debian-policy/ch-relationships.html
+func (deb *DebPkg) SetReplaces(replaces string) {
+	deb.control.info.replaces = replaces
+}
+
 // SetPriority (recommended). Default set to debpkg.PriorityUnset
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Priority
 // And: https://www.debian.org/doc/debian-policy/ch-archive.html#s-priorities
@@ -136,12 +157,6 @@ func (deb *DebPkg) SetPriority(priority Priority) {
 // And: https://www.debian.org/doc/debian-policy/ch-archive.html#s-subsections
 func (deb *DebPkg) SetSection(section string) {
 	deb.control.info.section = section
-}
-
-// SetReplaces sets the names of packages which will be replaced. E.g: "pico"
-// See:
-func (deb *DebPkg) SetReplaces(replaces string) {
-	deb.control.info.replaces = replaces
 }
 
 // SetHomepage sets the homepage URL of the package. E.g: "https://github.com/foo/bar"
@@ -193,6 +208,7 @@ func (deb *DebPkg) SetBuiltUsing(info string) {
 
 // AddControlExtraString is the same as AddControlExtra except it uses a string input
 func (deb *DebPkg) AddControlExtraString(name, s string) error {
+	s = strings.Replace(s, "\r\n", "\n", -1)
 	return deb.control.tgz.AddFileFromBuffer(name, []byte(s))
 }
 
@@ -200,7 +216,11 @@ func (deb *DebPkg) AddControlExtraString(name, s string) error {
 //  for preinst, postinst, postrm, prerm: https://www.debian.org/doc/debian-policy/ch-maintainerscripts.html
 // And: https://www.debian.org/doc/manuals/maint-guide/dother.en.html#maintscripts
 func (deb *DebPkg) AddControlExtra(name, filename string) error {
-	return deb.control.tgz.AddFile(filename, name)
+	b, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+	return deb.AddControlExtraString(name, string(b))
 }
 
 // AddConffile adds a file to the conffiles so it is treated as configuration files. Configuration files are not
@@ -274,6 +294,25 @@ func (c *control) String(installedSize uint64) string {
 	}
 	if c.info.builtUsing != "" {
 		o += fmt.Sprintf("Built-Using: %s\n", c.info.builtUsing)
+	}
+
+	if c.info.depends != "" {
+		o += fmt.Sprintf("Depends: %s\n", c.info.depends)
+	}
+	if c.info.recommends != "" {
+		o += fmt.Sprintf("Recommends: %s\n", c.info.recommends)
+	}
+	if c.info.suggests != "" {
+		o += fmt.Sprintf("Suggests: %s\n", c.info.suggests)
+	}
+	if c.info.conflicts != "" {
+		o += fmt.Sprintf("Conflicts: %s\n", c.info.conflicts)
+	}
+	if c.info.provides != "" {
+		o += fmt.Sprintf("Provides: %s\n", c.info.provides)
+	}
+	if c.info.replaces != "" {
+		o += fmt.Sprintf("Replaces: %s\n", c.info.replaces)
 	}
 
 	o += fmt.Sprintf("Description: %s\n", c.info.descrShort)
