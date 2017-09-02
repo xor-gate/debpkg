@@ -43,17 +43,18 @@ func (d *data) addDirectory(dirpath string) error {
 
 func (d *data) addParentDirectories(filename string) {
 	dirname := filepath.Dir(filename)
-	if dirname != "." {
-		if os.PathSeparator != '/' {
-			dirname = strings.Replace(dirname, string(os.PathSeparator), "/", -1)
-		}
-		dirs := strings.Split(dirname, "/")
-		var current string
-		for _, dir := range dirs {
-			if len(dir) > 0 {
-				current += dir + "/"
-				d.addDirectory(current)
-			}
+	if dirname == "." {
+		return
+	}
+	if os.PathSeparator != '/' {
+		dirname = strings.Replace(dirname, string(os.PathSeparator), "/", -1)
+	}
+	dirs := strings.Split(dirname, "/")
+	current := "/"
+	for _, dir := range dirs {
+		if len(dir) > 0 {
+			current += dir + "/"
+			d.addDirectory(current)
 		}
 	}
 }
