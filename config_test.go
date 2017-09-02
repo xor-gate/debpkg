@@ -5,7 +5,6 @@
 package debpkg
 
 import (
-	"fmt"
 	"runtime"
 	"testing"
 
@@ -70,7 +69,6 @@ emptydirs:
 		"unexpected section")
 	assert.Equal(t, PriorityStandard, deb.control.info.priority,
 		"unexpected priority")
-	fmt.Println(deb.data.md5sums)
 
 	assert.Nil(t, testWrite(t, deb))
 }
@@ -113,4 +111,28 @@ func TestNonExistingConfig(t *testing.T) {
 	defer deb.Close()
 
 	assert.NotNil(t, deb.Config("/non/existent/config/file"))
+}
+
+func TestInvalidYAML(t *testing.T) {
+	deb := New()
+	defer deb.Close()
+
+	const configFile = `name: debpkg
+	foo: bar
+	`
+	filepath, err := test.WriteTempFile("debpkg2.yml", configFile)
+	assert.Nil(t, err)
+	assert.NotNil(t, deb.Config(filepath))
+}
+
+func TestInvalidTemplateVar(t *testing.T) {
+	deb := New()
+	defer deb.Close()
+
+	const configFile = `name: debpkg
+foo: {{.bar}}
+	`
+	filepath, err := test.WriteTempFile("debpkg3.yml", configFile)
+	assert.Nil(t, err)
+	assert.NotNil(t, deb.Config(filepath))
 }
