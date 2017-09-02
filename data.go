@@ -24,6 +24,9 @@ type data struct {
 
 func (d *data) addDirectory(dirpath string) error {
 	dirpath = filepath.Clean(dirpath)
+	if os.PathSeparator != '/' {
+		dirpath = strings.Replace(dirpath, string(os.PathSeparator), "/", -1)
+	}
 	d.addParentDirectories(dirpath)
 	for _, addedDir := range d.dirs {
 		if addedDir == dirpath {
