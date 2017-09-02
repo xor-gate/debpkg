@@ -40,6 +40,12 @@ func (deb *DebPkg) Config(filename string) error {
 	deb.SetShortDescription(cfg.Description.Short)
 	deb.SetDescription(cfg.Description.Long)
 	deb.SetBuiltUsing(cfg.BuiltUsing)
+	deb.SetDepends(cfg.Depends)
+	deb.SetRecommends(cfg.Recommends)
+	deb.SetSuggests(cfg.Suggests)
+	deb.SetConflicts(cfg.Conflicts)
+	deb.SetProvides(cfg.Provides)
+	deb.SetReplaces(cfg.Replaces)
 
 	for _, file := range cfg.Files {
 		if len(file.Src) > 0 {

@@ -20,6 +20,12 @@ type PkgSpecFile struct {
 	MaintainerEmail string `yaml:"maintainer_email"`
 	Homepage        string `yaml:"homepage"`
 	Section         string `yaml:"section"`
+	Depends         string `yaml:"depends"`
+	Recommends      string `yaml:"recommends"`
+	Suggests        string `yaml:"suggests"`
+	Conflicts       string `yaml:"conflicts"`
+	Provides        string `yaml:"provides"`
+	Replaces        string `yaml:"replaces"`
 	Priority        string `yaml:"priority"`
 	BuiltUsing      string `yaml:"built_using"`
 	Description     struct {

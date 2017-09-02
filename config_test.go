@@ -22,6 +22,12 @@ maintainer_email: deb@pkg.com
 homepage: https://github.com/xor-gate/debpkg
 section: devel
 priority: standard
+depends: lsb-release
+recommends: nano
+suggests: curl
+conflicts: pico
+provides: editor
+replaces: vim
 built_using: golang
 description:
    short: This is a short description
