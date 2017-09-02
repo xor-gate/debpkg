@@ -21,13 +21,13 @@ func TestDataAddDirectory(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, []string{"/my", "/my/foo", "/my/foo/directory"}, d.dirs)
 	assert.Nil(t, d.tgz.Close())
-	assert.Nil(t, os.Remove(d.tgz.Name()))
+	os.Remove(d.tgz.Name())
 }
 
 func TestDataAddDirectoryError(t *testing.T) {
 	d := newData(t)
 	assert.Nil(t, d.tgz.Close())
-	assert.Nil(t, os.Remove(d.tgz.Name()))
+	os.Remove(d.tgz.Name())
 	err := d.addDirectory("/doesnt/matter")
 	assert.NotNil(t, err)
 }
@@ -38,7 +38,7 @@ func TestDataAddDirectoryCwd(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Empty(t, d.dirs)
 	assert.Nil(t, d.tgz.Close())
-	assert.Nil(t, os.Remove(d.tgz.Name()))
+	os.Remove(d.tgz.Name())
 }
 
 func TestDataAddFileString(t *testing.T) {
@@ -49,13 +49,13 @@ func TestDataAddFileString(t *testing.T) {
 	assert.Equal(t, "098f6bcd4621d373cade4e832627b4f6  /foo\n", d.md5sums)
 
 	assert.Nil(t, d.tgz.Close())
-	assert.Nil(t, os.Remove(d.tgz.Name()))
+	os.Remove(d.tgz.Name())
 }
 
 func TestDataAddFileStringError(t *testing.T) {
 	d := newData(t)
 	assert.Nil(t, d.tgz.Close())
-	assert.Nil(t, os.Remove(d.tgz.Name()))
+	os.Remove(d.tgz.Name())
 	err := d.addFileString("test", "/foo")
 	assert.NotNil(t, err)
 	assert.Empty(t, d.md5sums)
@@ -64,7 +64,7 @@ func TestDataAddFileStringError(t *testing.T) {
 func TestDataAddFileError(t *testing.T) {
 	d := newData(t)
 	assert.Nil(t, d.tgz.Close())
-	assert.Nil(t, os.Remove(d.tgz.Name()))
+	os.Remove(d.tgz.Name())
 	err := d.addFileString("data_test.go", "/foo/bar.go")
 	assert.NotNil(t, err)
 	assert.Empty(t, d.md5sums)
