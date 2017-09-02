@@ -7,6 +7,7 @@ package debpkg
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math"
 	"strings"
 
@@ -193,6 +194,7 @@ func (deb *DebPkg) SetBuiltUsing(info string) {
 
 // AddControlExtraString is the same as AddControlExtra except it uses a string input
 func (deb *DebPkg) AddControlExtraString(name, s string) error {
+	s = strings.Replace(s, "\r\n", "\n", -1)
 	return deb.control.tgz.AddFileFromBuffer(name, []byte(s))
 }
 
@@ -200,7 +202,11 @@ func (deb *DebPkg) AddControlExtraString(name, s string) error {
 //  for preinst, postinst, postrm, prerm: https://www.debian.org/doc/debian-policy/ch-maintainerscripts.html
 // And: https://www.debian.org/doc/manuals/maint-guide/dother.en.html#maintscripts
 func (deb *DebPkg) AddControlExtra(name, filename string) error {
-	return deb.control.tgz.AddFile(filename, name)
+	b, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+	return deb.AddControlExtraString(name, string(b))
 }
 
 // AddConffile adds a file to the conffiles so it is treated as configuration files. Configuration files are not
