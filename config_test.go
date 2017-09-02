@@ -5,10 +5,12 @@
 package debpkg
 
 import (
-	"github.com/stretchr/testify/assert"
-	"github.com/xor-gate/debpkg/internal/test"
+	"fmt"
 	"runtime"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/xor-gate/debpkg/internal/test"
 )
 
 // TestExampleConfig verifies if the config example in the root is correctly loaded
@@ -36,6 +38,10 @@ files:
   - file: debpkg_test.go
   - file: README.md
     dest: {{.DATAROOTDIR}}/foobar/README.md
+  - dest: /bin/hello
+    content: >
+      #!/bin/bash
+      echo "hello"
 directories:
   - ./internal
 emptydirs:
@@ -64,6 +70,7 @@ emptydirs:
 		"unexpected section")
 	assert.Equal(t, PriorityStandard, deb.control.info.priority,
 		"unexpected priority")
+	fmt.Println(deb.data.md5sums)
 
 	assert.Nil(t, testWrite(t, deb))
 }
