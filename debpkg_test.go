@@ -6,11 +6,12 @@ package debpkg
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
-	"github.com/xor-gate/debpkg/internal/test"
 	"go/build"
 	"os/exec"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/xor-gate/debpkg/internal/test"
 )
 
 // testWrite writes the deb package to a temporary file and verifies with native dpkg tool when available
@@ -70,6 +71,8 @@ func TestWrite(t *testing.T) {
 	deb.SetVcsBrowser("https://github.com/xor-gate/secdl")
 
 	deb.AddFile("debpkg.go")
+	deb.AddFile("debpkg_test.go", "/foo/awesome/test.go")
+	deb.AddFileString("this is a real file", "/real/file.txt")
 
 	assert.Nil(t, testWrite(t, deb))
 
