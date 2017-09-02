@@ -6,8 +6,9 @@ package config
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"runtime"
+
+	"gopkg.in/yaml.v2"
 )
 
 // PkgSpecFile represents a single debian package
@@ -26,8 +27,9 @@ type PkgSpecFile struct {
 		Long  string `yaml:"long"`
 	}
 	Files []struct {
-		Src  string `yaml:"file"`
-		Dest string `yaml:"dest"`
+		Src     string `yaml:"file"`
+		Dest    string `yaml:"dest"`
+		Content string `yaml:"content"`
 	} `yaml:",flow"`
 	Directories      []string `yaml:",flow"`
 	EmptyDirectories []string `yaml:"emptydirs,flow"`

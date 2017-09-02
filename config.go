@@ -6,8 +6,9 @@ package debpkg
 
 import (
 	"fmt"
-	"github.com/xor-gate/debpkg/internal/config"
 	"io/ioutil"
+
+	"github.com/xor-gate/debpkg/internal/config"
 )
 
 // Config loads settings from a depkg.yml specfile
@@ -40,15 +41,21 @@ func (deb *DebPkg) Config(filename string) error {
 	deb.SetBuiltUsing(cfg.BuiltUsing)
 
 	for _, file := range cfg.Files {
-		err := deb.AddFile(file.Src, file.Dest)
-		if err != nil {
-			return fmt.Errorf("error adding file %s: %v", file.Src, err)
+		if len(file.Src) > 0 {
+			if err := deb.AddFile(file.Src, file.Dest); err != nil {
+				return fmt.Errorf("error adding file %s: %v", file.Src, err)
+			}
+		} else if len(file.Content) > 0 {
+			if err := deb.AddFileString(file.Content, file.Dest); err != nil {
+				return fmt.Errorf("error adding file by string: %v", err)
+			}
+		} else {
+			return fmt.Errorf("need either 'content' or a 'src' to add a file")
 		}
 	}
 
 	for _, dir := range cfg.Directories {
-		err := deb.AddDirectory(dir)
-		if err != nil {
+		if err := deb.AddDirectory(dir); err != nil {
 			return fmt.Errorf("error adding directory %s: %v", dir, err)
 		}
 	}
