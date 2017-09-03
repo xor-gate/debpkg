@@ -7,6 +7,7 @@ package debpkg
 import (
 	"fmt"
 	"go/build"
+	"os"
 	"os/exec"
 	"testing"
 
@@ -92,7 +93,7 @@ func TestWriteError(t *testing.T) {
 
 // ExampleDebPkgWrite demonstrates generating a simple package
 func ExampleDebPkg_Write() {
-	tempfile := TempDir() + "/foobar.deb"
+	tempfile := os.TempDir() + "/foobar.deb"
 
 	deb := New()
 	defer deb.Close()

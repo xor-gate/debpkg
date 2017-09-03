@@ -21,19 +21,25 @@ type DebPkg struct {
 	err          error
 }
 
-// New creates new debian package
-func New() *DebPkg {
+// New creates new debian package, optionally provide an tempdir to write
+//  intermediate files, otherwise os.TempDir is used.
+func New(tempDir ...string) *DebPkg {
 	deb := &DebPkg{
 		debianBinary: debianBinaryVersion,
 	}
 
-	control, err := targzip.NewTempFile(tempDir)
+	dir := os.TempDir()
+	if len(tempDir) > 0 && len(tempDir[0]) > 0 {
+		dir = tempDir[0]
+	}
+
+	control, err := targzip.NewTempFile(dir)
 	if err != nil {
 		deb.setError(ErrIO)
 		return deb
 	}
 
-	data, err := targzip.NewTempFile(tempDir)
+	data, err := targzip.NewTempFile(dir)
 	if err != nil {
 		control.Close()
 		control.Remove()
