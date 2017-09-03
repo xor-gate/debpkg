@@ -206,7 +206,8 @@ func (deb *DebPkg) SetBuiltUsing(info string) {
 	deb.control.info.builtUsing = info
 }
 
-// AddControlExtraString is the same as AddControlExtra except it uses a string input
+// AddControlExtraString is the same as AddControlExtra except it uses a string input.
+// the files have possible DOS line-endings replaced by UNIX line-endings
 func (deb *DebPkg) AddControlExtraString(name, s string) error {
 	s = strings.Replace(s, "\r\n", "\n", -1)
 	return deb.control.tgz.AddFileFromBuffer(name, []byte(s))
@@ -215,6 +216,7 @@ func (deb *DebPkg) AddControlExtraString(name, s string) error {
 // AddControlExtra allows the advanced user to add custom script to the control.tar.gz Typical usage is
 //  for preinst, postinst, postrm, prerm: https://www.debian.org/doc/debian-policy/ch-maintainerscripts.html
 // And: https://www.debian.org/doc/manuals/maint-guide/dother.en.html#maintscripts
+// the files have possible DOS line-endings replaced by UNIX line-endings
 func (deb *DebPkg) AddControlExtra(name, filename string) error {
 	b, err := ioutil.ReadFile(filename)
 	if err != nil {

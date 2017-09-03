@@ -84,7 +84,7 @@ control_extra:
 	assert.Nil(t, testWrite(t, deb))
 }
 
-func TestExampleConfig2(t *testing.T) {
+func TestExampleConfigWithControlExtraContent(t *testing.T) {
 	const configFile = `name: foo-bar
 version: 1.2.3
 architecture: amd64
@@ -107,7 +107,7 @@ control_extra:
     #!/bin/bash
     echo "pre inst!!"
 `
-	filepath, err := test.WriteTempFile("debpkg.yml", configFile)
+	filepath, err := test.WriteTempFile(t.Name()+".yml", configFile)
 	assert.Nil(t, err)
 
 	deb := New()
@@ -131,7 +131,7 @@ control_extra:
 }
 
 func TestDefaultConfig(t *testing.T) {
-	filepath, err := test.WriteTempFile("emptyfile.yml", "")
+	filepath, err := test.WriteTempFile(t.Name()+".yml", "")
 	assert.Nil(t, err)
 
 	deb := New()
@@ -177,7 +177,7 @@ func TestInvalidYAML(t *testing.T) {
 	const configFile = `name: debpkg
 	foo: bar
 	`
-	filepath, err := test.WriteTempFile("debpkg2.yml", configFile)
+	filepath, err := test.WriteTempFile(t.Name()+".yml", configFile)
 	assert.Nil(t, err)
 	assert.NotNil(t, deb.Config(filepath))
 }
@@ -189,7 +189,7 @@ func TestInvalidTemplateVar(t *testing.T) {
 	const configFile = `name: debpkg
 foo: {{.bar}}
 	`
-	filepath, err := test.WriteTempFile("debpkg3.yml", configFile)
+	filepath, err := test.WriteTempFile(t.Name()+".yml", configFile)
 	assert.Nil(t, err)
 	assert.NotNil(t, deb.Config(filepath))
 }
