@@ -6,8 +6,9 @@ package config
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"runtime"
+
+	"gopkg.in/yaml.v2"
 )
 
 // PkgSpecFile represents a single debian package
@@ -19,6 +20,12 @@ type PkgSpecFile struct {
 	MaintainerEmail string `yaml:"maintainer_email"`
 	Homepage        string `yaml:"homepage"`
 	Section         string `yaml:"section"`
+	Depends         string `yaml:"depends"`
+	Recommends      string `yaml:"recommends"`
+	Suggests        string `yaml:"suggests"`
+	Conflicts       string `yaml:"conflicts"`
+	Provides        string `yaml:"provides"`
+	Replaces        string `yaml:"replaces"`
 	Priority        string `yaml:"priority"`
 	BuiltUsing      string `yaml:"built_using"`
 	Description     struct {
@@ -26,11 +33,18 @@ type PkgSpecFile struct {
 		Long  string `yaml:"long"`
 	}
 	Files []struct {
-		Src  string `yaml:"file"`
-		Dest string `yaml:"dest"`
+		Src     string `yaml:"file"`
+		Dest    string `yaml:"dest"`
+		Content string `yaml:"content"`
 	} `yaml:",flow"`
 	Directories      []string `yaml:",flow"`
 	EmptyDirectories []string `yaml:"emptydirs,flow"`
+	ControlExtra     struct {
+		Preinst  string `yaml:"preinst"`
+		Postinst string `yaml:"postinst"`
+		Prerm    string `yaml:"prerm"`
+		Postrm   string `yaml:"postrm"`
+	} `yaml:"control_extra"`
 }
 
 // PkgSpecFileUnmarshal loads the configuration data into a PkgSpecFile structure

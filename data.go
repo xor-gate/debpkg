@@ -5,13 +5,15 @@
 package debpkg
 
 import (
+	"bytes"
 	"crypto/md5"
 	"fmt"
-	"github.com/xor-gate/debpkg/internal/targzip"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/xor-gate/debpkg/internal/targzip"
 )
 
 type data struct {
@@ -22,6 +24,10 @@ type data struct {
 
 func (d *data) addDirectory(dirpath string) error {
 	dirpath = filepath.Clean(dirpath)
+	if os.PathSeparator != '/' {
+		dirpath = strings.Replace(dirpath, string(os.PathSeparator), "/", -1)
+	}
+	d.addParentDirectories(dirpath)
 	for _, addedDir := range d.dirs {
 		if addedDir == dirpath {
 			return nil
@@ -38,37 +44,38 @@ func (d *data) addDirectory(dirpath string) error {
 	return nil
 }
 
-func (d *data) addEmptyDirectory(dir string) error {
-	dirname := strings.Replace(dir, "\\", "/", -1)
+func (d *data) addParentDirectories(filename string) {
+	dirname := filepath.Dir(filename)
+	if dirname == "." {
+		return
+	}
+	if os.PathSeparator != '/' {
+		dirname = strings.Replace(dirname, string(os.PathSeparator), "/", -1)
+	}
 	dirs := strings.Split(dirname, "/")
-	var current string
+	current := "/"
 	for _, dir := range dirs {
 		if len(dir) > 0 {
 			current += dir + "/"
-			err := d.addDirectory(current)
-			if err != nil {
-				return err
-			}
+			d.addDirectory(current)
 		}
 	}
-	return nil
 }
 
-func (d *data) addDirectoriesForFile(filename string) {
-	dirname := filepath.Dir(filename)
-	if dirname != "." {
-		if os.PathSeparator != '/' {
-			dirname = strings.Replace(dirname, string(os.PathSeparator), "/", -1)
-		}
-		dirs := strings.Split(dirname, "/")
-		var current string
-		for _, dir := range dirs {
-			if len(dir) > 0 {
-				current += dir + "/"
-				d.addDirectory(current)
-			}
-		}
+func (d *data) addFileString(contents string, dest string) error {
+	d.addParentDirectories(dest)
+
+	if err := d.tgz.AddFileFromBuffer(dest, []byte(contents)); err != nil {
+		return err
 	}
+
+	md5, err := computeMd5(bytes.NewBufferString(contents))
+	if err != nil {
+		return err
+	}
+
+	d.md5sums += fmt.Sprintf("%x  %s\n", md5, dest)
+	return nil
 }
 
 func (d *data) addFile(filename string, dest ...string) error {
@@ -80,7 +87,7 @@ func (d *data) addFile(filename string, dest ...string) error {
 		destfilename = filename
 	}
 
-	d.addDirectoriesForFile(destfilename)
+	d.addParentDirectories(destfilename)
 
 	//
 	if err := d.tgz.AddFile(filename, dest...); err != nil {

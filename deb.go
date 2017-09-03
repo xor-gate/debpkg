@@ -6,9 +6,10 @@ package debpkg
 
 import (
 	"fmt"
-	"github.com/xor-gate/debpkg/internal/targzip"
 	"os"
 	"path/filepath"
+
+	"github.com/xor-gate/debpkg/internal/targzip"
 )
 
 // DebPkg holds data for a single debian package
@@ -20,19 +21,26 @@ type DebPkg struct {
 	err          error
 }
 
-// New creates new debian package
-func New() *DebPkg {
+// New creates new debian package, optionally provide an tempdir to write
+//  intermediate files, otherwise os.TempDir is used. A provided tempdir must exist
+//  in order for it to work.
+func New(tempDir ...string) *DebPkg {
 	deb := &DebPkg{
 		debianBinary: debianBinaryVersion,
 	}
 
-	control, err := targzip.NewTempFile(tempDir)
+	dir := os.TempDir()
+	if len(tempDir) > 0 && len(tempDir[0]) > 0 {
+		dir = tempDir[0]
+	}
+
+	control, err := targzip.NewTempFile(dir)
 	if err != nil {
 		deb.setError(ErrIO)
 		return deb
 	}
 
-	data, err := targzip.NewTempFile(tempDir)
+	data, err := targzip.NewTempFile(dir)
 	if err != nil {
 		control.Close()
 		control.Remove()
@@ -122,12 +130,20 @@ func (deb *DebPkg) AddFile(filename string, dest ...string) error {
 	return deb.setError(deb.data.addFile(filename, dest...))
 }
 
+// AddFileString adds a file to the package with the provided content
+func (deb *DebPkg) AddFileString(contents, dest string) error {
+	if deb.err != nil {
+		return deb.err
+	}
+	return deb.setError(deb.data.addFileString(contents, dest))
+}
+
 // AddEmptyDirectory adds a empty directory to the package
 func (deb *DebPkg) AddEmptyDirectory(dir string) error {
 	if deb.err != nil {
 		return deb.err
 	}
-	return deb.setError(deb.data.addEmptyDirectory(dir))
+	return deb.setError(deb.data.addDirectory(dir))
 }
 
 // AddDirectory adds a directory recursive to the package

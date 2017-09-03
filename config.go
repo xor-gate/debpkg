@@ -6,8 +6,10 @@ package debpkg
 
 import (
 	"fmt"
-	"github.com/xor-gate/debpkg/internal/config"
 	"io/ioutil"
+	"strings"
+
+	"github.com/xor-gate/debpkg/internal/config"
 )
 
 // Config loads settings from a depkg.yml specfile
@@ -38,17 +40,29 @@ func (deb *DebPkg) Config(filename string) error {
 	deb.SetShortDescription(cfg.Description.Short)
 	deb.SetDescription(cfg.Description.Long)
 	deb.SetBuiltUsing(cfg.BuiltUsing)
+	deb.SetDepends(cfg.Depends)
+	deb.SetRecommends(cfg.Recommends)
+	deb.SetSuggests(cfg.Suggests)
+	deb.SetConflicts(cfg.Conflicts)
+	deb.SetProvides(cfg.Provides)
+	deb.SetReplaces(cfg.Replaces)
 
 	for _, file := range cfg.Files {
-		err := deb.AddFile(file.Src, file.Dest)
-		if err != nil {
-			return fmt.Errorf("error adding file %s: %v", file.Src, err)
+		if len(file.Src) > 0 {
+			if err := deb.AddFile(file.Src, file.Dest); err != nil {
+				return fmt.Errorf("error adding file %s: %v", file.Src, err)
+			}
+		} else if len(file.Content) > 0 {
+			if err := deb.AddFileString(file.Content, file.Dest); err != nil {
+				return fmt.Errorf("error adding file by string: %v", err)
+			}
+		} else {
+			return fmt.Errorf("need either 'content' or a 'src' to add a file")
 		}
 	}
 
 	for _, dir := range cfg.Directories {
-		err := deb.AddDirectory(dir)
-		if err != nil {
+		if err := deb.AddDirectory(dir); err != nil {
 			return fmt.Errorf("error adding directory %s: %v", dir, err)
 		}
 	}
@@ -60,5 +74,36 @@ func (deb *DebPkg) Config(filename string) error {
 		}
 	}
 
+	if len(cfg.ControlExtra.Preinst) > 0 {
+		if strings.ContainsAny(cfg.ControlExtra.Preinst, "\n") {
+			deb.AddControlExtraString("preinst", cfg.ControlExtra.Preinst)
+		} else {
+			deb.AddControlExtra("preinst", cfg.ControlExtra.Preinst)
+		}
+	}
+
+	if len(cfg.ControlExtra.Postinst) > 0 {
+		if strings.ContainsAny(cfg.ControlExtra.Postinst, "\n") {
+			deb.AddControlExtraString("postinst", cfg.ControlExtra.Postinst)
+		} else {
+			deb.AddControlExtra("postinst", cfg.ControlExtra.Postinst)
+		}
+	}
+
+	if len(cfg.ControlExtra.Prerm) > 0 {
+		if strings.ContainsAny(cfg.ControlExtra.Prerm, "\n") {
+			deb.AddControlExtraString("prerm", cfg.ControlExtra.Prerm)
+		} else {
+			deb.AddControlExtra("prerm", cfg.ControlExtra.Prerm)
+		}
+	}
+
+	if len(cfg.ControlExtra.Postrm) > 0 {
+		if strings.ContainsAny(cfg.ControlExtra.Postrm, "\n") {
+			deb.AddControlExtraString("postrm", cfg.ControlExtra.Postrm)
+		} else {
+			deb.AddControlExtra("postrm", cfg.ControlExtra.Postrm)
+		}
+	}
 	return nil
 }

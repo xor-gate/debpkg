@@ -1,5 +1,5 @@
 export CGO_ENABLED=0
-export GOPATH?=$(PWD)/../../../../
+export GOPATH?=$(shell go env GOPATH)
 export DESTDIR?=$(GOPATH)/bin
 export GOBIN?=$(DESTDIR)
 
