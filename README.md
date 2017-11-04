@@ -4,7 +4,6 @@ debpkg is a pure [Go](https://golang.org) library to create Debian packages. It 
  Debian. It is able to generate packages from Mac OS X, *BSD and Windows. 
 
 [![License][License-Image]][License-Url]
-![Stability][Stability-Status-Image]
 [![Godoc][Godoc-Image]][Godoc-Url]
 [![ReportCard][ReportCard-Image]][ReportCard-Url]
 [![Build][Build-Status-Image]][Build-Status-Url]
@@ -15,19 +14,19 @@ debpkg is a pure [Go](https://golang.org) library to create Debian packages. It 
 
 The feature list below describes the usability state of the project:
 
-- [x] Create simple debian packages from files and folders
-- [x] Create package from debpkg.yml specfile 
-- [x] Add custom control files (preinst, postinst, prerm, postrm etcetera)
-- [ ] [dpkg](http://manpages.ubuntu.com/manpages/precise/man1/dpkg.1.html) like tool with a subset of commands (--info, --extract, --vextract, --control)
-- [ ] GPG sign package (implemented but doesnt work yet with `dpkg -i`)
+- Create debian packages from files and folders
+- Create package from `debpkg.yml` specfile 
+- Add custom control files (preinst, postinst, prerm, postrm etcetera)
+
+It is currently not possible to use the `debpkg` as a framework to manipulate and introspect ([see issue #26](https://github.com/xor-gate/debpkg/issues/26)) individual Debian package objects. As it is only capable of creating packages.
 
 ## Why this package was created
 
 This package was created due to the lack to debianize from other platforms (windows/mac/*bsd). Because
  the whole debian package management system is glued together with Perl scripts and uses a bunch of Perl
- modules.
+ modules. Which isn't easy to use in a CI/CD pipeline for Go projects.
 
-And converting a directory and files into a debian package is a pain without knowing the `deb`-file internals.
+Converting a simple directory structure with files into a debian package is a difficult without knowing the `deb`-file internals.
 
 This package is heavily inspired by [godeb](https://github.com/niemeyer/godeb) and
  [CPackDeb](https://cmake.org/cmake/help/v3.5/module/CPackDeb.html). It is very royal [licensed](LICENSE).
@@ -38,8 +37,8 @@ This package is heavily inspired by [godeb](https://github.com/niemeyer/godeb) a
 
 ## Status
 
-The package is currently in experimental state. The API is unstable and it has not throughout
- been tested and many things are unfinished or not implemented at all. **USE AT YOUR OWN RISK!**
+The package is currently in production state. The API is still unstable (v0) most rough edges are already polished 
+ but a wider audience is necessary. 
 
 # debpkg.yml specfile
 
@@ -68,7 +67,9 @@ description:
 
 # Mentions
 
-I would like to mention some other noticable projects:
+This project is sponsored by [@dualinventive](https://github.com/dualinventive)
+
+I would like to mention some other noticable projects for debian package management:
 
 * https://github.com/Debian/dh-make-golang
 * https://github.com/niemeyer/godeb
@@ -82,12 +83,16 @@ I would like to mention some other noticable projects:
 
 # Debugging
 
+When debugging on a Debian system the following commands are usefull:
+
 * Print package info: `dpkg --info <debfile>`
 * Extract data.tar.gz: `dpkg --extract <debfile> data`
 * Verbose extract data.tar.gz: `dpkg --vextract <debfile> data`
 * Extract control.tar.gz: `dpkg --control <debfile> control`
 
 # Further documentation
+
+More information can be gathered from the Debian and Ubuntu documentation:
 
 * [dpkg manpage](https://manpages.debian.org/cgi-bin/man.cgi?query=dpkg)
 * [dpkg-deb manpage](https://manpages.debian.org/cgi-bin/man.cgi?query=dpkg)
