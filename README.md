@@ -18,7 +18,7 @@ The feature list below describes the usability state of the project:
 - Create package from `debpkg.yml` specfile 
 - Add custom control files (preinst, postinst, prerm, postrm etcetera)
 
-It is currently not possible to use the `debpkg` as a framework to manipulate and introspect ([see issue #26](https://github.com/xor-gate/debpkg/issues/26)) individual Debian package objects. As it is only capable of creating packages.
+It is currently not possible to use the `debpkg` as a framework to manipulate and introspect individual Debian package objects ([see issue #26](https://github.com/xor-gate/debpkg/issues/26)). As it is only capable of creating packages.
 
 ## Why this package was created
 
