@@ -33,9 +33,10 @@ type PkgSpecFile struct {
 		Long  string `yaml:"long"`
 	}
 	Files []struct {
-		Src     string `yaml:"file"`
-		Dest    string `yaml:"dest"`
-		Content string `yaml:"content"`
+		File       string `yaml:"file"`
+		Dest       string `yaml:"dest"`
+		Content    string `yaml:"content"`
+		ConfigFile bool   `yaml:"conffile"`
 	} `yaml:",flow"`
 	Directories      []string `yaml:",flow"`
 	EmptyDirectories []string `yaml:"emptydirs,flow"`

@@ -224,3 +224,11 @@ echo "hello world from debpkg"
 
 	assert.Nil(t, testWrite(t, deb))
 }
+
+func TestConffiles(t *testing.T) {
+	deb := New()
+	defer deb.Close()
+
+	deb.MarkConfigFile("bla/bla/foo")
+	assert.Equal(t, "bla/bla/foo\n", deb.control.conffiles)
+}

@@ -76,7 +76,7 @@ func (deb *DebPkg) writeControlData() error {
 		return err
 	}
 
-	err = createControlTarGz(deb)
+	err = deb.control.finalizeControlFile(&deb.data)
 	if err != nil {
 		return fmt.Errorf("error while creating control.tar.gz: %s", err)
 	}
@@ -120,6 +120,10 @@ func (deb *DebPkg) GetFilename() string {
 		deb.control.info.version.full,
 		deb.control.info.architecture,
 		debianFileExtension)
+}
+
+func (deb *DebPkg) MarkConfigFile(dest string) error {
+	return deb.control.markConfigFile(dest)
 }
 
 // AddFile adds a file by filename to the package

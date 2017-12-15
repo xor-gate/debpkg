@@ -48,9 +48,9 @@ func (deb *DebPkg) Config(filename string) error {
 	deb.SetReplaces(cfg.Replaces)
 
 	for _, file := range cfg.Files {
-		if len(file.Src) > 0 {
-			if err := deb.AddFile(file.Src, file.Dest); err != nil {
-				return fmt.Errorf("error adding file %s: %v", file.Src, err)
+		if len(file.File) > 0 {
+			if err := deb.AddFile(file.File, file.Dest); err != nil {
+				return fmt.Errorf("error adding file %s: %v", file.File, err)
 			}
 		} else if len(file.Content) > 0 {
 			if err := deb.AddFileString(file.Content, file.Dest); err != nil {
@@ -58,6 +58,9 @@ func (deb *DebPkg) Config(filename string) error {
 			}
 		} else {
 			return fmt.Errorf("need either 'content' or a 'src' to add a file")
+		}
+		if file.ConfigFile {
+			deb.MarkConfigFile(file.Dest)
 		}
 	}
 
