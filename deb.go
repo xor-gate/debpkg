@@ -122,6 +122,7 @@ func (deb *DebPkg) GetFilename() string {
 		debianFileExtension)
 }
 
+// MarkConfigFile marks configuration files in the debian package
 func (deb *DebPkg) MarkConfigFile(dest string) error {
 	return deb.control.markConfigFile(dest)
 }
