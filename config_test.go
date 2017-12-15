@@ -130,6 +130,40 @@ control_extra:
 	assert.Nil(t, testWrite(t, deb))
 }
 
+func TestExampleConfigWithConfigFile(t *testing.T) {
+	const configFile = `name: bar-bar
+version: 1.1.1
+architecture: amd64
+maintainer: Mr. Foo Bar
+maintainer_email: foo@bar.org
+homepage: https://www.debian.org
+section: net
+priority: important
+files:
+  - dest: /etc/hello
+    conffile: true
+    content: >
+      #!/bin/bash
+      echo "hello"
+  - dest: /my/awesome/makefile
+    conffile: true
+    file: Makefile
+
+`
+	filepath, err := test.WriteTempFile(t.Name()+".yml", configFile)
+	assert.Nil(t, err)
+
+	deb := New()
+	defer deb.Close()
+
+	assert.Nil(t, deb.Config(filepath))
+	assert.Equal(t, "1.1.1", deb.control.info.version.full,
+		"Unexpected deb.control.info.version.full")
+	assert.Equal(t, "/etc/hello\n/my/awesome/makefile\n", deb.control.conffiles)
+
+	assert.Nil(t, testWrite(t, deb))
+}
+
 func TestDefaultConfig(t *testing.T) {
 	filepath, err := test.WriteTempFile(t.Name()+".yml", "")
 	assert.Nil(t, err)

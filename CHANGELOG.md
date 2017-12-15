@@ -17,3 +17,4 @@ The first release comes with:
 * Compression of the data archive with `tar.gz`
 * Configuring a custom TMPDIR for intermediate files before `New` calls (defaults to OS)
 * Unified configuration file and tool to generate Debian packages
+* Marking files as config-files

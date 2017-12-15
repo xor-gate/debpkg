@@ -6,7 +6,6 @@ package debpkg
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"math"
 	"strings"
@@ -15,10 +14,10 @@ import (
 )
 
 type control struct {
-	tgz       *targzip.TarGzip
-	info      controlInfo
-	extra     map[string][]byte // Extra files added to the control.tar.gz. Typical usage is for preinst, postinst, prerm, postrm.
-	conffiles map[string][]byte // Conffiles which must be treated as configuration files
+	tgz                *targzip.TarGzip
+	info               controlInfo
+	conffiles          string // List of configuration-files
+	hasCustomConffiles bool
 }
 
 type controlInfoVersion struct {
@@ -209,6 +208,9 @@ func (deb *DebPkg) SetBuiltUsing(info string) {
 // AddControlExtraString is the same as AddControlExtra except it uses a string input.
 // the files have possible DOS line-endings replaced by UNIX line-endings
 func (deb *DebPkg) AddControlExtraString(name, s string) error {
+	if name == "conffiles" {
+		deb.control.hasCustomConffiles = true
+	}
 	s = strings.Replace(s, "\r\n", "\n", -1)
 	return deb.control.tgz.AddFileFromBuffer(name, []byte(s))
 }
@@ -225,11 +227,6 @@ func (deb *DebPkg) AddControlExtra(name, filename string) error {
 	return deb.AddControlExtraString(name, string(b))
 }
 
-// AddConffile adds a file to the conffiles so it is treated as configuration files. Configuration files are not
-// overwritten during an update unless specified.
-func (deb *DebPkg) AddConffile(filename string, r io.Reader) {
-}
-
 // verify the control file for validity
 func (c *control) verify() error {
 	if c.info.name == "" {
@@ -241,12 +238,27 @@ func (c *control) verify() error {
 	return nil
 }
 
-func createControlTarGz(deb *DebPkg) error {
-	controlFile := []byte(deb.control.String(deb.data.tgz.Written()))
-	if err := deb.control.tgz.AddFileFromBuffer("control", controlFile); err != nil {
+func (c *control) markConfigFile(dest string) error {
+	if dest == "" {
+		return fmt.Errorf("config file cannot be empty")
+	}
+	c.conffiles += dest + "\n"
+	return nil
+}
+
+// finalizeControlFile creates the actual control-file, adds MD5-sums and stores
+// config-files
+func (c *control) finalizeControlFile(d *data) error {
+	if !c.hasCustomConffiles {
+		if err := c.tgz.AddFileFromBuffer("conffiles", []byte(c.conffiles)); err != nil {
+			return err
+		}
+	}
+	controlFile := []byte(c.String(d.tgz.Written()))
+	if err := c.tgz.AddFileFromBuffer("control", controlFile); err != nil {
 		return err
 	}
-	if err := deb.control.tgz.AddFileFromBuffer("md5sums", []byte(deb.data.md5sums)); err != nil {
+	if err := c.tgz.AddFileFromBuffer("md5sums", []byte(d.md5sums)); err != nil {
 		return err
 	}
 	return nil
