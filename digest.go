@@ -130,7 +130,7 @@ func (deb *Package) WriteSigned(filename string, entity *openpgp.Entity) error {
 	deb.digest.clearsign = buf.String()
 
 	if filename == "" {
-		filename = deb.GetFilename()
+		filename = deb.Filename()
 	}
 	return deb.createDebAr(filename)
 }

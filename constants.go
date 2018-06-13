@@ -50,4 +50,4 @@ const (
 
 const debianPathSeparator = "/"
 const debianBinaryVersion = "2.0\n"
-const debianFileExtension = "deb"
+const FileExtension = "deb"

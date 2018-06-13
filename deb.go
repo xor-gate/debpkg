@@ -103,7 +103,7 @@ func (pkg *Package) Write(filename string) error {
 		return err
 	}
 	if filename == "" {
-		filename = pkg.GetFilename()
+		filename = pkg.Filename()
 	}
 	err := pkg.createDebAr(filename)
 	pkg.setError(err)
@@ -111,17 +111,17 @@ func (pkg *Package) Write(filename string) error {
 	return err
 }
 
-// GetFilename calculates the filename based on name, version and architecture
+// Filename calculates the filename based on name, version and architecture
 // SetName("foo")
 // SetVersion("1.33.7")
 // SetArchitecture("amd64")
 // Generates filename "foo-1.33.7_amd64.deb"
-func (pkg *Package) GetFilename() string {
+func (pkg *Package) Filename() string {
 	return fmt.Sprintf("%s-%s_%s.%s",
 		pkg.control.info.name,
 		pkg.control.info.version.Full,
 		pkg.control.info.architecture,
-		debianFileExtension)
+		FileExtension)
 }
 
 // MarkConfigFile marks configuration files in the pkg.an package

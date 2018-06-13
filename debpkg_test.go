@@ -123,7 +123,7 @@ func TestFilenameFromFullVersion(t *testing.T) {
 	deb.SetVersion("1.33.7")
 	deb.SetArchitecture("amd64")
 
-	assert.Equal(t, "foo-1.33.7_amd64.deb", deb.GetFilename())
+	assert.Equal(t, "foo-1.33.7_amd64.deb", deb.Filename())
 }
 
 // TestGetArchitecture checks the current build.Default.GOARCH compatible debian architecture
@@ -131,11 +131,11 @@ func TestGetArchitecture(t *testing.T) {
 	// On debian 386 GOARCH is presented as i386
 	goarch := build.Default.GOARCH
 	build.Default.GOARCH = "386"
-	assert.Equal(t, "i386", GetArchitecture())
+	assert.Equal(t, "i386", Architecture())
 	build.Default.GOARCH = goarch
 
 	// Check current build GOARCH
 	if build.Default.GOARCH != "386" {
-		assert.Equal(t, build.Default.GOARCH, GetArchitecture())
+		assert.Equal(t, build.Default.GOARCH, Architecture())
 	}
 }
