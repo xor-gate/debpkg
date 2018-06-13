@@ -22,13 +22,12 @@ It is currently not possible to use the `debpkg` as a framework to manipulate an
 
 ## Why this package was created
 
-This package was created due to the lack to debianize from other platforms (windows/mac/*bsd). Because
- the whole debian package management system is glued together with Perl scripts and uses a bunch of Perl
- modules. Which isn't easy to use in a CI/CD pipeline for Go projects.
+This package was created due to the lack to debianize from other platforms (windows/mac/*bsd).
+ As the whole debian package creation is a bunch of Perl modules and scripts. Which isn't easy to integrate in a CI/CD pipeline running on non-debian systems. It was created to package and distribute Go applications in an easy way. But can be used to package other applications as wel.
 
 Converting a simple directory structure with files into a debian package is a difficult without knowing the `deb`-file internals.
 
-This package is heavily inspired by [godeb](https://github.com/niemeyer/godeb) and
+The package is heavily inspired by [godeb](https://github.com/niemeyer/godeb) and
  [CPackDeb](https://cmake.org/cmake/help/v3.5/module/CPackDeb.html). It is very royal [licensed](LICENSE).
 
 ## Installation
@@ -38,7 +37,7 @@ This package is heavily inspired by [godeb](https://github.com/niemeyer/godeb) a
 ## Status
 
 The package is currently in production state. The API is still unstable (v0) most rough edges are already polished 
- but a wider audience is necessary. 
+ but a wider audience is necessary and API breaks can occur. 
 
 # debpkg.yml specfile
 

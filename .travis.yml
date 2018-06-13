@@ -10,7 +10,7 @@ go:
   #       There must be a way to check if non-test builds work for go before 1.8
   - 1.8
   - 1.9
-  - 1.10
+  - '1.10'
   - tip
 
 before_install:
