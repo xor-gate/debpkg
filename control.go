@@ -20,16 +20,9 @@ type Control struct {
 	hasCustomConffiles bool
 }
 
-type ControlInfoVersion struct {
-	Full  string // Full version string. E.g "0.1.2"
-	Major uint   // Major version number
-	Minor uint   // Minor version number
-	Patch uint   // Patch version number
-}
-
 type controlInfo struct {
 	name            string
-	version         ControlInfoVersion
+	version         string
 	architecture    string
 	maintainer      string
 	maintainerEmail string
@@ -52,8 +45,10 @@ type controlInfo struct {
 
 // SetName sets the name of the binary package (mandatory)
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Package
-func (deb *Package) SetName(name string) {
-	deb.control.info.name = name
+func (pkg *Package) SetName(name string) {
+	pkg.Name = name
+	// TODO control file is not able to access pkg.Name so we copy it for now
+	pkg.control.info.name = name
 }
 
 // SetVersion sets the full version string (mandatory), or use SetVersion* functions for "major.minor.patch"
@@ -61,26 +56,10 @@ func (deb *Package) SetName(name string) {
 //  (full stop, plus, hyphen, colon, tilde) and should start with a digit.
 // NOTE: When the full string is set the other SetVersion* function calls are ignored
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
-func (deb *Package) SetVersion(version string) {
-	deb.control.info.version.Full = version
-}
-
-// SetVersionMajor sets the version major number
-// See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
-func (deb *Package) SetVersionMajor(major uint) {
-	deb.control.info.version.Major = major
-}
-
-// SetVersionMinor sets the version minor number
-// See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
-func (deb *Package) SetVersionMinor(minor uint) {
-	deb.control.info.version.Minor = minor
-}
-
-// SetVersionPatch sets the version patch level
-// See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
-func (deb *Package) SetVersionPatch(patch uint) {
-	deb.control.info.version.Patch = patch
+func (pkg *Package) SetVersion(version string) {
+	pkg.Version = version
+	// TODO control info is not able to access pkg.Version so we copy it for now
+	pkg.control.info.version = version
 }
 
 // SetArchitecture sets the architecture of the package where it can be installed.
@@ -92,106 +71,106 @@ func (deb *Package) SetVersionPatch(patch uint) {
 //    images, or scripts in an interpreted language.
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Architecture
 // And: http://man7.org/linux/man-pages/man1/dpkg-architecture.1.html
-func (deb *Package) SetArchitecture(arch string) {
-	deb.control.info.architecture = arch
+func (pkg *Package) SetArchitecture(arch string) {
+	pkg.control.info.architecture = arch
 }
 
 // SetMaintainer (mandatory), sets the package maintainers name and surname. E.g: "Foo Bar"
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Maintainer
-func (deb *Package) SetMaintainer(maintainer string) {
-	deb.control.info.maintainer = maintainer
+func (pkg *Package) SetMaintainer(maintainer string) {
+	pkg.control.info.maintainer = maintainer
 }
 
 // SetMaintainerEmail sets the package maintainers email address. E.g: "foo@bar.com"
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Maintainer
-func (deb *Package) SetMaintainerEmail(email string) {
-	deb.control.info.maintainerEmail = email
+func (pkg *Package) SetMaintainerEmail(email string) {
+	pkg.control.info.maintainerEmail = email
 }
 
 // SetDepends sets the package dependencies. E.g: "lsb-release"
 // See: https://www.debian.org/doc/debian-policy/ch-relationships.html#s-binarydeps
-func (deb *Package) SetDepends(depends string) {
-	deb.control.info.depends = depends
+func (pkg *Package) SetDepends(depends string) {
+	pkg.control.info.depends = depends
 }
 
 // SetRecommends sets the package recommendations. E.g: "aptitude"
 // See: https://www.debian.org/doc/debian-policy/ch-relationships.html#s-binarydeps
-func (deb *Package) SetRecommends(recommends string) {
-	deb.control.info.recommends = recommends
+func (pkg *Package) SetRecommends(recommends string) {
+	pkg.control.info.recommends = recommends
 }
 
 // SetSuggests sets the package suggestions. E.g: "aptitude"
 // See: https://www.debian.org/doc/debian-policy/ch-relationships.html#s-binarydeps
-func (deb *Package) SetSuggests(suggests string) {
-	deb.control.info.suggests = suggests
+func (pkg *Package) SetSuggests(suggests string) {
+	pkg.control.info.suggests = suggests
 }
 
 // SetConflicts sets one or more conflicting packages. E.g: "nano"
 // See: https://www.debian.org/doc/debian-policy/ch-relationships.html#s-conflicts
-func (deb *Package) SetConflicts(conflicts string) {
-	deb.control.info.conflicts = conflicts
+func (pkg *Package) SetConflicts(conflicts string) {
+	pkg.control.info.conflicts = conflicts
 }
 
 // SetProvides sets the type which the package provides. E.g: "editor"
 // See: https://www.debian.org/doc/debian-policy/ch-relationships.html#s-virtual
-func (deb *Package) SetProvides(provides string) {
-	deb.control.info.provides = provides
+func (pkg *Package) SetProvides(provides string) {
+	pkg.control.info.provides = provides
 }
 
 // SetReplaces sets the names of packages which will be replaced. E.g: "pico"
 // See: https://www.debian.org/doc/debian-policy/ch-relationships.html
-func (deb *Package) SetReplaces(replaces string) {
-	deb.control.info.replaces = replaces
+func (pkg *Package) SetReplaces(replaces string) {
+	pkg.control.info.replaces = replaces
 }
 
 // SetPriority (recommended). Default set to debpkg.PriorityUnset
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Priority
 // And: https://www.debian.org/doc/debian-policy/ch-archive.html#s-priorities
-func (deb *Package) SetPriority(priority Priority) {
-	deb.control.info.priority = priority
+func (pkg *Package) SetPriority(priority Priority) {
+	pkg.control.info.priority = priority
 }
 
 // SetSection (recommended). E.g: editors
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Section
 // And: https://www.debian.org/doc/debian-policy/ch-archive.html#s-subsections
-func (deb *Package) SetSection(section string) {
-	deb.control.info.section = section
+func (pkg *Package) SetSection(section string) {
+	pkg.control.info.section = section
 }
 
 // SetHomepage sets the homepage URL of the package. E.g: "https://github.com/foo/bar"
-func (deb *Package) SetHomepage(url string) {
-	deb.control.info.homepage = url
+func (pkg *Package) SetHomepage(url string) {
+	pkg.control.info.homepage = url
 }
 
 // SetShortDescription sets the single line synopsis. E.g: "My awesome foo bar baz tool"
-func (deb *Package) SetShortDescription(descr string) {
-	deb.control.info.descrShort = descr
+func (pkg *Package) SetShortDescription(descr string) {
+	pkg.control.info.descrShort = descr
 }
 
 // SetDescription sets the extended description over several lines. E.g:
 // "Debpkg calculates the most efficient way to world domination"
 // NOTE: The debian control file has a special formatting of the long description
 //        this function replaces newlines with a newline and a space.
-func (deb *Package) SetDescription(descr string) {
-	deb.control.info.descr = " " + strings.Replace(descr, "\n", "\n ", -1)
+func (pkg *Package) SetDescription(descr string) {
+	pkg.control.info.descr = " " + strings.Replace(descr, "\n", "\n ", -1)
 }
 
 // SetVcsType sets the version control system (Vcs) type for the source package.
 // See: https://www.debian.org/doc/manuals/developers-reference/best-pkging-practices.html#s6.2.5.2
-func (deb *Package) SetVcsType(vcs VcsType) {
-	deb.control.info.vcsType = vcs
+func (pkg *Package) SetVcsType(vcs VcsType) {
+	pkg.control.info.vcsType = vcs
 }
 
 // SetVcsURL sets the version control system (Vcs) URL for the source package.
 // See: https://www.debian.org/doc/manuals/developers-reference/best-pkging-practices.html#s6.2.5.2
-func (deb *Package) SetVcsURL(url string) {
-	deb.control.info.vcsURL = url
+func (pkg *Package) SetVcsURL(url string) {
+	pkg.control.info.vcsURL = url
 }
 
 // SetVcsBrowser sets the version control system (Vcs) browsable source-tree URL for the source package.
 // See: https://www.debian.org/doc/manuals/developers-reference/best-pkging-practices.html#s6.2.5.2
-func (deb *Package) SetVcsBrowser(url string) {
-	deb.control.info.vcsBrowser = url
+func (pkg *Package) SetVcsBrowser(url string) {
+	pkg.control.info.vcsBrowser = url
 }
 
 // SetBuiltUsing incorporate parts of other packages when built but do not have to depend on those packages.
@@ -201,30 +180,30 @@ func (deb *Package) SetVcsBrowser(url string) {
 // A package including binaries from grub2 and loadlin would have this field in its control file:
 //  Built-Using: grub2 (= 1.99-9), loadlin (= 1.6e-1)
 // See: https://www.debian.org/doc/debian-policy/ch-relationships.html#s-built-using
-func (deb *Package) SetBuiltUsing(info string) {
-	deb.control.info.builtUsing = info
+func (pkg *Package) SetBuiltUsing(info string) {
+	pkg.control.info.builtUsing = info
 }
 
 // AddControlExtraString is the same as AddControlExtra except it uses a string input.
 // the files have possible DOS line-endings replaced by UNIX line-endings
-func (deb *Package) AddControlExtraString(name, s string) error {
+func (pkg *Package) AddControlExtraString(name, s string) error {
 	if name == "conffiles" {
-		deb.control.hasCustomConffiles = true
+		pkg.control.hasCustomConffiles = true
 	}
 	s = strings.Replace(s, "\r\n", "\n", -1)
-	return deb.control.tgz.AddFileFromBuffer(name, []byte(s))
+	return pkg.control.tgz.AddFileFromBuffer(name, []byte(s))
 }
 
 // AddControlExtra allows the advanced user to add custom script to the control.tar.gz Typical usage is
 //  for preinst, postinst, postrm, prerm: https://www.debian.org/doc/debian-policy/ch-maintainerscripts.html
 // And: https://www.debian.org/doc/manuals/maint-guide/dother.en.html#maintscripts
 // the files have possible DOS line-endings replaced by UNIX line-endings
-func (deb *Package) AddControlExtra(name, filename string) error {
+func (pkg *Package) AddControlExtra(name, filename string) error {
 	b, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return err
 	}
-	return deb.AddControlExtraString(name, string(b))
+	return pkg.AddControlExtraString(name, string(b))
 }
 
 // verify the control file for validity
@@ -234,6 +213,9 @@ func (c *Control) Verify() error {
 	}
 	if c.info.architecture == "" {
 		return fmt.Errorf("empty architecture")
+	}
+	if c.info.version == "" {
+		return fmt.Errorf("empty package version")
 	}
 	return nil
 }
@@ -247,7 +229,7 @@ func (c *Control) markConfigFile(dest string) error {
 }
 
 // finalizeControlFile creates the actual control-file, adds MD5-sums and stores
-// config-files
+// conffiles
 func (c *Control) finalizeControlFile(d *data) error {
 	if !c.hasCustomConffiles {
 		if err := c.tgz.AddFileFromBuffer("conffiles", []byte(c.conffiles)); err != nil {
@@ -264,17 +246,6 @@ func (c *Control) finalizeControlFile(d *data) error {
 	return nil
 }
 
-// Version calculates the version string (e.g "1.2.3") from major,minor patch or from full version
-func (c *Control) Version() string {
-	if c.info.version.Full != "" {
-		return c.info.version.Full
-	}
-	return fmt.Sprintf("%d.%d.%d",
-		c.info.version.Major,
-		c.info.version.Minor,
-		c.info.version.Patch)
-}
-
 func (c *Control) size() int64 {
 	return c.tgz.Size()
 }
@@ -284,7 +255,7 @@ func (c *Control) String(installedSize uint64) string {
 	var o string
 
 	o += fmt.Sprintf("Package: %s\n", c.info.name)
-	o += fmt.Sprintf("Version: %s\n", c.Version())
+	o += fmt.Sprintf("Version: %s\n", c.info.version)
 	o += fmt.Sprintf("Architecture: %s\n", c.info.architecture)
 	o += fmt.Sprintf("Maintainer: %s <%s>\n",
 		c.info.maintainer,

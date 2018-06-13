@@ -47,12 +47,12 @@ Role: %s
 Files: 
 %s`
 	// debian-binary
-	md5sum, _ := digestCalcDataHash(bytes.NewBuffer([]byte(deb.debianBinary)), md5.New())
-	sha1sum, _ := digestCalcDataHash(bytes.NewBuffer([]byte(deb.debianBinary)), sha1.New())
+	md5sum, _ := digestCalcDataHash(bytes.NewBuffer([]byte(debianBinaryVersion)), md5.New())
+	sha1sum, _ := digestCalcDataHash(bytes.NewBuffer([]byte(debianBinaryVersion)), sha1.New())
 	deb.digest.files += fmt.Sprintf("\t%x %x %d %s\n",
 		md5sum,
 		sha1sum,
-		len(deb.debianBinary),
+		len(debianBinaryVersion),
 		"debian-binary")
 
 	deb.digestAddFile("control.tar.gz", deb.control.tgz.Name(), deb.control.tgz.Size())

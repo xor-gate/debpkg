@@ -14,12 +14,13 @@ import (
 
 // Package holds data of a single pkg.an package
 type Package struct {
+	Name      string
+	Version   string
 	Variables Variables
-	debianBinary string
-	control      Control
-	data         data
-	digest       digest
-	err          error
+	control   Control
+	data      data
+	digest    digest
+	err       error
 }
 
 // New creates new debian package, optionally provide an tempdir to write
@@ -28,7 +29,6 @@ type Package struct {
 func New(tempDir ...string) *Package {
 	pkg := &Package{
 		Variables: DefaultVariables(),
-		debianBinary: debianBinaryVersion,
 	}
 
 	dir := os.TempDir()
@@ -118,8 +118,8 @@ func (pkg *Package) Write(filename string) error {
 // Generates filename "foo-1.33.7_amd64.deb"
 func (pkg *Package) Filename() string {
 	return fmt.Sprintf("%s-%s_%s.%s",
-		pkg.control.info.name,
-		pkg.control.info.version.Full,
+		pkg.Name,
+		pkg.Version,
 		pkg.control.info.architecture,
 		FileExtension)
 }

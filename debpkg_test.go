@@ -46,6 +46,7 @@ func TestAddDirectory(t *testing.T) {
 	deb := New()
 	defer deb.Close()
 	deb.SetName("debpkg-test-add-directory")
+	deb.SetVersion("1337")
 	deb.SetArchitecture("all")
 
 	assert.Nil(t, deb.AddDirectory("internal"))
