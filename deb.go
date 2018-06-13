@@ -12,11 +12,11 @@ import (
 	"github.com/xor-gate/debpkg/internal/targzip"
 )
 
-// Package holds data of a single debian package
+// Package holds data of a single pkg.an package
 type Package struct {
-	variables    Variables
+	Variables Variables
 	debianBinary string
-	control      control
+	control      Control
 	data         data
 	digest       digest
 	err          error
@@ -26,8 +26,8 @@ type Package struct {
 //  intermediate files, otherwise os.TempDir is used. A provided tempdir must exist
 //  in order for it to work.
 func New(tempDir ...string) *Package {
-	deb := &Package{
-		variables: DefaultVariables(),
+	pkg := &Package{
+		Variables: DefaultVariables(),
 		debianBinary: debianBinaryVersion,
 	}
 
@@ -38,76 +38,76 @@ func New(tempDir ...string) *Package {
 
 	control, err := targzip.NewTempFile(dir)
 	if err != nil {
-		deb.setError(ErrIO)
-		return deb
+		pkg.setError(ErrIO)
+		return pkg
 	}
 
 	data, err := targzip.NewTempFile(dir)
 	if err != nil {
 		control.Close()
 		control.Remove()
-		deb.setError(ErrIO)
-		return deb
+		pkg.setError(ErrIO)
+		return pkg
 	}
 
-	deb.control.tgz = control
-	deb.data.tgz = data
+	pkg.control.tgz = control
+	pkg.data.tgz = data
 
-	return deb
+	return pkg
 }
 
 // Close closes the File (and removes the intermediate files), rendering it unusable for I/O. It returns an error, if any.
-func (deb *Package) Close() error {
-	if deb.err == ErrClosed {
-		return deb.err
+func (pkg *Package) Close() error {
+	if pkg.err == ErrClosed {
+		return pkg.err
 	}
-	if deb.control.tgz != nil {
-		deb.control.tgz.Remove()
+	if pkg.control.tgz != nil {
+		pkg.control.tgz.Remove()
 	}
-	if deb.data.tgz != nil {
-		deb.data.tgz.Remove()
+	if pkg.data.tgz != nil {
+		pkg.data.tgz.Remove()
 	}
-	deb.err = ErrClosed // FIXME make deb.SetError work...
+	pkg.err = ErrClosed // FIXME make pkg.SetError work...
 	return nil
 }
 
 // writeControlData writes the control.tar.gz
-func (deb *Package) writeControlData() error {
-	err := deb.control.verify()
+func (pkg *Package) writeControlData() error {
+	err := pkg.control.Verify()
 	if err != nil {
 		return err
 	}
 
-	err = deb.control.finalizeControlFile(&deb.data)
+	err = pkg.control.finalizeControlFile(&pkg.data)
 	if err != nil {
 		return fmt.Errorf("error while creating control.tar.gz: %s", err)
 	}
 
-	if err := deb.control.tgz.Close(); err != nil {
+	if err := pkg.control.tgz.Close(); err != nil {
 		return fmt.Errorf("cannot close tgz writer: %v", err)
 	}
 
-	if err := deb.data.tgz.Close(); err != nil {
+	if err := pkg.data.tgz.Close(); err != nil {
 		return fmt.Errorf("cannot close tgz writer: %v", err)
 	}
 	return nil
 }
 
 // Write the debian package to the filename
-func (deb *Package) Write(filename string) error {
-	if deb.err != nil {
-		return deb.err
+func (pkg *Package) Write(filename string) error {
+	if pkg.err != nil {
+		return pkg.err
 	}
-	if err := deb.writeControlData(); err != nil {
-		deb.setError(err)
+	if err := pkg.writeControlData(); err != nil {
+		pkg.setError(err)
 		return err
 	}
 	if filename == "" {
-		filename = deb.GetFilename()
+		filename = pkg.GetFilename()
 	}
-	err := deb.createDebAr(filename)
-	deb.setError(err)
-	deb.Close()
+	err := pkg.createDebAr(filename)
+	pkg.setError(err)
+	pkg.Close()
 	return err
 }
 
@@ -116,50 +116,50 @@ func (deb *Package) Write(filename string) error {
 // SetVersion("1.33.7")
 // SetArchitecture("amd64")
 // Generates filename "foo-1.33.7_amd64.deb"
-func (deb *Package) GetFilename() string {
+func (pkg *Package) GetFilename() string {
 	return fmt.Sprintf("%s-%s_%s.%s",
-		deb.control.info.name,
-		deb.control.info.version.full,
-		deb.control.info.architecture,
+		pkg.control.info.name,
+		pkg.control.info.version.Full,
+		pkg.control.info.architecture,
 		debianFileExtension)
 }
 
-// MarkConfigFile marks configuration files in the debian package
-func (deb *Package) MarkConfigFile(dest string) error {
-	return deb.control.markConfigFile(dest)
+// MarkConfigFile marks configuration files in the pkg.an package
+func (pkg *Package) MarkConfigFile(dest string) error {
+	return pkg.control.markConfigFile(dest)
 }
 
 // AddFile adds a file by filename to the package
-func (deb *Package) AddFile(filename string, dest ...string) error {
-	if deb.err != nil {
-		return deb.err
+func (pkg *Package) AddFile(filename string, dest ...string) error {
+	if pkg.err != nil {
+		return pkg.err
 	}
-	return deb.setError(deb.data.addFile(filename, dest...))
+	return pkg.setError(pkg.data.addFile(filename, dest...))
 }
 
 // AddFileString adds a file to the package with the provided content
-func (deb *Package) AddFileString(contents, dest string) error {
-	if deb.err != nil {
-		return deb.err
+func (pkg *Package) AddFileString(contents, dest string) error {
+	if pkg.err != nil {
+		return pkg.err
 	}
-	return deb.setError(deb.data.addFileString(contents, dest))
+	return pkg.setError(pkg.data.addFileString(contents, dest))
 }
 
 // AddEmptyDirectory adds a empty directory to the package
-func (deb *Package) AddEmptyDirectory(dir string) error {
-	if deb.err != nil {
-		return deb.err
+func (pkg *Package) AddEmptyDirectory(dir string) error {
+	if pkg.err != nil {
+		return pkg.err
 	}
-	return deb.setError(deb.data.addDirectory(dir))
+	return pkg.setError(pkg.data.addDirectory(dir))
 }
 
 // AddDirectory adds a directory recursive to the package
-func (deb *Package) AddDirectory(dir string) error {
-	if deb.err != nil {
-		return deb.err
+func (pkg *Package) AddDirectory(dir string) error {
+	if pkg.err != nil {
+		return pkg.err
 	}
 
-	deb.data.addDirectory(dir)
+	pkg.data.addDirectory(dir)
 
 	return filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
 		if err != nil {
@@ -169,12 +169,12 @@ func (deb *Package) AddDirectory(dir string) error {
 			return nil
 		}
 		if f.IsDir() {
-			if err := deb.data.addDirectory(path); err != nil {
-				return deb.setError(err)
+			if err := pkg.data.addDirectory(path); err != nil {
+				return pkg.setError(err)
 			}
-			return deb.AddDirectory(path)
+			return pkg.AddDirectory(path)
 		}
 
-		return deb.setError(deb.AddFile(path))
+		return pkg.setError(pkg.AddFile(path))
 	})
 }

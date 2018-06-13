@@ -11,11 +11,11 @@ import (
 
 func TestVarInit(t *testing.T) {
 	tvs := map[string]string{
-		"INSTALLPREFIX": DefaultInstallPrefix,
-		"BINDIR":        DefaultBinDir,
-		"SBINDIR":       DefaultSbinDir,
-		"SYSCONFDIR":    DefaultSysConfDir,
-		"DATAROOTDIR":   DefaultDataRootDir,
+		InstallPrefixVar: DefaultInstallPrefix,
+		BinDirVar:        DefaultBinDir,
+		SbinDirVar:       DefaultSbinDir,
+		SysConfDirVar:    DefaultSysConfDir,
+		DataRootDirVar:   DefaultDataRootDir,
 	}
 
 	dv := DefaultVariables()
@@ -27,10 +27,10 @@ func TestVarInit(t *testing.T) {
 
 func TestGetVarWithPrefix(t *testing.T) {
 	tvs := map[string]string{
-		"BINDIR":      "/usr/bin",
-		"SBINDIR":     "/usr/sbin",
-		"SYSCONFDIR":  "/usr/etc", // FIXME should not be possible -> "/etc"
-		"DATAROOTDIR": "/usr/share",
+		BinDirVar:      "/usr/bin",
+		SbinDirVar:     "/usr/sbin",
+		SysConfDirVar:  "/usr/etc", // FIXME should not be possible -> "/etc"
+		DataRootDirVar: "/usr/share",
 	}
 
 	dv := DefaultVariables()

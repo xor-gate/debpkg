@@ -40,6 +40,14 @@ const (
 	DefaultDataRootDir   = "share" // Default data root directory
 )
 
+const (
+	InstallPrefixVar = "INSTALLPREFIX"
+	BinDirVar        = "BINDIR"
+	SbinDirVar       = "SBINDIR"
+	DataRootDirVar   = "DATAROOTDIR"
+	SysConfDirVar    = "SYSCONFDIR"
+)
+
 const debianPathSeparator = "/"
 const debianBinaryVersion = "2.0\n"
 const debianFileExtension = "deb"

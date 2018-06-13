@@ -64,8 +64,8 @@ control_extra:
 	defer deb.Close()
 
 	assert.Nil(t, deb.Config(filepath))
-	assert.Equal(t, "7.6.5", deb.control.info.version.full,
-		"Unexpected deb.control.info.version.full")
+	assert.Equal(t, "7.6.5", deb.control.info.version.Full,
+		"Unexpected deb.control.info.version.Full")
 	assert.Equal(t, "Deb Pkg", deb.control.info.maintainer,
 		"Unexpected deb.control.info.maintainer")
 	assert.Equal(t, "deb@pkg.com", deb.control.info.maintainerEmail,
@@ -114,7 +114,7 @@ control_extra:
 	defer deb.Close()
 
 	assert.Nil(t, deb.Config(filepath))
-	assert.Equal(t, "1.2.3", deb.control.info.version.full,
+	assert.Equal(t, "1.2.3", deb.control.info.version.Full,
 		"Unexpected deb.control.info.version.full")
 	assert.Equal(t, "Mr. Foo Bar", deb.control.info.maintainer,
 		"Unexpected deb.control.info.maintainer")
@@ -157,7 +157,7 @@ files:
 	defer deb.Close()
 
 	assert.Nil(t, deb.Config(filepath))
-	assert.Equal(t, "1.1.1", deb.control.info.version.full,
+	assert.Equal(t, "1.1.1", deb.control.info.version.Full,
 		"Unexpected deb.control.info.version.full")
 	assert.Equal(t, "/etc/hello\n/my/awesome/makefile\n", deb.control.conffiles)
 
@@ -183,7 +183,7 @@ func TestDefaultConfig(t *testing.T) {
 		"unexpected homepage")
 	assert.Equal(t, PriorityOptional, deb.control.info.priority,
 		"unexpected priority")
-	assert.Equal(t, "0.1.0+dev", deb.control.info.version.full,
+	assert.Equal(t, "0.1.0+dev", deb.control.info.version.Full,
 		"unexpected version")
 	assert.Equal(t, "misc", deb.control.info.section,
 		"unexpected section")

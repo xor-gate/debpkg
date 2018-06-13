@@ -10,15 +10,17 @@ import (
 	"text/template"
 )
 
+// Variables
 type Variables map[string]string
 
+// DefaultVariables creates a Variables object populated from Default* constants (e.g InstallPrefixVar set to DefaultInstallPrefix)
 func DefaultVariables() Variables {
 	v := make(Variables)
-	v.Set("INSTALLPREFIX", DefaultInstallPrefix)
-	v.Set("BINDIR", DefaultBinDir)
-	v.Set("SBINDIR", DefaultSbinDir)
-	v.Set("SYSCONFDIR", DefaultSysConfDir)
-	v.Set("DATAROOTDIR", DefaultDataRootDir)
+	v.Set(InstallPrefixVar, DefaultInstallPrefix)
+	v.Set(BinDirVar, DefaultBinDir)
+	v.Set(SbinDirVar, DefaultSbinDir)
+	v.Set(SysConfDirVar, DefaultSysConfDir)
+	v.Set(DataRootDirVar, DefaultDataRootDir)
 	return v
 }
 
@@ -44,7 +46,7 @@ func (v Variables) GetWithPrefix(key string) string {
 	if strings.HasPrefix(val, debianPathSeparator) {
 		return val
 	}
-	return v.Get("INSTALLPREFIX") + debianPathSeparator + val
+	return v.Get(InstallPrefixVar) + debianPathSeparator + val
 }
 
 // ExpandVar expands a string with variables
@@ -60,11 +62,11 @@ func (v Variables) ExpandVar(msg string) (string, error) {
 		DATAROOTDIR   string
 		SYSCONFDIR    string
 	}{
-		INSTALLPREFIX: v.Get("INSTALLPREFIX"),
-		BINDIR:        v.GetWithPrefix("BINDIR"),
-		SBINDIR:       v.GetWithPrefix("SBINDIR"),
-		DATAROOTDIR:   v.GetWithPrefix("DATAROOTDIR"),
-		SYSCONFDIR:    v.GetWithPrefix("SYSCONFDIR"),
+		INSTALLPREFIX: v.Get(InstallPrefixVar),
+		BINDIR:        v.GetWithPrefix(BinDirVar),
+		SBINDIR:       v.GetWithPrefix(SbinDirVar),
+		DATAROOTDIR:   v.GetWithPrefix(DataRootDirVar),
+		SYSCONFDIR:    v.GetWithPrefix(SysConfDirVar),
 	}
 	buf := bytes.NewBuffer(nil)
 	if err := tmpl.Execute(buf, env); err != nil {

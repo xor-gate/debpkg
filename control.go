@@ -13,23 +13,23 @@ import (
 	"github.com/xor-gate/debpkg/internal/targzip"
 )
 
-type control struct {
+type Control struct {
 	tgz                *targzip.TarGzip
 	info               controlInfo
 	conffiles          string // List of configuration-files
 	hasCustomConffiles bool
 }
 
-type controlInfoVersion struct {
-	full  string // Full version string. E.g "0.1.2"
-	major uint   // Major version number
-	minor uint   // Minor version number
-	patch uint   // Patch version number
+type ControlInfoVersion struct {
+	Full  string // Full version string. E.g "0.1.2"
+	Major uint   // Major version number
+	Minor uint   // Minor version number
+	Patch uint   // Patch version number
 }
 
 type controlInfo struct {
 	name            string
-	version         controlInfoVersion
+	version         ControlInfoVersion
 	architecture    string
 	maintainer      string
 	maintainerEmail string
@@ -62,25 +62,25 @@ func (deb *Package) SetName(name string) {
 // NOTE: When the full string is set the other SetVersion* function calls are ignored
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
 func (deb *Package) SetVersion(version string) {
-	deb.control.info.version.full = version
+	deb.control.info.version.Full = version
 }
 
 // SetVersionMajor sets the version major number
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
 func (deb *Package) SetVersionMajor(major uint) {
-	deb.control.info.version.major = major
+	deb.control.info.version.Major = major
 }
 
 // SetVersionMinor sets the version minor number
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
 func (deb *Package) SetVersionMinor(minor uint) {
-	deb.control.info.version.minor = minor
+	deb.control.info.version.Minor = minor
 }
 
 // SetVersionPatch sets the version patch level
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
 func (deb *Package) SetVersionPatch(patch uint) {
-	deb.control.info.version.patch = patch
+	deb.control.info.version.Patch = patch
 }
 
 // SetArchitecture sets the architecture of the package where it can be installed.
@@ -169,7 +169,7 @@ func (deb *Package) SetShortDescription(descr string) {
 }
 
 // SetDescription sets the extended description over several lines. E.g:
-// "This tool will calculation the most efficient way to world domination"
+// "Debpkg calculates the most efficient way to world domination"
 // NOTE: The debian control file has a special formatting of the long description
 //        this function replaces newlines with a newline and a space.
 func (deb *Package) SetDescription(descr string) {
@@ -228,7 +228,7 @@ func (deb *Package) AddControlExtra(name, filename string) error {
 }
 
 // verify the control file for validity
-func (c *control) verify() error {
+func (c *Control) Verify() error {
 	if c.info.name == "" {
 		return fmt.Errorf("empty package name")
 	}
@@ -238,7 +238,7 @@ func (c *control) verify() error {
 	return nil
 }
 
-func (c *control) markConfigFile(dest string) error {
+func (c *Control) markConfigFile(dest string) error {
 	if dest == "" {
 		return fmt.Errorf("config file cannot be empty")
 	}
@@ -248,7 +248,7 @@ func (c *control) markConfigFile(dest string) error {
 
 // finalizeControlFile creates the actual control-file, adds MD5-sums and stores
 // config-files
-func (c *control) finalizeControlFile(d *data) error {
+func (c *Control) finalizeControlFile(d *data) error {
 	if !c.hasCustomConffiles {
 		if err := c.tgz.AddFileFromBuffer("conffiles", []byte(c.conffiles)); err != nil {
 			return err
@@ -264,27 +264,27 @@ func (c *control) finalizeControlFile(d *data) error {
 	return nil
 }
 
-// Generate version string (e.g "1.2.3") from major,minor patch or from full version
-func (c *control) version() string {
-	if c.info.version.full != "" {
-		return c.info.version.full
+// Version calculates the version string (e.g "1.2.3") from major,minor patch or from full version
+func (c *Control) Version() string {
+	if c.info.version.Full != "" {
+		return c.info.version.Full
 	}
 	return fmt.Sprintf("%d.%d.%d",
-		c.info.version.major,
-		c.info.version.minor,
-		c.info.version.patch)
+		c.info.version.Major,
+		c.info.version.Minor,
+		c.info.version.Patch)
 }
 
-func (c *control) size() int64 {
+func (c *Control) size() int64 {
 	return c.tgz.Size()
 }
 
 // Create control file for control.tar.gz
-func (c *control) String(installedSize uint64) string {
+func (c *Control) String(installedSize uint64) string {
 	var o string
 
 	o += fmt.Sprintf("Package: %s\n", c.info.name)
-	o += fmt.Sprintf("Version: %s\n", c.version())
+	o += fmt.Sprintf("Version: %s\n", c.Version())
 	o += fmt.Sprintf("Architecture: %s\n", c.info.architecture)
 	o += fmt.Sprintf("Maintainer: %s <%s>\n",
 		c.info.maintainer,
