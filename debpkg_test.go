@@ -88,7 +88,7 @@ func TestWriteError(t *testing.T) {
 	defer deb.Close()
 	assert.NotNil(t, deb.Write(""), "deb.Write should return nil")
 
-	deb.control.info.name = "pkg"
+	deb.control.Info.Name = "pkg"
 	assert.Equal(t, fmt.Errorf("empty package name"), deb.Write(""))
 }
 

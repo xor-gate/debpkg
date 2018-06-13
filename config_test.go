@@ -66,21 +66,21 @@ control_extra:
 	assert.Nil(t, deb.Config(filepath))
 	assert.Equal(t, "7.6.5", deb.Version,
 		"Unexpected deb.Version")
-	assert.Equal(t, "7.6.5", deb.control.info.version,
-		"Unexpected deb.control.info.version")
-	assert.Equal(t, "Deb Pkg", deb.control.info.maintainer,
-		"Unexpected deb.control.info.maintainer")
-	assert.Equal(t, "deb@pkg.com", deb.control.info.maintainerEmail,
-		"Unexpected deb.control.info.maintainerEmail")
-	assert.Equal(t, "https://github.com/xor-gate/debpkg", deb.control.info.homepage,
-		"Unexpected deb.control.info.homepage")
-	assert.Equal(t, "This is a short description", deb.control.info.descrShort,
+	assert.Equal(t, "7.6.5", deb.control.Info.Version,
+		"Unexpected deb.control.Info.version")
+	assert.Equal(t, "Deb Pkg", deb.control.Info.Maintainer,
+		"Unexpected deb.control.Info.maintainer")
+	assert.Equal(t, "deb@pkg.com", deb.control.Info.MaintainerEmail,
+		"Unexpected deb.control.Info.maintainerEmail")
+	assert.Equal(t, "https://github.com/xor-gate/debpkg", deb.control.Info.Homepage,
+		"Unexpected deb.control.Info.homepage")
+	assert.Equal(t, "This is a short description", deb.control.Info.DescrShort,
 		"Unexpected short description")
-	assert.Equal(t, "golang", deb.control.info.builtUsing,
+	assert.Equal(t, "golang", deb.control.Info.BuiltUsing,
 		"unexpected built using")
-	assert.Equal(t, "devel", deb.control.info.section,
+	assert.Equal(t, "devel", deb.control.Info.Section,
 		"unexpected section")
-	assert.Equal(t, PriorityStandard, deb.control.info.priority,
+	assert.Equal(t, PriorityStandard, deb.control.Info.Priority,
 		"unexpected priority")
 
 	assert.Nil(t, testWrite(t, deb))
@@ -118,17 +118,17 @@ control_extra:
 	assert.Nil(t, deb.Config(filepath))
 	assert.Equal(t, "1.2.3", deb.Version,
 		"Unexpected deb.Version")
-	assert.Equal(t, "1.2.3", deb.control.info.version,
-		"Unexpected deb.control.info.version")
-	assert.Equal(t, "Mr. Foo Bar", deb.control.info.maintainer,
-		"Unexpected deb.control.info.maintainer")
-	assert.Equal(t, "foo@bar.org", deb.control.info.maintainerEmail,
-		"Unexpected deb.control.info.maintainerEmail")
-	assert.Equal(t, "https://www.debian.org", deb.control.info.homepage,
-		"Unexpected deb.control.info.homepage")
-	assert.Equal(t, "net", deb.control.info.section,
+	assert.Equal(t, "1.2.3", deb.control.Info.Version,
+		"Unexpected deb.control.Info.version")
+	assert.Equal(t, "Mr. Foo Bar", deb.control.Info.Maintainer,
+		"Unexpected deb.control.Info.maintainer")
+	assert.Equal(t, "foo@bar.org", deb.control.Info.MaintainerEmail,
+		"Unexpected deb.control.Info.maintainerEmail")
+	assert.Equal(t, "https://www.debian.org", deb.control.Info.Homepage,
+		"Unexpected deb.control.Info.homepage")
+	assert.Equal(t, "net", deb.control.Info.Section,
 		"unexpected section")
-	assert.Equal(t, PriorityImportant, deb.control.info.priority,
+	assert.Equal(t, PriorityImportant, deb.control.Info.Priority,
 		"unexpected priority")
 
 	assert.Nil(t, testWrite(t, deb))
@@ -163,8 +163,8 @@ files:
 	assert.Nil(t, deb.Config(filepath))
 	assert.Equal(t, "1.1.1", deb.Version,
 		"Unexpected deb.Version")
-	assert.Equal(t, "1.1.1", deb.control.info.version,
-		"Unexpected deb.control.info.version")
+	assert.Equal(t, "1.1.1", deb.control.Info.Version,
+		"Unexpected deb.control.Info.version")
 	assert.Equal(t, "/etc/hello\n/my/awesome/makefile\n", deb.control.conffiles)
 
 	assert.Nil(t, testWrite(t, deb))
@@ -179,29 +179,29 @@ func TestDefaultConfig(t *testing.T) {
 
 	assert.Nil(t, deb.Config(filepath))
 
-	assert.Equal(t, "any", deb.control.info.architecture,
+	assert.Equal(t, "any", deb.control.Info.Architecture,
 		"unexpected architecture")
-	assert.Equal(t, "anonymous", deb.control.info.maintainer,
+	assert.Equal(t, "anonymous", deb.control.Info.Maintainer,
 		"unexpected maintainer")
-	assert.Equal(t, "anon@foo.bar", deb.control.info.maintainerEmail,
+	assert.Equal(t, "anon@foo.bar", deb.control.Info.MaintainerEmail,
 		"unexpected maintainer email")
-	assert.Equal(t, "https://www.google.com", deb.control.info.homepage,
+	assert.Equal(t, "https://www.google.com", deb.control.Info.Homepage,
 		"unexpected homepage")
-	assert.Equal(t, PriorityOptional, deb.control.info.priority,
+	assert.Equal(t, PriorityOptional, deb.control.Info.Priority,
 		"unexpected priority")
 	assert.Equal(t, "0.1.0+dev", deb.Version,
 		"unexpected version")
-	assert.Equal(t, "0.1.0+dev", deb.control.info.version,
-		"Unexpected deb.control.info.version")
-	assert.Equal(t, "misc", deb.control.info.section,
+	assert.Equal(t, "0.1.0+dev", deb.control.Info.Version,
+		"Unexpected deb.control.Info.version")
+	assert.Equal(t, "misc", deb.control.Info.Section,
 		"unexpected section")
-	assert.Equal(t, "unknown", deb.control.info.name,
+	assert.Equal(t, "unknown", deb.control.Info.Name,
 		"unexpected name")
-	assert.Equal(t, runtime.Version(), deb.control.info.builtUsing,
+	assert.Equal(t, runtime.Version(), deb.control.Info.BuiltUsing,
 		"unexpected built using")
-	assert.Equal(t, "-", deb.control.info.descrShort,
+	assert.Equal(t, "-", deb.control.Info.DescrShort,
 		"unexpected short description")
-	assert.Equal(t, " -", deb.control.info.descr,
+	assert.Equal(t, " -", deb.control.Info.Descr,
 		"unexpected long description")
 }
 

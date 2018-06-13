@@ -6,8 +6,10 @@ package debpkg
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/xor-gate/debpkg/internal/targzip"
 )
@@ -17,7 +19,7 @@ type Package struct {
 	Name      string
 	Version   string
 	Variables Variables
-	control   Control
+	control   ControlFile
 	data      data
 	digest    digest
 	err       error
@@ -120,13 +122,13 @@ func (pkg *Package) Filename() string {
 	return fmt.Sprintf("%s-%s_%s.%s",
 		pkg.Name,
 		pkg.Version,
-		pkg.control.info.architecture,
+		pkg.control.Info.Architecture,
 		FileExtension)
 }
 
 // MarkConfigFile marks configuration files in the pkg.an package
 func (pkg *Package) MarkConfigFile(dest string) error {
-	return pkg.control.markConfigFile(dest)
+	return pkg.control.MarkConfigFile(dest)
 }
 
 // AddFile adds a file by filename to the package
@@ -177,4 +179,26 @@ func (pkg *Package) AddDirectory(dir string) error {
 
 		return pkg.setError(pkg.AddFile(path))
 	})
+}
+
+// AddControlExtraString is the same as AddControlExtra except it uses a string input.
+// the files have possible DOS line-endings replaced by UNIX line-endings
+func (pkg *Package) AddControlExtraString(name, s string) error {
+	if name == "conffiles" {
+		pkg.control.hasCustomConffiles = true
+	}
+	s = strings.Replace(s, "\r\n", "\n", -1)
+	return pkg.control.tgz.AddFileFromBuffer(name, []byte(s))
+}
+
+// AddControlExtra allows the advanced user to add custom script to the control.tar.gz Typical usage is
+//  for preinst, postinst, postrm, prerm: https://www.debian.org/doc/debian-policy/ch-maintainerscripts.html
+// And: https://www.debian.org/doc/manuals/maint-guide/dother.en.html#maintscripts
+// the files have possible DOS line-endings replaced by UNIX line-endings
+func (pkg *Package) AddControlExtra(name, filename string) error {
+	b, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+	return pkg.AddControlExtraString(name, string(b))
 }
