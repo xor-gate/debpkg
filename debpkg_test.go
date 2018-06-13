@@ -16,7 +16,7 @@ import (
 )
 
 // testWrite writes the deb package to a temporary file and verifies with native dpkg tool when available
-func testWrite(t *testing.T, deb *DebPkg) error {
+func testWrite(t *testing.T, deb *Package) error {
 	f := test.TempFile(t)
 	err := deb.Write(f)
 	if err == nil {
@@ -91,8 +91,8 @@ func TestWriteError(t *testing.T) {
 	assert.Equal(t, fmt.Errorf("empty package name"), deb.Write(""))
 }
 
-// ExampleDebPkgWrite demonstrates generating a simple package
-func ExampleDebPkg_Write() {
+// ExamplePackageWrite demonstrates generating a simple package
+func ExamplePackage_Write() {
 	tempfile := os.TempDir() + "/foobar.deb"
 
 	deb := New()

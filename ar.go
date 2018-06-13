@@ -60,7 +60,7 @@ func addArFile(now time.Time, w *ar.Writer, dstname, filename string) error {
 	return err
 }
 
-func (deb *DebPkg) createDebAr(filename string) error {
+func (deb *Package) createDebAr(filename string) error {
 	removeDeb := true
 	fd, err := os.Create(filename)
 	if err != nil {

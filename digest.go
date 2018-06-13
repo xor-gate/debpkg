@@ -39,7 +39,7 @@ type digest struct {
 
 // Create unsigned digest file at toplevel of deb package
 // NOTE: the deb.digest.version and deb.digest.role are set in this function!
-func createDigestFileString(deb *DebPkg) string {
+func createDigestFileString(deb *Package) string {
 	const digestFileTmpl = `Version: %d
 Signer: %s
 Date: %s
@@ -66,7 +66,7 @@ Files:
 		deb.digest.files)
 }
 
-func (deb *DebPkg) digestAddFile(filename, filepath string, size int64) {
+func (deb *Package) digestAddFile(filename, filepath string, size int64) {
 	md5sum, _ := digestCalcDataHashFromFile(filepath, md5.New())
 	sha1sum, _ := digestCalcDataHashFromFile(filepath, sha1.New())
 	deb.digest.files += fmt.Sprintf("\t%x %x %d %s\n",
@@ -94,7 +94,7 @@ func digestCalcDataHash(in io.Reader, hash hash.Hash) (string, error) {
 }
 
 // WriteSigned package with GPG entity
-func (deb *DebPkg) WriteSigned(filename string, entity *openpgp.Entity) error {
+func (deb *Package) WriteSigned(filename string, entity *openpgp.Entity) error {
 	var buf bytes.Buffer
 	var cfg packet.Config
 	var signer string

@@ -13,13 +13,13 @@ import (
 )
 
 // Config loads settings from a depkg.yml specfile
-func (deb *DebPkg) Config(filename string) error {
+func (deb *Package) Config(filename string) error {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return fmt.Errorf("problem reading config file: %v", err)
 	}
 
-	dataExpanded, err := ExpandVar(string(data))
+	dataExpanded, err := deb.variables.ExpandVar(string(data))
 	if err != nil {
 		return err
 	}

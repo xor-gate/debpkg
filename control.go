@@ -52,7 +52,7 @@ type controlInfo struct {
 
 // SetName sets the name of the binary package (mandatory)
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Package
-func (deb *DebPkg) SetName(name string) {
+func (deb *Package) SetName(name string) {
 	deb.control.info.name = name
 }
 
@@ -61,25 +61,25 @@ func (deb *DebPkg) SetName(name string) {
 //  (full stop, plus, hyphen, colon, tilde) and should start with a digit.
 // NOTE: When the full string is set the other SetVersion* function calls are ignored
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
-func (deb *DebPkg) SetVersion(version string) {
+func (deb *Package) SetVersion(version string) {
 	deb.control.info.version.full = version
 }
 
 // SetVersionMajor sets the version major number
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
-func (deb *DebPkg) SetVersionMajor(major uint) {
+func (deb *Package) SetVersionMajor(major uint) {
 	deb.control.info.version.major = major
 }
 
 // SetVersionMinor sets the version minor number
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
-func (deb *DebPkg) SetVersionMinor(minor uint) {
+func (deb *Package) SetVersionMinor(minor uint) {
 	deb.control.info.version.minor = minor
 }
 
 // SetVersionPatch sets the version patch level
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
-func (deb *DebPkg) SetVersionPatch(patch uint) {
+func (deb *Package) SetVersionPatch(patch uint) {
 	deb.control.info.version.patch = patch
 }
 
@@ -92,79 +92,79 @@ func (deb *DebPkg) SetVersionPatch(patch uint) {
 //    images, or scripts in an interpreted language.
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Architecture
 // And: http://man7.org/linux/man-pages/man1/dpkg-architecture.1.html
-func (deb *DebPkg) SetArchitecture(arch string) {
+func (deb *Package) SetArchitecture(arch string) {
 	deb.control.info.architecture = arch
 }
 
 // SetMaintainer (mandatory), sets the package maintainers name and surname. E.g: "Foo Bar"
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Maintainer
-func (deb *DebPkg) SetMaintainer(maintainer string) {
+func (deb *Package) SetMaintainer(maintainer string) {
 	deb.control.info.maintainer = maintainer
 }
 
 // SetMaintainerEmail sets the package maintainers email address. E.g: "foo@bar.com"
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Maintainer
-func (deb *DebPkg) SetMaintainerEmail(email string) {
+func (deb *Package) SetMaintainerEmail(email string) {
 	deb.control.info.maintainerEmail = email
 }
 
 // SetDepends sets the package dependencies. E.g: "lsb-release"
 // See: https://www.debian.org/doc/debian-policy/ch-relationships.html#s-binarydeps
-func (deb *DebPkg) SetDepends(depends string) {
+func (deb *Package) SetDepends(depends string) {
 	deb.control.info.depends = depends
 }
 
 // SetRecommends sets the package recommendations. E.g: "aptitude"
 // See: https://www.debian.org/doc/debian-policy/ch-relationships.html#s-binarydeps
-func (deb *DebPkg) SetRecommends(recommends string) {
+func (deb *Package) SetRecommends(recommends string) {
 	deb.control.info.recommends = recommends
 }
 
 // SetSuggests sets the package suggestions. E.g: "aptitude"
 // See: https://www.debian.org/doc/debian-policy/ch-relationships.html#s-binarydeps
-func (deb *DebPkg) SetSuggests(suggests string) {
+func (deb *Package) SetSuggests(suggests string) {
 	deb.control.info.suggests = suggests
 }
 
 // SetConflicts sets one or more conflicting packages. E.g: "nano"
 // See: https://www.debian.org/doc/debian-policy/ch-relationships.html#s-conflicts
-func (deb *DebPkg) SetConflicts(conflicts string) {
+func (deb *Package) SetConflicts(conflicts string) {
 	deb.control.info.conflicts = conflicts
 }
 
 // SetProvides sets the type which the package provides. E.g: "editor"
 // See: https://www.debian.org/doc/debian-policy/ch-relationships.html#s-virtual
-func (deb *DebPkg) SetProvides(provides string) {
+func (deb *Package) SetProvides(provides string) {
 	deb.control.info.provides = provides
 }
 
 // SetReplaces sets the names of packages which will be replaced. E.g: "pico"
 // See: https://www.debian.org/doc/debian-policy/ch-relationships.html
-func (deb *DebPkg) SetReplaces(replaces string) {
+func (deb *Package) SetReplaces(replaces string) {
 	deb.control.info.replaces = replaces
 }
 
 // SetPriority (recommended). Default set to debpkg.PriorityUnset
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Priority
 // And: https://www.debian.org/doc/debian-policy/ch-archive.html#s-priorities
-func (deb *DebPkg) SetPriority(priority Priority) {
+func (deb *Package) SetPriority(priority Priority) {
 	deb.control.info.priority = priority
 }
 
 // SetSection (recommended). E.g: editors
 // See: https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Section
 // And: https://www.debian.org/doc/debian-policy/ch-archive.html#s-subsections
-func (deb *DebPkg) SetSection(section string) {
+func (deb *Package) SetSection(section string) {
 	deb.control.info.section = section
 }
 
 // SetHomepage sets the homepage URL of the package. E.g: "https://github.com/foo/bar"
-func (deb *DebPkg) SetHomepage(url string) {
+func (deb *Package) SetHomepage(url string) {
 	deb.control.info.homepage = url
 }
 
 // SetShortDescription sets the single line synopsis. E.g: "My awesome foo bar baz tool"
-func (deb *DebPkg) SetShortDescription(descr string) {
+func (deb *Package) SetShortDescription(descr string) {
 	deb.control.info.descrShort = descr
 }
 
@@ -172,25 +172,25 @@ func (deb *DebPkg) SetShortDescription(descr string) {
 // "This tool will calculation the most efficient way to world domination"
 // NOTE: The debian control file has a special formatting of the long description
 //        this function replaces newlines with a newline and a space.
-func (deb *DebPkg) SetDescription(descr string) {
+func (deb *Package) SetDescription(descr string) {
 	deb.control.info.descr = " " + strings.Replace(descr, "\n", "\n ", -1)
 }
 
 // SetVcsType sets the version control system (Vcs) type for the source package.
 // See: https://www.debian.org/doc/manuals/developers-reference/best-pkging-practices.html#s6.2.5.2
-func (deb *DebPkg) SetVcsType(vcs VcsType) {
+func (deb *Package) SetVcsType(vcs VcsType) {
 	deb.control.info.vcsType = vcs
 }
 
 // SetVcsURL sets the version control system (Vcs) URL for the source package.
 // See: https://www.debian.org/doc/manuals/developers-reference/best-pkging-practices.html#s6.2.5.2
-func (deb *DebPkg) SetVcsURL(url string) {
+func (deb *Package) SetVcsURL(url string) {
 	deb.control.info.vcsURL = url
 }
 
 // SetVcsBrowser sets the version control system (Vcs) browsable source-tree URL for the source package.
 // See: https://www.debian.org/doc/manuals/developers-reference/best-pkging-practices.html#s6.2.5.2
-func (deb *DebPkg) SetVcsBrowser(url string) {
+func (deb *Package) SetVcsBrowser(url string) {
 	deb.control.info.vcsBrowser = url
 }
 
@@ -201,13 +201,13 @@ func (deb *DebPkg) SetVcsBrowser(url string) {
 // A package including binaries from grub2 and loadlin would have this field in its control file:
 //  Built-Using: grub2 (= 1.99-9), loadlin (= 1.6e-1)
 // See: https://www.debian.org/doc/debian-policy/ch-relationships.html#s-built-using
-func (deb *DebPkg) SetBuiltUsing(info string) {
+func (deb *Package) SetBuiltUsing(info string) {
 	deb.control.info.builtUsing = info
 }
 
 // AddControlExtraString is the same as AddControlExtra except it uses a string input.
 // the files have possible DOS line-endings replaced by UNIX line-endings
-func (deb *DebPkg) AddControlExtraString(name, s string) error {
+func (deb *Package) AddControlExtraString(name, s string) error {
 	if name == "conffiles" {
 		deb.control.hasCustomConffiles = true
 	}
@@ -219,7 +219,7 @@ func (deb *DebPkg) AddControlExtraString(name, s string) error {
 //  for preinst, postinst, postrm, prerm: https://www.debian.org/doc/debian-policy/ch-maintainerscripts.html
 // And: https://www.debian.org/doc/manuals/maint-guide/dother.en.html#maintscripts
 // the files have possible DOS line-endings replaced by UNIX line-endings
-func (deb *DebPkg) AddControlExtra(name, filename string) error {
+func (deb *Package) AddControlExtra(name, filename string) error {
 	b, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return err

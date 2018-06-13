@@ -18,8 +18,10 @@ func TestVarInit(t *testing.T) {
 		"DATAROOTDIR":   DefaultDataRootDir,
 	}
 
+	dv := DefaultVariables()
+
 	for v, exp := range tvs {
-		assert.Equal(t, exp, GetVar(v))
+		assert.Equal(t, exp, dv.Get(v))
 	}
 }
 
@@ -31,8 +33,9 @@ func TestGetVarWithPrefix(t *testing.T) {
 		"DATAROOTDIR": "/usr/share",
 	}
 
+	dv := DefaultVariables()
 	for v, exp := range tvs {
-		assert.Equal(t, exp, GetVarWithPrefix(v))
+		assert.Equal(t, exp, dv.GetWithPrefix(v))
 	}
 }
 
@@ -44,8 +47,10 @@ func TestExpandVarBinDir(t *testing.T) {
 		"{{.DATAROOTDIR}}": "/usr/share",
 	}
 
+	dv := DefaultVariables()
+
 	for val, exp := range tvs {
-		res, err := ExpandVar(val)
+		res, err := dv.ExpandVar(val)
 		assert.Nil(t, err)
 		assert.Equal(t, exp, res)
 	}

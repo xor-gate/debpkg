@@ -16,7 +16,7 @@ var ErrIO = errors.New("debpkg: I/O failed")
 
 // setError sets the package error when not nil
 // setting an error when the current error is ErrClosed it will panic
-func (deb *DebPkg) setError(err error) error {
+func (deb *Package) setError(err error) error {
 	if err == nil {
 		return nil
 	}

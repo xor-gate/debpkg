@@ -10,44 +10,45 @@ import (
 	"text/template"
 )
 
-var vars map[string]string
+type Variables map[string]string
 
-func init() {
-	vars = make(map[string]string)
-	vars["INSTALLPREFIX"] = DefaultInstallPrefix
-	vars["BINDIR"] = DefaultBinDir
-	vars["SBINDIR"] = DefaultSbinDir
-	vars["SYSCONFDIR"] = DefaultSysConfDir
-	vars["DATAROOTDIR"] = DefaultDataRootDir
+func DefaultVariables() Variables {
+	v := make(Variables)
+	v.Set("INSTALLPREFIX", DefaultInstallPrefix)
+	v.Set("BINDIR", DefaultBinDir)
+	v.Set("SBINDIR", DefaultSbinDir)
+	v.Set("SYSCONFDIR", DefaultSysConfDir)
+	v.Set("DATAROOTDIR", DefaultDataRootDir)
+	return v
 }
 
 // SetVar sets a variable for use with config file
-func SetVar(key, val string) {
-	vars[key] = val
+func (v Variables) Set(key, val string) {
+	v[key] = val
 }
 
-// GetVar gets a variable
-func GetVar(v string) string {
-	if val, ok := vars[v]; ok {
+// GetVar gets a variable by key
+func (v Variables) Get(key string) string {
+	if val, ok := v[key]; ok {
 		return val
 	}
 	return ""
 }
 
 // GetVarWithPrefix gets a variable and appends INSTALLPREFIX when the value doesn't start with "/"
-func GetVarWithPrefix(v string) string {
-	val := GetVar(v)
+func (v Variables) GetWithPrefix(key string) string {
+	val := v.Get(key)
 	if val == "" {
 		return val
 	}
 	if strings.HasPrefix(val, debianPathSeparator) {
 		return val
 	}
-	return vars["INSTALLPREFIX"] + debianPathSeparator + val
+	return v.Get("INSTALLPREFIX") + debianPathSeparator + val
 }
 
 // ExpandVar expands a string with variables
-func ExpandVar(msg string) (string, error) {
+func (v Variables) ExpandVar(msg string) (string, error) {
 	tmpl, err := template.New("msg").Parse(msg)
 	if err != nil {
 		return "", err
@@ -59,11 +60,11 @@ func ExpandVar(msg string) (string, error) {
 		DATAROOTDIR   string
 		SYSCONFDIR    string
 	}{
-		INSTALLPREFIX: vars["INSTALLPREFIX"],
-		BINDIR:        GetVarWithPrefix("BINDIR"),
-		SBINDIR:       GetVarWithPrefix("SBINDIR"),
-		DATAROOTDIR:   GetVarWithPrefix("DATAROOTDIR"),
-		SYSCONFDIR:    GetVarWithPrefix("SYSCONFDIR"),
+		INSTALLPREFIX: v.Get("INSTALLPREFIX"),
+		BINDIR:        v.GetWithPrefix("BINDIR"),
+		SBINDIR:       v.GetWithPrefix("SBINDIR"),
+		DATAROOTDIR:   v.GetWithPrefix("DATAROOTDIR"),
+		SYSCONFDIR:    v.GetWithPrefix("SYSCONFDIR"),
 	}
 	buf := bytes.NewBuffer(nil)
 	if err := tmpl.Execute(buf, env); err != nil {

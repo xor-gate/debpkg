@@ -12,8 +12,9 @@ import (
 	"github.com/xor-gate/debpkg/internal/targzip"
 )
 
-// DebPkg holds data for a single debian package
-type DebPkg struct {
+// Package holds data of a single debian package
+type Package struct {
+	variables    Variables
 	debianBinary string
 	control      control
 	data         data
@@ -24,8 +25,9 @@ type DebPkg struct {
 // New creates new debian package, optionally provide an tempdir to write
 //  intermediate files, otherwise os.TempDir is used. A provided tempdir must exist
 //  in order for it to work.
-func New(tempDir ...string) *DebPkg {
-	deb := &DebPkg{
+func New(tempDir ...string) *Package {
+	deb := &Package{
+		variables: DefaultVariables(),
 		debianBinary: debianBinaryVersion,
 	}
 
@@ -55,7 +57,7 @@ func New(tempDir ...string) *DebPkg {
 }
 
 // Close closes the File (and removes the intermediate files), rendering it unusable for I/O. It returns an error, if any.
-func (deb *DebPkg) Close() error {
+func (deb *Package) Close() error {
 	if deb.err == ErrClosed {
 		return deb.err
 	}
@@ -70,7 +72,7 @@ func (deb *DebPkg) Close() error {
 }
 
 // writeControlData writes the control.tar.gz
-func (deb *DebPkg) writeControlData() error {
+func (deb *Package) writeControlData() error {
 	err := deb.control.verify()
 	if err != nil {
 		return err
@@ -92,7 +94,7 @@ func (deb *DebPkg) writeControlData() error {
 }
 
 // Write the debian package to the filename
-func (deb *DebPkg) Write(filename string) error {
+func (deb *Package) Write(filename string) error {
 	if deb.err != nil {
 		return deb.err
 	}
@@ -114,7 +116,7 @@ func (deb *DebPkg) Write(filename string) error {
 // SetVersion("1.33.7")
 // SetArchitecture("amd64")
 // Generates filename "foo-1.33.7_amd64.deb"
-func (deb *DebPkg) GetFilename() string {
+func (deb *Package) GetFilename() string {
 	return fmt.Sprintf("%s-%s_%s.%s",
 		deb.control.info.name,
 		deb.control.info.version.full,
@@ -123,12 +125,12 @@ func (deb *DebPkg) GetFilename() string {
 }
 
 // MarkConfigFile marks configuration files in the debian package
-func (deb *DebPkg) MarkConfigFile(dest string) error {
+func (deb *Package) MarkConfigFile(dest string) error {
 	return deb.control.markConfigFile(dest)
 }
 
 // AddFile adds a file by filename to the package
-func (deb *DebPkg) AddFile(filename string, dest ...string) error {
+func (deb *Package) AddFile(filename string, dest ...string) error {
 	if deb.err != nil {
 		return deb.err
 	}
@@ -136,7 +138,7 @@ func (deb *DebPkg) AddFile(filename string, dest ...string) error {
 }
 
 // AddFileString adds a file to the package with the provided content
-func (deb *DebPkg) AddFileString(contents, dest string) error {
+func (deb *Package) AddFileString(contents, dest string) error {
 	if deb.err != nil {
 		return deb.err
 	}
@@ -144,7 +146,7 @@ func (deb *DebPkg) AddFileString(contents, dest string) error {
 }
 
 // AddEmptyDirectory adds a empty directory to the package
-func (deb *DebPkg) AddEmptyDirectory(dir string) error {
+func (deb *Package) AddEmptyDirectory(dir string) error {
 	if deb.err != nil {
 		return deb.err
 	}
@@ -152,7 +154,7 @@ func (deb *DebPkg) AddEmptyDirectory(dir string) error {
 }
 
 // AddDirectory adds a directory recursive to the package
-func (deb *DebPkg) AddDirectory(dir string) error {
+func (deb *Package) AddDirectory(dir string) error {
 	if deb.err != nil {
 		return deb.err
 	}
