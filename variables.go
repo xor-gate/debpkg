@@ -10,7 +10,7 @@ import (
 	"text/template"
 )
 
-// Variables
+// Variables mapping
 type Variables map[string]string
 
 // DefaultVariables creates a Variables object populated from Default* constants (e.g InstallPrefixVar set to DefaultInstallPrefix)
@@ -24,12 +24,12 @@ func DefaultVariables() Variables {
 	return v
 }
 
-// SetVar sets a variable for use with config file
+// Set sets a variable for use with config file
 func (v Variables) Set(key, val string) {
 	v[key] = val
 }
 
-// GetVar gets a variable by key
+// Get gets a variable by key
 func (v Variables) Get(key string) string {
 	if val, ok := v[key]; ok {
 		return val
@@ -37,7 +37,7 @@ func (v Variables) Get(key string) string {
 	return ""
 }
 
-// GetVarWithPrefix gets a variable and appends INSTALLPREFIX when the value doesn't start with "/"
+// GetWithPrefix gets a variable and appends INSTALLPREFIX when the value doesn't start with "/"
 func (v Variables) GetWithPrefix(key string) string {
 	val := v.Get(key)
 	if val == "" {
