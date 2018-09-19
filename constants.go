@@ -48,6 +48,8 @@ const (
 	SysConfDirVar    = "SYSCONFDIR"
 )
 
+// FileExtension for Debian package
+const FileExtension = "deb"
+
 const debianPathSeparator = "/"
 const debianBinaryVersion = "2.0\n"
-const FileExtension = "deb"
