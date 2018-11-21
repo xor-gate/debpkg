@@ -9,6 +9,9 @@ go:
   # TODO: We only test for go 1.8 or later because testing.Name() is not supported.
   #       There must be a way to check if non-test builds work for go before 1.8
   - 1.8
+  - 1.9
+  - '1.10'
+  - 1.11
   - tip
 
 before_install:

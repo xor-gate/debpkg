@@ -8,8 +8,8 @@ import (
 	"go/build"
 )
 
-// GetArchitecture gets the current build.Default.GOARCH in debian-form
-func GetArchitecture() string {
+// Architecture gets the current build.Default.GOARCH in debian-form
+func Architecture() string {
 	arch := build.Default.GOARCH
 	if arch == "386" {
 		return "i386"

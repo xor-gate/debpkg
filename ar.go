@@ -60,7 +60,7 @@ func addArFile(now time.Time, w *ar.Writer, dstname, filename string) error {
 	return err
 }
 
-func (deb *DebPkg) createDebAr(filename string) error {
+func (deb *Package) createDebAr(filename string) error {
 	removeDeb := true
 	fd, err := os.Create(filename)
 	if err != nil {
@@ -80,7 +80,7 @@ func (deb *DebPkg) createDebAr(filename string) error {
 	if err := w.WriteGlobalHeader(); err != nil {
 		return fmt.Errorf("cannot write ar header to deb file: %v", err)
 	}
-	if err := addArFileFromBuffer(now, w, "debian-binary", []byte(deb.debianBinary)); err != nil {
+	if err := addArFileFromBuffer(now, w, "debian-binary", []byte(debianBinaryVersion)); err != nil {
 		return fmt.Errorf("cannot pack debian-binary: %v", err)
 	}
 	if err := addArFile(now, w, "control.tar.gz", deb.control.tgz.Name()); err != nil {

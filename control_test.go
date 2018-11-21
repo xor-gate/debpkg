@@ -5,16 +5,17 @@
 package debpkg
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/xor-gate/debpkg/internal/test"
-	"testing"
 )
 
 // Test correct output of a empty control file when no DepPkg Set* functions are called
 // Only the mandatory fields are exported then, this behaviour is checked
 func TestControlFileEmpty(t *testing.T) {
 	controlExpect := `Package: 
-Version: 0.0.0
+Version: 1.2.3
 Architecture: amd64
 Maintainer:  <>
 Installed-Size: 0
@@ -24,6 +25,7 @@ Description:
 	deb := New()
 	defer deb.Close()
 
+	deb.SetVersion("1.2.3")
 	// architecture is auto-set when empty, this makes sure it is always set to amd64
 	deb.SetArchitecture("amd64")
 
@@ -34,7 +36,7 @@ Description:
 // Only the mandatory fields are exported then, this behaviour is checked
 func TestControlFileVcsAndVcsBrowserFields(t *testing.T) {
 	controlExpect := `Package: 
-Version: 0.0.0
+Version: 1.2.3
 Architecture: amd64
 Maintainer:  <>
 Installed-Size: 0
@@ -46,6 +48,7 @@ Description:
 	deb := New()
 	defer deb.Close()
 
+	deb.SetVersion("1.2.3")
 	// architecture is auto-set when empty, this makes sure it is always set to amd64
 	deb.SetArchitecture("amd64")
 	deb.SetVcsType(VcsTypeGit)
@@ -57,7 +60,7 @@ Description:
 
 // Test correct output of the control file when SetVersion* functions are called
 // Only the mandatory fields are exported then, this behaviour is checked
-func TestControlFileSetVersionMajorMinorPatch(t *testing.T) {
+func TestControlFileSetVersion(t *testing.T) {
 	// Empty
 	deb := New()
 	defer deb.Close()
@@ -66,9 +69,7 @@ func TestControlFileSetVersionMajorMinorPatch(t *testing.T) {
 	deb.SetArchitecture("amd64")
 
 	// Set major.minor.patch, leave full version string untouched
-	deb.SetVersionMajor(1)
-	deb.SetVersionMinor(2)
-	deb.SetVersionPatch(3)
+	deb.SetVersion("1.2.3")
 
 	controlExpect := `Package: foobar
 Version: 1.2.3
@@ -97,7 +98,7 @@ Description:
 // This checks if the long description is formatted according to the debian policy
 func TestControlFileLongDescriptionFormatting(t *testing.T) {
 	controlExpect := `Package: debpkg
-Version: 0.0.0
+Version: 1.33.7
 Architecture: amd64
 Maintainer: Jerry Jacobs <foo@bar.com>
 Installed-Size: 0
@@ -127,7 +128,7 @@ Description: Golang package for creating (gpg signed) debian packages
 	defer deb.Close()
 
 	deb.SetName("debpkg")
-	deb.SetVersion("0.0.0")
+	deb.SetVersion("1.33.7")
 	deb.SetMaintainer("Jerry Jacobs")
 	deb.SetMaintainerEmail("foo@bar.com")
 	deb.SetHomepage("https://github.com/xor-gate/debpkg")
@@ -144,12 +145,13 @@ func TestControlInstalledSize(t *testing.T) {
 	deb := New()
 	defer deb.Close()
 
+	deb.SetVersion("1.33.7")
 	// architecture is auto-set when empty, this makes sure it is always set to amd64
 	deb.SetArchitecture("amd64")
 
 	// 1KByte
 	controlExpect1K := `Package: 
-Version: 0.0.0
+Version: 1.33.7
 Architecture: amd64
 Maintainer:  <>
 Installed-Size: 1
@@ -159,7 +161,7 @@ Description:
 
 	// 2Kbyte
 	controlExpect2K := `Package: 
-Version: 0.0.0
+Version: 1.33.7
 Architecture: amd64
 Maintainer:  <>
 Installed-Size: 2
@@ -173,7 +175,8 @@ func TestControlFileExtraString(t *testing.T) {
 	deb := New()
 	defer deb.Close()
 
-	deb.SetName("debpkg-control-file-extra-string")
+	deb.SetName(t.Name())
+	deb.SetVersion("1.33.7")
 	deb.SetArchitecture("all")
 	deb.SetDescription("bla bla\n")
 
@@ -205,7 +208,8 @@ echo "hello world from debpkg"
 	filepath, err := test.WriteTempFile(t.Name()+".sh", script)
 	assert.Nil(t, err)
 
-	deb.SetName("debpkg-control-file-extra")
+	deb.SetName(t.Name())
+	deb.SetVersion("1.33.7")
 	deb.SetArchitecture("all")
 	deb.SetDescription("bla bla\n")
 

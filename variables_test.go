@@ -5,34 +5,38 @@
 package debpkg
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestVarInit(t *testing.T) {
 	tvs := map[string]string{
-		"INSTALLPREFIX": DefaultInstallPrefix,
-		"BINDIR":        DefaultBinDir,
-		"SBINDIR":       DefaultSbinDir,
-		"SYSCONFDIR":    DefaultSysConfDir,
-		"DATAROOTDIR":   DefaultDataRootDir,
+		InstallPrefixVar: DefaultInstallPrefix,
+		BinDirVar:        DefaultBinDir,
+		SbinDirVar:       DefaultSbinDir,
+		SysConfDirVar:    DefaultSysConfDir,
+		DataRootDirVar:   DefaultDataRootDir,
 	}
 
+	dv := DefaultVariables()
+
 	for v, exp := range tvs {
-		assert.Equal(t, exp, GetVar(v))
+		assert.Equal(t, exp, dv.Get(v))
 	}
 }
 
 func TestGetVarWithPrefix(t *testing.T) {
 	tvs := map[string]string{
-		"BINDIR":      "/usr/bin",
-		"SBINDIR":     "/usr/sbin",
-		"SYSCONFDIR":  "/usr/etc", // FIXME should not be possible -> "/etc"
-		"DATAROOTDIR": "/usr/share",
+		BinDirVar:      "/usr/bin",
+		SbinDirVar:     "/usr/sbin",
+		SysConfDirVar:  "/usr/etc", // FIXME should not be possible -> "/etc"
+		DataRootDirVar: "/usr/share",
 	}
 
+	dv := DefaultVariables()
 	for v, exp := range tvs {
-		assert.Equal(t, exp, GetVarWithPrefix(v))
+		assert.Equal(t, exp, dv.GetWithPrefix(v))
 	}
 }
 
@@ -44,8 +48,10 @@ func TestExpandVarBinDir(t *testing.T) {
 		"{{.DATAROOTDIR}}": "/usr/share",
 	}
 
+	dv := DefaultVariables()
+
 	for val, exp := range tvs {
-		res, err := ExpandVar(val)
+		res, err := dv.ExpandVar(val)
 		assert.Nil(t, err)
 		assert.Equal(t, exp, res)
 	}

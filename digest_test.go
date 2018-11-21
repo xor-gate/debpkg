@@ -5,10 +5,11 @@
 package debpkg
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/xor-gate/debpkg/internal/test"
 	"golang.org/x/crypto/openpgp"
-	"testing"
 )
 
 var e *openpgp.Entity

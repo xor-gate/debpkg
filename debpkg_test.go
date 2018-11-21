@@ -16,7 +16,7 @@ import (
 )
 
 // testWrite writes the deb package to a temporary file and verifies with native dpkg tool when available
-func testWrite(t *testing.T, deb *DebPkg) error {
+func testWrite(t *testing.T, deb *Package) error {
 	f := test.TempFile(t)
 	err := deb.Write(f)
 	if err == nil {
@@ -46,6 +46,7 @@ func TestAddDirectory(t *testing.T) {
 	deb := New()
 	defer deb.Close()
 	deb.SetName("debpkg-test-add-directory")
+	deb.SetVersion("1337")
 	deb.SetArchitecture("all")
 
 	assert.Nil(t, deb.AddDirectory("internal"))
@@ -87,12 +88,12 @@ func TestWriteError(t *testing.T) {
 	defer deb.Close()
 	assert.NotNil(t, deb.Write(""), "deb.Write should return nil")
 
-	deb.control.info.name = "pkg"
+	deb.control.Info.Name = "pkg"
 	assert.Equal(t, fmt.Errorf("empty package name"), deb.Write(""))
 }
 
-// ExampleDebPkgWrite demonstrates generating a simple package
-func ExampleDebPkg_Write() {
+// ExamplePackageWrite demonstrates generating a simple package
+func ExamplePackage_Write() {
 	tempfile := os.TempDir() + "/foobar.deb"
 
 	deb := New()
@@ -123,7 +124,7 @@ func TestFilenameFromFullVersion(t *testing.T) {
 	deb.SetVersion("1.33.7")
 	deb.SetArchitecture("amd64")
 
-	assert.Equal(t, "foo-1.33.7_amd64.deb", deb.GetFilename())
+	assert.Equal(t, "foo-1.33.7_amd64.deb", deb.Filename())
 }
 
 // TestGetArchitecture checks the current build.Default.GOARCH compatible debian architecture
@@ -131,11 +132,11 @@ func TestGetArchitecture(t *testing.T) {
 	// On debian 386 GOARCH is presented as i386
 	goarch := build.Default.GOARCH
 	build.Default.GOARCH = "386"
-	assert.Equal(t, "i386", GetArchitecture())
+	assert.Equal(t, "i386", Architecture())
 	build.Default.GOARCH = goarch
 
 	// Check current build GOARCH
 	if build.Default.GOARCH != "386" {
-		assert.Equal(t, build.Default.GOARCH, GetArchitecture())
+		assert.Equal(t, build.Default.GOARCH, Architecture())
 	}
 }
