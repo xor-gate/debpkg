@@ -99,7 +99,7 @@ func (t *TarGzip) AddFile(filename string, dest ...string) error {
 // AddFileFromBuffer adds a file from a buffer
 func (t *TarGzip) AddFileFromBuffer(filename string, b []byte) error {
 	hdr := tar.Header{
-		Name:     filename,
+		Name:     strings.Trim(filename, "/"),
 		Size:     int64(len(b)),
 		Mode:     0644,
 		Uid:      0,
