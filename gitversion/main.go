@@ -37,16 +37,31 @@ func latestAnnotatedTag(repo *git.Repository) (*object.Tag, error) {
 }
 
 func latestTag(repo *git.Repository) (*object.Tag, error) {
-	ref, err := repo.Head()
+	head, err := repo.Head()
 	if err != nil {
 		return nil, err
 	}
-	tag, err := repo.TagObject(ref.Hash())
+	tag, err := repo.TagObject(head.Hash())
 	if err == nil {
 		return tag, nil
 	}
 
 	return latestAnnotatedTag(repo)
+}
+
+func countSinceLatestTag(repo *git.Repository) (uint, error) {
+	latest, err := latestTag(repo)
+	if err != nil {
+		return 0, err
+	}
+	head, err := repo.Head()
+	if err != nil {
+		return 0, err
+	}
+	if latest.Hash == head.Hash() {
+		return 0, nil
+	}
+	return 0, nil
 }
 
 // Basic example of how to list tags.
