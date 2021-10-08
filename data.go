@@ -105,7 +105,7 @@ func (d *data) addFile(filename string, dest ...string) error {
 		return err
 	}
 
-	d.md5sums += fmt.Sprintf("%x  %s\n", md5, filename)
+	d.md5sums += fmt.Sprintf("%x  %s\n", md5, destfilename)
 
 	fd.Close()
 	return nil
