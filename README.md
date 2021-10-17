@@ -81,6 +81,10 @@ I would like to mention some other noticable projects for debian package managem
 * https://github.com/debber/debber-v0.3
 * https://github.com/laher/goxc
 
+Other packaging tools in golang:
+
+* https://github.com/google/rpmpack
+
 # Debugging
 
 When debugging on a Debian system the following commands are usefull:
