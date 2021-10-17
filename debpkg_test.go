@@ -19,10 +19,15 @@ import (
 func testWrite(t *testing.T, deb *DebPkg) error {
 	f := test.TempFile(t)
 	err := deb.Write(f)
-	if err == nil {
-		testReadWithNativeDpkg(t, f)
+	if err != nil {
+		return err
 	}
-	return err
+	err = testReadWithLintian(t, f)
+	if err != nil {
+		return err
+	}
+	testReadWithNativeDpkg(t, f)
+	return nil
 }
 
 // testReadWithNativeDpkg tests a single debian package with the dpkg tool when present
@@ -39,6 +44,23 @@ func testReadWithNativeDpkg(t *testing.T, filename string) {
 	// TODO test control, extract, verify...
 	assert.Nil(t, dpkg("info", filename))
 	assert.Nil(t, dpkg("contents", filename))
+}
+
+func testReadWithLintian(t *testing.T, filename string) error {
+	lintianCmd, err := exec.LookPath("lintian")
+	if err != nil || lintianCmd == "" {
+		return nil
+	}
+
+	lintian := func(filename string) error {
+		// For now we don't fail on warning or errors (yet)
+		//return exec.Command(lintianCmd, "--fail-on", "warning,error", filename).Run()
+		return exec.Command(lintianCmd, "--fail-on", "pedantic", filename).Run()
+	}
+
+	err = lintian(filename)
+	assert.Nil(t, err)
+	return err
 }
 
 // TestDirectory verifies adding a single directory recursive to the package

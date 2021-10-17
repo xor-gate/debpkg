@@ -46,7 +46,7 @@ func TestDataAddFileString(t *testing.T) {
 	err := d.addFileString("test", "/foo")
 	assert.Nil(t, err)
 	assert.Empty(t, d.dirs)
-	assert.Equal(t, "098f6bcd4621d373cade4e832627b4f6  /foo\n", d.md5sums)
+	assert.Equal(t, "098f6bcd4621d373cade4e832627b4f6  foo\n", d.md5sums)
 
 	assert.Nil(t, d.tgz.Close())
 	os.Remove(d.tgz.Name())
@@ -57,7 +57,7 @@ func TestDataAddFileWithDest(t *testing.T) {
 	err := d.addFile("internal/test/test.go", "/usr/share/debpkg/test.go")
 	assert.Nil(t, err)
 	//assert.ElementsMatch(t, d.dirs, []string{"/usr","/usr/share","/usr/share/debpkg"})
-	assert.Equal(t, "3a26a3c02dbaedba43aa1cc1309a6e7d  /usr/share/debpkg/test.go\n", d.md5sums)
+	assert.Equal(t, "3a26a3c02dbaedba43aa1cc1309a6e7d  usr/share/debpkg/test.go\n", d.md5sums)
 
 	assert.Nil(t, d.tgz.Close())
 	os.Remove(d.tgz.Name())

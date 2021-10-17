@@ -62,7 +62,12 @@ func (d *data) addParentDirectories(filename string) {
 	}
 }
 
-func (d *data) addFileString(contents string, dest string) error {
+func (d *data) addToMD5sums(md5 []byte, dest string) {
+	dest = strings.TrimPrefix(dest, "/")
+	d.md5sums += fmt.Sprintf("%x  %s\n", md5, dest)
+}
+
+func (d *data) addFileString(contents, dest string) error {
 	d.addParentDirectories(dest)
 
 	if err := d.tgz.AddFileFromBuffer(dest, []byte(contents)); err != nil {
@@ -74,7 +79,7 @@ func (d *data) addFileString(contents string, dest string) error {
 		return err
 	}
 
-	d.md5sums += fmt.Sprintf("%x  %s\n", md5, dest)
+	d.addToMD5sums(md5, dest)
 	return nil
 }
 
@@ -105,7 +110,7 @@ func (d *data) addFile(filename string, dest ...string) error {
 		return err
 	}
 
-	d.md5sums += fmt.Sprintf("%x  %s\n", md5, destfilename)
+	d.addToMD5sums(md5, destfilename)
 
 	fd.Close()
 	return nil
