@@ -1,7 +1,7 @@
 # debpkg
 
-debpkg is a pure [Go](https://golang.org) library to create Debian packages. It has zero dependencies to
- Debian. It is able to generate packages from Mac OS X, *BSD and Windows. 
+debpkg is a pure [Go](https://golang.org) library to create [Debian](https://debian.org) Linux packages. The package can be directly imported in your go project or run a `debpkg` cli tool with a custom debpkg YAML specfile (just like a single [RPM spec file](http://ftp.rpm.org/max-rpm/s1-rpm-build-creating-spec-file.html)). It has zero dependencies outside go modules, to
+ and doesn't use exec wrappers. Therefor it is able to generate packages from non Linux systems like Mac OS X, *BSD and Windows without the Perl dependency (as with official [debbuild](https://github.com/debbuild/debbuild)). The "problem" with the Debian package build system is it universal and flexable nature, which can be a pro or con. Packaging just a small bunch of files with simple configuration the Debian build system is a fairly complex beast to understand. And you must dig deep into the workings of the Debian package management documentation. Debpkg is not able to resolve all the advanced packaging requirements theirfor one must use the official `debbuild` and `debhelper`. It is created for the simple case to convert a directory structure to be installable and maintained via the standard debian way.
 
 [![License][License-Image]][License-Url]
 [![Godoc][Godoc-Image]][Godoc-Url]
@@ -67,7 +67,7 @@ description:
 
 # Mentions
 
-This project is sponsored by [@dualinventive](https://github.com/dualinventive)
+This project originate from an in-company implementation sponsored by [@dualinventive](https://github.com/dualinventive) in 2016-2017, with help from collegue [@rikvdh](https://github.com/rikvdh).
 
 I would like to mention some other noticable projects for debian package management:
 
@@ -80,6 +80,7 @@ I would like to mention some other noticable projects for debian package managem
 * https://github.com/laher/debgo-v0.2
 * https://github.com/debber/debber-v0.3
 * https://github.com/laher/goxc
+* https://github.com/knqyf263/go-deb-version
 
 Other packaging tools in golang:
 
