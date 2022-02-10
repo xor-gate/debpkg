@@ -1,8 +1,5 @@
 # debpkg
 
-debpkg is a pure [Go](https://golang.org) library to create [Debian](https://debian.org) Linux packages. The package can be directly imported in your go project or run a `debpkg` cli tool with a custom debpkg YAML specfile (just like a single [RPM spec file](http://ftp.rpm.org/max-rpm/s1-rpm-build-creating-spec-file.html)). It has zero dependencies outside go modules, to
- and doesn't use exec wrappers. Therefor it is able to generate packages from non Linux systems like Mac OS X, *BSD and Windows without the Perl dependency (as with official [debbuild](https://github.com/debbuild/debbuild)). The "problem" with the Debian package build system is it universal and flexable nature, which can be a pro or con. Packaging just a small bunch of files with simple configuration the Debian build system is a fairly complex beast to understand. And you must dig deep into the workings of the Debian package management documentation. Debpkg is not able to resolve all the advanced packaging requirements theirfor one must use the official `debbuild` and `debhelper`. It is created for the simple case to convert a directory structure to be installable and maintained via the standard debian way.
-
 [![License][License-Image]][License-Url]
 [![Godoc][Godoc-Image]][Godoc-Url]
 [![ReportCard][ReportCard-Image]][ReportCard-Url]
@@ -10,7 +7,10 @@ debpkg is a pure [Go](https://golang.org) library to create [Debian](https://deb
 [![BuildAppVeyor][BuildAV-Status-Image]][BuildAV-Status-Url]
 [![Coverage][Coverage-Image]][Coverage-Url]
 
-**Features**
+debpkg is a pure [Go](https://golang.org) library to create [Debian](https://debian.org) Linux packages. The package can be directly imported in your go project or run a `debpkg` cli tool with a custom debpkg YAML specfile (just like a single [RPM spec file](http://ftp.rpm.org/max-rpm/s1-rpm-build-creating-spec-file.html)). It has zero dependencies outside go modules, to
+ and doesn't use exec wrappers. Therefor it is able to generate packages from non Linux systems like Mac OS X, *BSD and Windows without the Perl dependency (as with official [debbuild](https://github.com/debbuild/debbuild)). The "problem" with the Debian package build system is it universal and flexable nature, which can be a pro or con. Packaging just a small bunch of files with simple configuration the Debian build system is a fairly complex beast to understand. And you must dig deep into the workings of the Debian package management documentation. Debpkg is not able to resolve all the advanced packaging requirements theirfor one must use the official `debbuild` and `debhelper`. It is created for the simple case to convert a directory structure to be installable and maintained via the standard debian way.
+
+## Features
 
 The feature list below describes the usability state of the project:
 
@@ -86,7 +86,7 @@ Other packaging tools in golang:
 
 * https://github.com/google/rpmpack
 
-# Debugging
+## Debugging
 
 When debugging on a Debian system the following commands are usefull:
 
@@ -95,7 +95,7 @@ When debugging on a Debian system the following commands are usefull:
 * Verbose extract data.tar.gz: `dpkg --vextract <debfile> data`
 * Extract control.tar.gz: `dpkg --control <debfile> control`
 
-# Further documentation
+## Further documentation
 
 More information can be gathered from the Debian and Ubuntu documentation:
 
@@ -107,7 +107,7 @@ More information can be gathered from the Debian and Ubuntu documentation:
 * [Setting up signed APT repository with Reprepro](https://wiki.debian.org/SettingUpSignedAptRepositoryWithReprepro)
 * [Create authenticated repository](https://help.ubuntu.com/community/CreateAuthenticatedRepository)
 
-# License
+## License
 
 [MIT](LICENSE)
 
