@@ -37,8 +37,7 @@ This package is heavily inspired by [godeb](https://github.com/niemeyer/godeb) a
 
 ## Status
 
-The package is currently in production state. The API is still unstable (v0) most rough edges are already polished 
- but a wider audience is necessary. 
+The package is currently in production state. The API is stable (v1). 
 
 # debpkg.yml specfile
 
