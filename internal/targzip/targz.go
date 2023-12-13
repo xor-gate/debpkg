@@ -82,6 +82,8 @@ func (t *TarGzip) AddFile(filename string, dest ...string) error {
 	hdr.Name = strings.Trim(hdr.Name, "/")
 	hdr.Uid = 0
 	hdr.Gid = 0
+	hdr.Uname = "root"
+	hdr.Gname = "root"
 
 	// write the header to the tarball archive
 	if err := t.writeHeader(hdr); err != nil {
