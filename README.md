@@ -93,6 +93,8 @@ When debugging on a Debian system the following commands are usefull:
 * Extract data.tar.gz: `dpkg --extract <debfile> data`
 * Verbose extract data.tar.gz: `dpkg --vextract <debfile> data`
 * Extract control.tar.gz: `dpkg --control <debfile> control`
+* Show .deb file contents: `dpkg-deb dpkg-deb --contents package.deb`
+* Install .deb file manually without repository: `dpkg -i package.deb`
 
 ## Further documentation
 
