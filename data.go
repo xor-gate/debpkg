@@ -70,7 +70,7 @@ func (d *data) addToMD5sums(md5 []byte, dest string) {
 func (d *data) addFileString(contents, dest string) error {
 	d.addParentDirectories(dest)
 
-	if err := d.tgz.AddFileFromBuffer(dest, []byte(contents)); err != nil {
+	if err := d.tgz.AddFileFromBuffer(dest, []byte(contents), 0); err != nil {
 		return err
 	}
 
