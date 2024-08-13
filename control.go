@@ -212,7 +212,7 @@ func (deb *DebPkg) AddControlExtraString(name, s string) error {
 		deb.control.hasCustomConffiles = true
 	}
 	s = strings.Replace(s, "\r\n", "\n", -1)
-	return deb.control.tgz.AddFileFromBuffer(name, []byte(s))
+	return deb.control.tgz.AddFileFromBuffer(name, []byte(s), 0755)
 }
 
 // AddControlExtra allows the advanced user to add custom script to the control.tar.gz Typical usage is
@@ -250,15 +250,15 @@ func (c *control) markConfigFile(dest string) error {
 // config-files
 func (c *control) finalizeControlFile(d *data) error {
 	if !c.hasCustomConffiles {
-		if err := c.tgz.AddFileFromBuffer("conffiles", []byte(c.conffiles)); err != nil {
+		if err := c.tgz.AddFileFromBuffer("conffiles", []byte(c.conffiles), 0); err != nil {
 			return err
 		}
 	}
 	controlFile := []byte(c.String(d.tgz.Written()))
-	if err := c.tgz.AddFileFromBuffer("control", controlFile); err != nil {
+	if err := c.tgz.AddFileFromBuffer("control", controlFile, 0); err != nil {
 		return err
 	}
-	if err := c.tgz.AddFileFromBuffer("md5sums", []byte(d.md5sums)); err != nil {
+	if err := c.tgz.AddFileFromBuffer("md5sums", []byte(d.md5sums), 0); err != nil {
 		return err
 	}
 	return nil

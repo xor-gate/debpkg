@@ -98,12 +98,16 @@ func (t *TarGzip) AddFile(filename string, dest ...string) error {
 	return nil
 }
 
-// AddFileFromBuffer adds a file from a buffer
-func (t *TarGzip) AddFileFromBuffer(filename string, b []byte) error {
+// AddFileFromBuffer adds a file from a buffer. The mode is optional and defaults to 0644.
+func (t *TarGzip) AddFileFromBuffer(filename string, b []byte, mode int64) error {
+	if mode == 0 {
+		mode = 0644
+	}
+
 	hdr := tar.Header{
 		Name:     strings.Trim(filename, "/"),
 		Size:     int64(len(b)),
-		Mode:     0644,
+		Mode:     mode,
 		Uid:      0,
 		Gid:      0,
 		ModTime:  time.Now(),
